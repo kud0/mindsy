@@ -81,13 +81,62 @@ npm run lint
 - Font variables applied through CSS custom properties
 - Antialiasing enabled globally via Tailwind classes
 
+## Migration from Astro
+
+### Migration Status
+**Currently migrating from**: Astro/React app in `/cornellsummaryai` folder
+**Migration approach**: Simplified 4-page architecture
+
+### ✅ Completed Migration:
+- **Authentication System**: Login, signup, OAuth callback, protected routes
+- **Landing Page**: Marketing page with auth redirect
+- **Dashboard Layout**: DashboardWrapper, MainSidebar, TopBar components
+- **All Shadcn/UI Components**: Complete UI component library migrated
+- **4 Dashboard Pages**: Dashboard, Lectures, Exams, Pomodoro (placeholder content)
+- **Middleware**: Session management and route protection
+
+### Simplified Dashboard Architecture
+**4 main pages:**
+1. **Dashboard** (`/dashboard`) - Overview with stats
+2. **Lectures** (`/dashboard/lectures`) - Combined notes + study organization
+3. **Exam Center** (`/dashboard/exams`) - Exam creation and management
+4. **Pomodoro** (`/dashboard/pomodoro`) - Full Pomodoro timer page (accessed via widget)
+
+### What to Migrate (Priority Order)
+1. **Shadcn/UI components** - All UI components from `/cornellsummaryai/src/components/ui/`
+2. **Page-specific components**:
+   - Dashboard: `DashboardOverview`
+   - Lectures: `StudiesWithLectures`, `StudiesManager`, `NoteDetailView`, `PdfViewer`
+   - Exams: `ExamContent`, `ExamDashboard`, `ExamCreator`
+   - Pomodoro: `PomodoroTimer` (widget + full page), `PomodoroDashboard`
+3. **Supabase integration** - Auth, database client, storage
+4. **Essential API logic** - Note generation, file processing, exam system
+5. **Type definitions** - Database types, custom interfaces
+
+### What NOT to Migrate
+- `/dashboard/studies` page (merged into Lectures)
+- `/dashboard/notes` page (merged into Lectures)
+- `/dashboard/performance` page (not used)
+- `/dashboard/account` page (may simplify later)
+- Blog system (barely used)
+- Legacy dashboard components
+- 100+ test scripts
+- Spanish localization (unless needed)
+
 ## Supabase Integration
 
-### Authentication
-- OAuth providers supported through Supabase Auth
-- Server-side auth validation with Next.js middleware
-- User session management via Supabase client
-- Protected routes using Supabase auth helpers
+### Authentication Flow
+1. **Landing Page** (`/`) - Marketing page, redirects to dashboard if authenticated
+2. **Login** (`/auth/login`) - Email/password and GitHub OAuth
+3. **OAuth Callback** (`/auth/callback`) - Handles OAuth redirects
+4. **Dashboard** (`/dashboard`) - Protected route, requires authentication
+5. **Middleware** - Updates session on every request
+
+### Authentication Implementation
+- Server-side auth: `lib/supabase/server.ts` (for Server Components)
+- Client-side auth: `lib/supabase/client.ts` (for Client Components)
+- Middleware: `middleware.ts` + `lib/supabase/middleware.ts`
+- Protected routes automatically redirect to login if not authenticated
 
 ### Database
 - PostgreSQL database with Row Level Security (RLS)
