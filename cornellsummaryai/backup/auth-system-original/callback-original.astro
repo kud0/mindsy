@@ -1,0 +1,122 @@
+---
+import AuthFeedback from "../../components/AuthFeedback.astro";
+
+// Simple callback page - let Supabase handle OAuth
+const error = Astro.url.searchParams.get('error');
+if (error) {
+  return Astro.redirect('/auth/login?error=' + encodeURIComponent(error));
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authenticating...</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f8fafc;
+    }
+    .auth-container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+    .auth-header {
+      margin-bottom: 2rem;
+    }
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    .auth-subtitle {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    .progress-container {
+      margin: 2rem 0;
+    }
+    .progress-bar {
+      height: 4px;
+      background-color: #e5e7eb;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .progress-value {
+      height: 100%;
+      background-color: #3b82f6;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: center;
+    }
+    .debug-info {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #f3f4f6;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: left;
+      display: none;
+    }
+    .debug-toggle {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 1rem;
+      display: inline-block;
+    }
+  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-header">
+      <h1 class="auth-title">Completing Authentication</h1>
+      <p class="auth-subtitle">Please wait while we verify your account...</p>
+    </div>
+    
+    <!-- Auth Feedback Component -->
+    <AuthFeedback lang="en" />
+    
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div id="progress-value" class="progress-value" style="width: 0%"></div>
+      </div>
+      <div id="progress-label" class="progress-label">Processing OAuth callback...</div>
+    </div>
+    
+    <div id="debug-info" class="debug-info">
+      <pre id="debug-content"></pre>
+    </div>
+    
+    <span id="debug-toggle" class="debug-toggle">Show debug info</span>
+  </div>
+
+  <!-- Include the auth utilities loader -->
+  <script src="../../lib/auth-utils-global.js"></script>
+  
+  <script>
+    // Simple redirect after Supabase handles OAuth
+    setTimeout(() => {
+      window.location.href = '/dashboard';
+    }, 2000);
+  </script>
+</body>
+</html>

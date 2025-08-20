@@ -1,0 +1,77 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { DashboardLayout } from "../../components/dashboard/DashboardLayout";
+import { requireAuth, createClient } from "../../lib/supabase-server";
+
+// Get user and check auth
+const { user, response } = await requireAuth(Astro.cookies);
+if (response) return response;
+
+const supabase = createClient(Astro.cookies);
+
+// Fetch user profile
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', user.id)
+  .single();
+
+// Fetch user's folders with note counts
+const { data: folders } = await supabase
+  .from('folders')
+  .select('id, name, parent_id')
+  .eq('user_id', user.id)
+  .order('name');
+
+// Count notes in each folder
+const foldersWithCount = await Promise.all((folders || []).map(async (folder) => {
+  const { count } = await supabase
+    .from('notes')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('folder_id', folder.id);
+  
+  return {
+    id: folder.id,
+    name: folder.name,
+    parentId: folder.parent_id,
+    count: count || 0
+  };
+}));
+
+// Also get unfiled notes count
+const { count: unfiledCount } = await supabase
+  .from('notes')
+  .select('id', { count: 'exact', head: true })
+  .eq('user_id', user.id)
+  .is('folder_id', null);
+
+const allFolders = [
+  {
+    id: 'unfiled',
+    name: 'Unfiled',
+    parentId: null,
+    count: unfiledCount || 0
+  },
+  ...foldersWithCount
+];
+
+const userData = {
+  id: user.id,
+  name: profile?.full_name || profile?.name || user.email?.split('@')[0] || 'User',
+  email: user.email || '',
+  avatar: profile?.avatar_url || user.user_metadata?.avatar_url || '',
+  plan: profile?.subscription_tier || 'free',
+  minutesUsed: profile?.minutes_used || 0,
+  minutesLimit: profile?.subscription_tier === 'student' ? 1500 : 15
+};
+---
+
+<BaseLayout title="Performance Analytics - Mindsy Notes Generator">
+  <DashboardLayout 
+    client:only="react"
+    user={userData} 
+    currentPage="performance" 
+    initialFolders={allFolders}
+  />
+</BaseLayout>

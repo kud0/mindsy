@@ -1,0 +1,17 @@
+---
+import Layout from '@/layouts/ModernDashboardLayout.astro';
+import { AccountSettingsIntegrated } from '@/components/dashboard/AccountSettingsIntegrated';
+import { requireAuth } from '@/lib/supabase-server';
+
+const { user, response } = await requireAuth(Astro.cookies);
+if (response) return response;
+
+const title = 'Account Settings';
+const description = 'Manage your profile and preferences';
+---
+
+<Layout title={title} description={description}>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <AccountSettingsIntegrated client:load />
+  </div>
+</Layout>

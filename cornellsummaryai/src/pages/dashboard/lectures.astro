@@ -1,0 +1,18 @@
+---
+import Layout from '@/layouts/ModernDashboardLayout.astro';
+import { requireAuth, createClient } from '../../lib/supabase-server';
+import StudiesWithLectures from '@/components/dashboard/StudiesWithLectures';
+
+// Check authentication
+const { user, response: authResponse } = await requireAuth(Astro.cookies);
+if (authResponse) return authResponse;
+
+const title = 'Lectures';
+const description = 'Organize your lectures by courses, years, and subjects';
+---
+
+<Layout title={title} description={description}>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <StudiesWithLectures client:load />
+  </div>
+</Layout>

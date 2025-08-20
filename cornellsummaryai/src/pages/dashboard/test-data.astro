@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { requireAuth, createClient } from "../../lib/supabase-server";
+
+// Get user and check auth
+const { user, response } = await requireAuth(Astro.cookies);
+if (response) return response;
+
+const supabase = createClient(Astro.cookies);
+
+// Test fetching data
+const { data: allJobs, error: allJobsError } = await supabase
+  .from('jobs')
+  .select('*')
+  .eq('user_id', user.id);
+
+const { data: folders, error: foldersError } = await supabase
+  .from('folders')
+  .select('*')
+  .eq('user_id', user.id);
+
+const { data: folderHierarchy, error: hierarchyError } = await supabase
+  .rpc('get_folder_hierarchy', { p_user_id: user.id });
+---
+
+<BaseLayout title="Test Data">
+  <div class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Debug Data for User: {user.email}</h1>
+    
+    <div class="space-y-6">
+      <div>
+        <h2 class="text-xl font-semibold">All Jobs ({allJobs?.length || 0})</h2>
+        <pre class="bg-gray-100 p-4 rounded overflow-auto max-h-96">
+{JSON.stringify(allJobs, null, 2)}
+        </pre>
+        {allJobsError && <p class="text-red-500">Error: {allJobsError.message}</p>}
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold">Folders ({folders?.length || 0})</h2>
+        <pre class="bg-gray-100 p-4 rounded overflow-auto max-h-96">
+{JSON.stringify(folders, null, 2)}
+        </pre>
+        {foldersError && <p class="text-red-500">Error: {foldersError.message}</p>}
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold">Folder Hierarchy</h2>
+        <pre class="bg-gray-100 p-4 rounded overflow-auto max-h-96">
+{JSON.stringify(folderHierarchy, null, 2)}
+        </pre>
+        {hierarchyError && <p class="text-red-500">Error: {hierarchyError.message}</p>}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

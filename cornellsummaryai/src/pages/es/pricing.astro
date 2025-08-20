@@ -1,0 +1,355 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { useTranslations } from '../../lib/i18n';
+
+// Get user from locals (set by middleware)
+const user = Astro.locals.user;
+const isAuthenticated = !!user;
+const lang = 'es';
+const t = useTranslations(lang);
+---
+
+<BaseLayout title="Precios">
+	<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+		<Navbar lang={lang} currentPage="pricing" isAuthenticated={isAuthenticated} />
+		<!-- Hero Section -->
+		<section class="pt-20 pb-16">
+			<div class="container mx-auto px-4 text-center">
+				<h1 class="text-4xl font-bold text-gray-900 mb-4">{t('pricing.title')}</h1>
+				<p class="text-xl text-gray-600 max-w-2xl mx-auto">{t('pricing.subtitle')}</p>
+			</div>
+		</section>
+
+		<!-- Pricing Section -->
+		<section class="pt-16 pb-20 bg-white" id="pricing">
+			<div class="container mx-auto px-4">
+				<div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+					<!-- Free Tier -->
+					<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+						<div class="px-10 py-8">
+							<h3 class="text-2xl font-bold text-gray-900 mb-2">{t('pricing.free.title')}</h3>
+							<p class="text-gray-600 mb-6">{t('pricing.free.desc')}</p>
+							<div class="mb-6">
+								<span class="text-4xl font-bold">$0</span>
+								<span class="text-gray-600">/mes</span>
+							</div>
+							<ul class="space-y-3 mb-8">
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.free.summaries')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.free.duration')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.free.format')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.free.download')}
+								</li>
+							</ul>
+							{isAuthenticated ? (
+								<a href="/es/dashboard" class="block w-full text-center bg-gray-200 text-gray-700 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition">
+									{t('pricing.cta.dashboard')}
+								</a>
+							) : (
+								<a href="/es/auth/signup" class="block w-full text-center bg-gray-200 text-gray-700 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition">
+									{t('pricing.cta.getStarted')}
+								</a>
+							)}
+						</div>
+					</div>
+
+					<!-- Student Tier -->
+					<div class="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-500 relative">
+						<div class="absolute top-0 right-0 bg-blue-500 text-white px-3 py-1 text-sm">{t('pricing.student.popular')}</div>
+						<div class="px-10 py-8">
+							<h3 class="text-2xl font-bold text-gray-900 mb-2">{t('pricing.student.title')}</h3>
+							<p class="text-gray-600 mb-6">{t('pricing.student.desc')}</p>
+							<div class="mb-6">
+								<span class="text-4xl font-bold">€5</span>
+								<span class="text-gray-600">/mes</span>
+							</div>
+							<ul class="space-y-3 mb-8">
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.student.hours')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.student.duration')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.student.summaries')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.student.priority')}
+								</li>
+								<li class="flex items-center">
+									<svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t('pricing.student.exports')}
+								</li>
+							</ul>
+							{isAuthenticated ? (
+								<a href="https://buy.stripe.com/3cI9AS4O64Jp4do8CgdIA00" class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition">
+									{t('pricing.cta.upgrade')}
+								</a>
+							) : (
+								<a href="/es/auth/signup" class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition">
+									{t('pricing.cta.subscribe')}
+								</a>
+							)}
+						</div>
+					</div>
+				</div>
+
+				<div class="mt-12 text-center text-gray-600">
+					<p class="mb-2">{t('pricing.note1')}</p>
+					<p>{t('pricing.note2')} <a href="mailto:support@mysummary.app" class="text-blue-600 hover:underline">{t('pricing.contact')}</a></p>
+				</div>
+			</div>
+		</section>
+
+		<!-- FAQ Section -->
+		<section class="py-20 bg-gray-50">
+			<div class="container mx-auto px-4">
+				<div class="max-w-4xl mx-auto">
+					<div class="text-center mb-12">
+						<h2 class="text-3xl font-bold text-gray-900 mb-4">{t('faq.title')}</h2>
+						<p class="text-xl text-gray-600">{t('faq.subtitle')}</p>
+					</div>
+
+					<div class="space-y-4">
+						<!-- General Questions -->
+						<div class="bg-white rounded-lg shadow-sm">
+							<button class="faq-button w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" data-target="general">
+								<span class="font-semibold text-gray-900">{t('faq.general.title')}</span>
+								<svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+								</svg>
+							</button>
+							<div id="general" class="faq-content hidden px-6 pb-4">
+								<div class="space-y-4 text-gray-600">
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.general.q1.question')}</h4>
+										<p>{t('faq.general.q1.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.general.q2.question')}</h4>
+										<p>{t('faq.general.q2.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.general.q3.question')}</h4>
+										<p>{t('faq.general.q3.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.general.q4.question')}</h4>
+										<p>{t('faq.general.q4.answer')}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Pricing Questions -->
+						<div class="bg-white rounded-lg shadow-sm">
+							<button class="faq-button w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" data-target="faq-pricing">
+								<span class="font-semibold text-gray-900">{t('faq.pricing.title')}</span>
+								<svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+								</svg>
+							</button>
+							<div id="faq-pricing" class="faq-content hidden px-6 pb-4">
+								<div class="space-y-4 text-gray-600">
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.pricing.q1.question')}</h4>
+										<p>{t('faq.pricing.q1.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.pricing.q2.question')}</h4>
+										<p>{t('faq.pricing.q2.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.pricing.q3.question')}</h4>
+										<p>{t('faq.pricing.q3.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.pricing.q4.question')}</h4>
+										<p>{t('faq.pricing.q4.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.pricing.q5.question')}</h4>
+										<p>{t('faq.pricing.q5.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.pricing.q6.question')}</h4>
+										<p>{t('faq.pricing.q6.answer')}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Technical Questions -->
+						<div class="bg-white rounded-lg shadow-sm">
+							<button class="faq-button w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" data-target="technical">
+								<span class="font-semibold text-gray-900">{t('faq.technical.title')}</span>
+								<svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+								</svg>
+							</button>
+							<div id="technical" class="faq-content hidden px-6 pb-4">
+								<div class="space-y-4 text-gray-600">
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.technical.q1.question')}</h4>
+										<p>{t('faq.technical.q1.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.technical.q2.question')}</h4>
+										<p>{t('faq.technical.q2.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.technical.q3.question')}</h4>
+										<p>{t('faq.technical.q3.answer')}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Account Questions -->
+						<div class="bg-white rounded-lg shadow-sm">
+							<button class="faq-button w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition" data-target="account">
+								<span class="font-semibold text-gray-900">{t('faq.account.title')}</span>
+								<svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+								</svg>
+							</button>
+							<div id="account" class="faq-content hidden px-6 pb-4">
+								<div class="space-y-4 text-gray-600">
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.account.q1.question')}</h4>
+										<p>{t('faq.account.q1.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.account.q2.question')}</h4>
+										<p>{t('faq.account.q2.answer')}</p>
+									</div>
+									<div>
+										<h4 class="font-medium text-gray-900 mb-2">{t('faq.account.q3.question')}</h4>
+										<p>{t('faq.account.q3.answer')}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Contact Section -->
+					<div class="text-center mt-12">
+						<h3 class="text-xl font-semibold text-gray-900 mb-4">{t('faq.contact.title')}</h3>
+						<p class="text-gray-600 mb-4">{t('faq.contact.desc')}</p>
+						<a href="mailto:support@mysummary.app" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+							<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+							</svg>
+							{t('faq.contact.button')}
+						</a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- CTA Section -->
+		<section class="py-20 bg-blue-600 text-white">
+			<div class="container mx-auto px-4 text-center">
+				<h2 class="text-3xl font-bold mb-4">{t('cta.title')}</h2>
+				<p class="text-xl mb-8">{t('cta.subtitle')}</p>
+				{isAuthenticated ? (
+					<a href="/es/dashboard" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
+						{t('cta.dashboard')}
+					</a>
+				) : (
+					<a href="/es/auth/signup" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
+						{t('cta.getStarted')}
+					</a>
+				)}
+			</div>
+		</section>
+
+		<!-- Footer -->
+		<Footer lang={lang} isAuthenticated={isAuthenticated} />
+	</div>
+
+	<!-- JavaScript for FAQ accordion -->
+	<script is:inline>
+		document.addEventListener('DOMContentLoaded', () => {
+			// FAQ Accordion functionality
+			const faqButtons = document.querySelectorAll('.faq-button');
+			
+			// Initialize the FAQ pricing section as open (rotate its arrow)
+			const faqPricingButton = document.querySelector('[data-target="faq-pricing"]');
+			if (faqPricingButton) {
+				const faqPricingIcon = faqPricingButton.querySelector('svg');
+				faqPricingIcon.classList.add('rotate-180');
+			}
+			
+			faqButtons.forEach(button => {
+				button.addEventListener('click', () => {
+					const target = button.getAttribute('data-target');
+					const content = document.getElementById(target);
+					const icon = button.querySelector('svg');
+					
+					// Close all other FAQ items
+					faqButtons.forEach(otherButton => {
+						if (otherButton !== button) {
+							const otherTarget = otherButton.getAttribute('data-target');
+							const otherContent = document.getElementById(otherTarget);
+							const otherIcon = otherButton.querySelector('svg');
+							
+							otherContent.classList.add('hidden');
+							otherIcon.classList.remove('rotate-180');
+						}
+					});
+					
+					// Toggle current FAQ item
+					content.classList.toggle('hidden');
+					icon.classList.toggle('rotate-180');
+				});
+			});
+		});
+	</script>
+
+	<!-- Auth initialization - Use global functions from BaseLayout -->
+	<script type="module">
+		// Wait for global auth functions to be initialized by BaseLayout
+		document.addEventListener('DOMContentLoaded', async () => {
+			// Wait for global auth to be ready
+			while (!window.AuthStore) {
+				await new Promise(resolve => setTimeout(resolve, 50));
+			}
+			
+		});
+	</script>
+</BaseLayout>

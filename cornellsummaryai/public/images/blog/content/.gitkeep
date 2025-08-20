@@ -1,0 +1,9 @@
+# Content Images Directory
+
+This directory contains images used within blog post content (not hero images).
+
+## Organization:
+- Use descriptive filenames
+- Organize by post slug if needed: /post-slug/image-name.jpg
+- Supported formats: .jpg, .jpeg, .png, .webp, .avif, .svg
+- Recommended max width: 1200px for content images

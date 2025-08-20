@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Graph Testing Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .url-input { width: 100%; padding: 10px; font-size: 16px; margin: 10px 0; }
+        .test-button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .test-button:hover { background: #005a87; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 WhatsApp Sharing Test Tool</h1>
+    
+    <div class="test-section">
+        <h2>Test Your Open Graph Tags</h2>
+        <p>Use these tools to test how your website will appear when shared on WhatsApp:</p>
+        
+        <h3>🔧 Testing Tools:</h3>
+        <ul>
+            <li><strong>Facebook Debugger:</strong> <a href="https://developers.facebook.com/tools/debug/" target="_blank">https://developers.facebook.com/tools/debug/</a></li>
+            <li><strong>LinkedIn Post Inspector:</strong> <a href="https://www.linkedin.com/post-inspector/" target="_blank">https://www.linkedin.com/post-inspector/</a></li>
+            <li><strong>Twitter Card Validator:</strong> <a href="https://cards-dev.twitter.com/validator" target="_blank">https://cards-dev.twitter.com/validator</a></li>
+        </ul>
+        
+        <h3>🎯 Your URLs to Test:</h3>
+        <div class="result">
+            <strong>🏠 English Home:</strong> http://localhost:4322/<br>
+            <strong>🏠 Spanish Home:</strong> http://localhost:4322/es/<br>
+            <strong>🎓 Pricing:</strong> http://localhost:4322/pricing<br>
+            <strong>🎓 Spanish Pricing:</strong> http://localhost:4322/es/pricing
+        </div>
+        
+        <h3>✅ Expected WhatsApp Preview:</h3>
+        <div class="result">
+            <strong>Title:</strong> Home - MySummary APP<br>
+            <strong>Description:</strong> 🎓 Transform your lectures into smart Cornell Notes with AI! Upload audio, get professional PDFs instantly. Perfect for students and learners. Try free today!<br>
+            <strong>Image:</strong> Your wave logo (logo-wave.png)<br>
+            <strong>URL:</strong> Your domain
+        </div>
+        
+        <h3>📱 Manual WhatsApp Test:</h3>
+        <ol>
+            <li>Share your website URL in a WhatsApp chat</li>
+            <li>Wait for WhatsApp to load the preview</li>
+            <li>Verify the title, description, and logo appear correctly</li>
+        </ol>
+        
+        <h3>🔍 Meta Tags Added:</h3>
+        <div class="result">
+            <code>
+                &lt;meta property="og:title" content="Home - MySummary APP" /&gt;<br>
+                &lt;meta property="og:description" content="🎓 Transform your lectures..." /&gt;<br>
+                &lt;meta property="og:image" content="https://yourdomain.com/logo-wave.png" /&gt;<br>
+                &lt;meta property="og:type" content="website" /&gt;<br>
+                &lt;meta property="og:locale" content="en_US" /&gt; (or es_ES for Spanish)<br>
+                &lt;meta property="whatsapp:title" content="..." /&gt;<br>
+                &lt;meta property="whatsapp:description" content="..." /&gt;<br>
+                &lt;meta property="whatsapp:image" content="..." /&gt;
+            </code>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚀 Deployment Checklist</h2>
+        <ul>
+            <li>✅ Open Graph meta tags added to BaseLayout</li>
+            <li>✅ Custom descriptions for English and Spanish home pages</li>
+            <li>✅ Logo wave image configured for social sharing</li>
+            <li>✅ Language detection and locale support</li>
+            <li>⏳ Test on production URL (not localhost)</li>
+            <li>⏳ Verify image loads correctly at full URL</li>
+            <li>⏳ Test WhatsApp sharing on actual device</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>💡 Tips for Better Social Sharing</h2>
+        <ul>
+            <li><strong>Image Size:</strong> Optimal size is 1200x630px for best display</li>
+            <li><strong>File Size:</strong> Keep image under 8MB (preferably under 1MB)</li>
+            <li><strong>Description:</strong> Keep under 300 characters for best display</li>
+            <li><strong>Title:</strong> Keep under 60 characters for best display</li>
+            <li><strong>Cache:</strong> Social platforms cache images, use debugger tools to refresh</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,282 @@
+---
+// Enhanced Health Status Component
+// This component displays the health status of the backend services with detailed metrics
+---
+
+<div id="health-status" class="fixed bottom-4 right-4 z-50 hidden">
+  <button id="health-status-button" class="flex items-center space-x-2 px-3 py-2 rounded-full text-xs font-medium shadow-md">
+    <span id="health-status-indicator" class="w-2 h-2 rounded-full"></span>
+    <span id="health-status-text">System Status</span>
+  </button>
+  
+  <div id="health-status-details" class="hidden absolute bottom-full right-0 mb-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 text-sm">
+    <div class="flex justify-between items-center mb-3">
+      <h4 class="font-medium text-gray-900 dark:text-gray-100">System Status</h4>
+      <button id="health-status-refresh" class="text-blue-500 hover:text-blue-700 text-xs">Refresh</button>
+    </div>
+    
+    <div class="mb-4">
+      <div class="flex justify-between items-center mb-1">
+        <span class="text-gray-600 dark:text-gray-300 text-xs">Environment:</span>
+        <span id="health-status-env" class="text-xs font-medium">-</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-gray-600 dark:text-gray-300 text-xs">Version:</span>
+        <span id="health-status-version" class="text-xs font-medium">-</span>
+      </div>
+    </div>
+    
+    <div class="mb-4">
+      <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Services</h5>
+      <div id="health-status-services" class="space-y-2 max-h-40 overflow-y-auto">
+        <div class="flex justify-between">
+          <span>Loading...</span>
+          <span class="animate-pulse">⏳</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="health-status-metrics" class="mb-4 hidden">
+      <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Metrics</h5>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+          <div class="text-xs text-gray-500 dark:text-gray-400">Requests (24h)</div>
+          <div id="health-metrics-requests" class="text-sm font-medium">-</div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+          <div class="text-xs text-gray-500 dark:text-gray-400">Avg Response</div>
+          <div id="health-metrics-response" class="text-sm font-medium">-</div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+          <div class="text-xs text-gray-500 dark:text-gray-400">Error Rate</div>
+          <div id="health-metrics-errors" class="text-sm font-medium">-</div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+          <div class="text-xs text-gray-500 dark:text-gray-400">Memory Usage</div>
+          <div id="health-metrics-memory" class="text-sm font-medium">-</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+      <span>Last checked: <span id="health-status-timestamp">-</span></span>
+      <button id="health-status-details-toggle" class="underline">Show details</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize health status component
+  const healthStatus = document.getElementById('health-status');
+  const healthStatusButton = document.getElementById('health-status-button');
+  const healthStatusIndicator = document.getElementById('health-status-indicator');
+  const healthStatusText = document.getElementById('health-status-text');
+  const healthStatusDetails = document.getElementById('health-status-details');
+  const healthStatusServices = document.getElementById('health-status-services');
+  const healthStatusTimestamp = document.getElementById('health-status-timestamp');
+  const healthStatusRefresh = document.getElementById('health-status-refresh');
+  const healthStatusDetailsToggle = document.getElementById('health-status-details-toggle');
+  const healthStatusEnv = document.getElementById('health-status-env');
+  const healthStatusVersion = document.getElementById('health-status-version');
+  const healthStatusMetrics = document.getElementById('health-status-metrics');
+  const healthMetricsRequests = document.getElementById('health-metrics-requests');
+  const healthMetricsResponse = document.getElementById('health-metrics-response');
+  const healthMetricsErrors = document.getElementById('health-metrics-errors');
+  const healthMetricsMemory = document.getElementById('health-metrics-memory');
+  
+  // Toggle health status details
+  healthStatusButton?.addEventListener('click', () => {
+    healthStatusDetails?.classList.toggle('hidden');
+  });
+  
+  // Refresh health status
+  healthStatusRefresh?.addEventListener('click', () => {
+    checkHealthStatus(true);
+  });
+  
+  // Toggle detailed view
+  let showDetailedView = false;
+  healthStatusDetailsToggle?.addEventListener('click', () => {
+    showDetailedView = !showDetailedView;
+    checkHealthStatus(true);
+    
+    if (healthStatusDetailsToggle) {
+      healthStatusDetailsToggle.textContent = showDetailedView ? 'Hide details' : 'Show details';
+    }
+  });
+  
+  // Close health status details when clicking outside
+  document.addEventListener('click', (event) => {
+    if (
+      healthStatusDetails && 
+      !healthStatusDetails.classList.contains('hidden') && 
+      !healthStatusButton?.contains(event.target as Node) && 
+      !healthStatusDetails.contains(event.target as Node)
+    ) {
+      healthStatusDetails.classList.add('hidden');
+    }
+  });
+  
+  // Format response time
+  function formatResponseTime(ms) {
+    if (ms === undefined || ms === null) return '-';
+    if (ms < 1) return '<1ms';
+    if (ms < 1000) return `${Math.round(ms)}ms`;
+    return `${(ms / 1000).toFixed(2)}s`;
+  }
+  
+  // Format memory usage
+  function formatMemory(total, free) {
+    if (!total || !free) return '-';
+    const used = total - free;
+    const percent = Math.round((used / total) * 100);
+    return `${percent}% (${Math.round(used / 1024)}GB)`;
+  }
+  
+  // Fetch health status from API
+  async function checkHealthStatus(forceRefresh = false) {
+    try {
+      // Show loading state
+      if (forceRefresh && healthStatusServices) {
+        healthStatusServices.innerHTML = `
+          <div class="flex justify-between">
+            <span>Refreshing...</span>
+            <span class="animate-pulse">⏳</span>
+          </div>
+        `;
+      }
+      
+      // Fetch health status with detailed flag if needed
+      const url = showDetailedView ? '/api/health?detailed=true' : '/api/health';
+      const response = await fetch(url, {
+        headers: { 'Cache-Control': forceRefresh ? 'no-cache' : '' }
+      });
+      const data = await response.json();
+      
+      // Update health status indicator
+      if (healthStatusIndicator && healthStatusText) {
+        if (data.status === 'healthy') {
+          healthStatusIndicator.classList.add('bg-green-500');
+          healthStatusIndicator.classList.remove('bg-yellow-500', 'bg-red-500');
+          healthStatusText.textContent = 'All Systems Operational';
+          healthStatusButton?.classList.add('bg-green-100', 'text-green-800');
+          healthStatusButton?.classList.remove('bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800');
+        } else if (data.status === 'degraded') {
+          healthStatusIndicator.classList.add('bg-yellow-500');
+          healthStatusIndicator.classList.remove('bg-green-500', 'bg-red-500');
+          healthStatusText.textContent = 'Partial System Outage';
+          healthStatusButton?.classList.add('bg-yellow-100', 'text-yellow-800');
+          healthStatusButton?.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        } else {
+          healthStatusIndicator.classList.add('bg-red-500');
+          healthStatusIndicator.classList.remove('bg-green-500', 'bg-yellow-500');
+          healthStatusText.textContent = 'System Outage';
+          healthStatusButton?.classList.add('bg-red-100', 'text-red-800');
+          healthStatusButton?.classList.remove('bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800');
+        }
+      }
+      
+      // Update environment and version
+      if (healthStatusEnv) {
+        healthStatusEnv.textContent = data.environment || '-';
+      }
+      
+      if (healthStatusVersion) {
+        healthStatusVersion.textContent = data.version || '-';
+      }
+      
+      // Update health status details
+      if (healthStatusServices) {
+        healthStatusServices.innerHTML = Object.entries(data.services)
+          .map(([name, service]: [string, any]) => `
+            <div class="flex justify-between items-center">
+              <span class="text-gray-700 dark:text-gray-300">${name}</span>
+              <div class="flex items-center">
+                ${service.responseTime ? 
+                  `<span class="text-xs text-gray-500 dark:text-gray-400 mr-2">${formatResponseTime(service.responseTime)}</span>` : 
+                  ''}
+                <span class="${
+                  service.status === 'up' ? 'text-green-500' : 
+                  service.status === 'down' ? 'text-red-500' : 'text-yellow-500'
+                }">
+                  ${service.status === 'up' ? '✓' : service.status === 'down' ? '✗' : '?'}
+                </span>
+              </div>
+            </div>
+            ${service.message ? 
+              `<div class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-2">${service.message}</div>` : 
+              ''}
+          `)
+          .join('');
+      }
+      
+      // Update metrics if available
+      if (data.metrics && healthStatusMetrics) {
+        healthStatusMetrics.classList.remove('hidden');
+        
+        if (healthMetricsRequests) {
+          healthMetricsRequests.textContent = data.metrics.requestsLast24h.toLocaleString();
+        }
+        
+        if (healthMetricsResponse) {
+          healthMetricsResponse.textContent = formatResponseTime(data.metrics.averageResponseTime);
+        }
+        
+        if (healthMetricsErrors) {
+          const errorRate = data.metrics.errorRate;
+          healthMetricsErrors.textContent = `${errorRate}%`;
+          healthMetricsErrors.className = errorRate > 5 ? 'text-sm font-medium text-red-500' : 'text-sm font-medium';
+        }
+        
+        if (healthMetricsMemory && data.system?.memory) {
+          const memory = data.system.memory;
+          healthMetricsMemory.textContent = `${memory.usedPercent}%`;
+          healthMetricsMemory.className = memory.usedPercent > 90 ? 'text-sm font-medium text-red-500' : 'text-sm font-medium';
+        }
+      } else if (healthStatusMetrics) {
+        healthStatusMetrics.classList.add('hidden');
+      }
+      
+      // Update timestamp
+      if (healthStatusTimestamp) {
+        healthStatusTimestamp.textContent = new Date().toLocaleTimeString();
+      }
+      
+      // Show health status
+      healthStatus?.classList.remove('hidden');
+      
+    } catch (error) {
+      
+      // Show error status
+      if (healthStatusIndicator && healthStatusText) {
+        healthStatusIndicator.classList.add('bg-red-500');
+        healthStatusIndicator.classList.remove('bg-green-500', 'bg-yellow-500');
+        healthStatusText.textContent = 'Status Check Failed';
+        healthStatusButton?.classList.add('bg-red-100', 'text-red-800');
+        healthStatusButton?.classList.remove('bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800');
+      }
+      
+      // Update services with error
+      if (healthStatusServices) {
+        healthStatusServices.innerHTML = `
+          <div class="flex justify-between">
+            <span class="text-red-500">Connection Error</span>
+            <span class="text-red-500">✗</span>
+          </div>
+          <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Unable to connect to health check endpoint
+          </div>
+        `;
+      }
+      
+      // Show health status
+      healthStatus?.classList.remove('hidden');
+    }
+  }
+  
+  // Check health status on page load and every 60 seconds
+  document.addEventListener('DOMContentLoaded', () => {
+    checkHealthStatus();
+    setInterval(checkHealthStatus, 60000);
+  });
+</script>

@@ -1,0 +1,269 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import BlogBreadcrumb from '../components/BlogBreadcrumb.astro';
+import HeroImage from '../components/HeroImage.astro';
+import { getAuthor } from '../lib/authors.ts';
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+  post: CollectionEntry<'blog'> | CollectionEntry<'blog-es'>;
+  lang?: 'en' | 'es';
+}
+
+const { post, lang = 'en' } = Astro.props;
+const { title, description, pubDate, heroImage, author, tags, draft } = post.data;
+
+// Get author information
+const authorData = getAuthor(author || 'Site Author');
+
+// Format publication date
+const locale = lang === 'es' ? 'es-ES' : 'en-US';
+const formattedDate = new Intl.DateTimeFormat(locale, {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+}).format(pubDate);
+
+// Generate canonical URL - compatible with prerendered pages
+const blogPath = lang === 'es' ? `/es/blog/${post.slug}` : `/blog/${post.slug}`;
+const canonicalURL = new URL(blogPath, Astro.site || 'https://mysummary.app');
+
+// Generate Open Graph image URL
+const baseUrl = Astro.site || 'http://localhost:4321';
+const ogImage = heroImage 
+  ? new URL(heroImage, baseUrl).toString()
+  : new URL('/favicon.svg', baseUrl).toString();
+
+// Generate enhanced JSON-LD structured data
+const jsonLD = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description,
+  "author": {
+    "@type": "Person",
+    "name": author
+  },
+  "datePublished": pubDate.toISOString(),
+  "dateModified": pubDate.toISOString(),
+  "image": {
+    "@type": "ImageObject",
+    "url": ogImage,
+    "width": 1200,
+    "height": 630
+  },
+  "url": canonicalURL.toString(),
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": canonicalURL.toString()
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Cornell Summary AI",
+    "logo": {
+      "@type": "ImageObject",
+      "url": new URL('/favicon.svg', baseUrl).toString(),
+      "width": 60,
+      "height": 60
+    }
+  },
+  "articleSection": tags && tags.length > 0 ? tags[0] : "Technology",
+  "keywords": tags ? tags.join(", ") : "",
+  "wordCount": post.body.split(/\s+/).length,
+  "inLanguage": "en-US"
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <Fragment slot="head">
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Additional SEO meta tags -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content={author} />
+    <meta name="article:author" content={author} />
+    {tags && tags.length > 0 && (
+      <meta name="keywords" content={tags.join(", ")} />
+    )}
+    
+    <!-- Open Graph tags -->
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`Hero image for ${title}`} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content="Cornell Summary AI" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={`Hero image for ${title}`} />
+    <meta name="twitter:creator" content="@cornellsummary" />
+    <meta name="twitter:site" content="@cornellsummary" />
+    
+    <!-- Article specific Open Graph tags -->
+    <meta property="article:published_time" content={pubDate.toISOString()} />
+    <meta property="article:modified_time" content={pubDate.toISOString()} />
+    <meta property="article:author" content={author} />
+    <meta property="article:section" content={tags && tags.length > 0 ? tags[0] : "Technology"} />
+    {tags && tags.map(tag => (
+      <meta property="article:tag" content={tag} />
+    ))}
+    
+    <!-- Additional meta tags for better SEO -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLD)} />
+  </Fragment>
+
+  <Navbar lang={lang} currentPage="blog" />
+
+  <div class="min-h-screen bg-gray-50">
+    <!-- Breadcrumb Navigation -->
+    <section class="bg-white border-b">
+      <div class="container mx-auto px-4 py-4">
+        <BlogBreadcrumb 
+          items={[
+            { label: 'Blog', href: lang === 'es' ? '/es/blog' : '/blog' },
+            { label: title }
+          ]}
+        />
+      </div>
+    </section>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 bg-white">
+    <!-- Blog post header -->
+    <header class="mb-8">
+      <!-- Hero image -->
+      {heroImage && (
+        <div class="mb-6">
+          <HeroImage 
+            src={heroImage} 
+            alt={`Hero image for ${title}`}
+            class="w-full h-64 sm:h-80 md:h-96 object-cover rounded-lg shadow-lg"
+            loading="eager"
+            showFallback={true}
+          />
+        </div>
+      )}
+      
+      <!-- Draft indicator (development only) -->
+      {draft && !import.meta.env.PROD && (
+        <div class="mb-4">
+          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+              <p class="text-yellow-800 font-medium">
+                This is a draft post and is only visible in development mode.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <!-- Title -->
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+        {title}
+        {draft && !import.meta.env.PROD && (
+          <span class="ml-3 bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full font-medium">
+            DRAFT
+          </span>
+        )}
+      </h1>
+      
+      <!-- Meta information -->
+      <div class="flex flex-wrap items-center gap-4 text-gray-600 mb-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+          </svg>
+          <span>By 
+            <a 
+              href={`/blog/authors/${authorData.id}`}
+              class="text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              {authorData.name}
+            </a>
+          </span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+          </svg>
+          <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+        </div>
+      </div>
+      
+      <!-- Tags -->
+      {tags && tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-6">
+          {tags.map(tag => (
+            <a 
+              href={`/blog/tags/${tag}`}
+              class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full hover:bg-blue-200 transition-colors"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      )}
+      
+      <!-- Description -->
+      <p class="text-xl text-gray-700 leading-relaxed">
+        {description}
+      </p>
+    </header>
+    
+    <!-- Blog post content -->
+    <article class="prose prose-lg prose-gray max-w-none prose-headings:scroll-mt-8" itemscope itemtype="https://schema.org/Article">
+      <!-- Hidden structured data for screen readers -->
+      <meta itemprop="headline" content={title} />
+      <meta itemprop="description" content={description} />
+      <meta itemprop="datePublished" content={pubDate.toISOString()} />
+      <meta itemprop="author" content={author} />
+      <meta itemprop="image" content={ogImage} />
+      
+      <slot />
+    </article>
+    
+    <!-- Back to blog link -->
+    <footer class="mt-12 pt-8 border-t border-gray-200">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <a 
+          href={lang === 'es' ? '/es/blog' : '/blog'}
+          class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          {lang === 'es' ? 'Volver al Blog' : 'Back to Blog'}
+        </a>
+        
+        <!-- Additional navigation links -->
+        <div class="flex items-center gap-4 text-sm">
+          <a href={lang === 'es' ? '/es' : '/'} class="text-gray-600 hover:text-gray-900 transition-colors">
+            {lang === 'es' ? 'Inicio' : 'Home'}
+          </a>
+          <span class="text-gray-300">•</span>
+          <a href={lang === 'es' ? '/es/dashboard' : '/dashboard'} class="text-gray-600 hover:text-gray-900 transition-colors">
+            {lang === 'es' ? 'Crear apuntes' : 'Convert Notes'}
+          </a>
+        </div>
+      </div>
+    </footer>
+    </main>
+  </div>
+</BaseLayout>

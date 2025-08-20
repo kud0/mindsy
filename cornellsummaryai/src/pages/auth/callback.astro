@@ -1,0 +1,79 @@
+---
+// OAuth callback page - handles OAuth redirects from providers
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Authenticating...">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full space-y-8">
+      <div class="text-center">
+        <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+          Completing authentication...
+        </h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Please wait while we log you in.
+        </p>
+        
+        <!-- Loading spinner -->
+        <div class="mt-8 flex justify-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OAuth callback processing script -->
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', async () => {
+      
+      // Get URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const error = urlParams.get('error');
+      const errorDescription = urlParams.get('error_description');
+      
+      // Handle OAuth errors
+      if (error) {
+        
+        let errorMessage = 'Authentication failed. Please try again.';
+        if (error === 'access_denied') {
+          errorMessage = 'Authentication was cancelled.';
+        }
+        
+        // Redirect to login with error
+        window.location.replace(`/auth/login?error=${encodeURIComponent(errorMessage)}`);
+        return;
+      }
+      
+      // Handle OAuth success with code
+      if (code) {
+        
+        try {
+          // Use our API endpoint to exchange code for session
+          const response = await fetch('/api/auth/callback?' + window.location.search, {
+            method: 'GET',
+            credentials: 'same-origin'
+          });
+          
+          if (response.ok) {
+            
+            // Follow the redirect from the API
+            if (response.redirected) {
+              window.location.replace(response.url);
+            } else {
+              // Fallback: redirect to dashboard
+              window.location.replace('/dashboard');
+            }
+          } else {
+            window.location.replace('/auth/login?error=Session exchange failed');
+          }
+          
+        } catch (error) {
+          window.location.replace('/auth/login?error=Authentication failed');
+        }
+      } else {
+        window.location.replace('/auth/login?error=No authentication code received');
+      }
+    });
+  </script>
+</BaseLayout>

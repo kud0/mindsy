@@ -1,0 +1,534 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { useTranslations } from '../../../lib/i18n';
+import GitHubButton from '../../../components/GitHubButton.astro';
+import GoogleOAuthButton from '../../../components/GoogleOAuthButton.astro';
+
+const lang = 'es';
+const t = useTranslations(lang);
+---
+
+<BaseLayout title="Registrarse">
+  <div class="min-h-screen flex items-start sm:items-center justify-center cosmic-signup-bg pt-8 pb-12 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <!-- Cosmic Signup Background -->
+    <div class="cosmic-signup-canvas absolute inset-0">
+      <!-- Animated Gradient Base -->
+      <div class="signup-cosmic-bg"></div>
+      
+      <!-- Floating Signup Particles -->
+      <div class="signup-particles-container">
+        <div class="signup-particle signup-particle-1"></div>
+        <div class="signup-particle signup-particle-2"></div>
+        <div class="signup-particle signup-particle-3"></div>
+        <div class="signup-particle signup-particle-4"></div>
+        <div class="signup-particle signup-particle-5"></div>
+        <div class="signup-particle signup-particle-6"></div>
+        <div class="signup-particle signup-particle-7"></div>
+        <div class="signup-particle signup-particle-8"></div>
+      </div>
+      
+      <!-- Signup Energy Rings -->
+      <div class="signup-energy-ring signup-ring-1"></div>
+      <div class="signup-energy-ring signup-ring-2"></div>
+      
+      <!-- Signup Floating Shapes -->
+      <div class="signup-cosmic-shapes">
+        <div class="signup-shape signup-shape-hexagon"></div>
+        <div class="signup-shape signup-shape-triangle"></div>
+        <div class="signup-shape signup-shape-diamond"></div>
+      </div>
+    </div>
+    
+    <div class="max-w-md w-full space-y-8 relative z-10">
+      <!-- Signup Card with Glass Morphism -->
+      <div class="signup-card backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl p-8 shadow-2xl">
+        <div>
+          <h2 class="mt-6 text-center text-3xl font-extrabold text-white signup-title">
+            {t('auth.signup.title')}
+          </h2>
+          <p class="mt-2 text-center text-sm text-white/80">
+            {t('auth.signup.subtitle')}{' '}
+            <a href="/es/auth/login" class="font-medium text-blue-300 hover:text-blue-200 transition-colors duration-200">
+              {t('auth.signup.signIn')}
+            </a>
+          </p>
+        </div>
+        <form id="signup-form" class="mt-8 space-y-6">
+          <div class="space-y-4">
+            <div>
+              <label for="email" class="block text-sm font-medium text-white/90 mb-2">{t('auth.login.email')}</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                class="cosmic-input appearance-none relative block w-full px-4 py-3 border border-white/20 placeholder-white/50 text-white bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder={t('auth.login.email')}
+              />
+            </div>
+            <div>
+              <label for="password" class="block text-sm font-medium text-white/90 mb-2">{t('auth.login.password')}</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                required
+                class="cosmic-input appearance-none relative block w-full px-4 py-3 border border-white/20 placeholder-white/50 text-white bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder={t('auth.login.password')}
+              />
+            </div>
+            <div>
+              <label for="fullName" class="block text-sm font-medium text-white/90 mb-2">{t('auth.signup.fullName')}</label>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                autocomplete="name"
+                required
+                class="cosmic-input appearance-none relative block w-full px-4 py-3 border border-white/20 placeholder-white/50 text-white bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder={t('auth.signup.fullName')}
+              />
+            </div>
+            <div>
+              <label for="courseName" class="block text-sm font-medium text-white/90 mb-2">{t('auth.signup.courseName')}</label>
+              <input
+                id="courseName"
+                name="courseName"
+                type="text"
+                class="cosmic-input appearance-none relative block w-full px-4 py-3 border border-white/20 placeholder-white/50 text-white bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder={`${t('auth.signup.courseName')} (opcional)`}
+              />
+            </div>
+            <div>
+              <label for="courseUrl" class="block text-sm font-medium text-white/90 mb-2">{t('auth.signup.courseUrl')}</label>
+              <input
+                id="courseUrl"
+                name="courseUrl"
+                type="url"
+                class="cosmic-input appearance-none relative block w-full px-4 py-3 border border-white/20 placeholder-white/50 text-white bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder={`${t('auth.signup.courseUrl')} (opcional)`}
+              />
+            </div>
+          </div>
+
+          <div id="success-message" class="text-green-400 text-sm text-center hidden"></div>
+          <div id="error-message" class="text-red-400 text-sm text-center hidden"></div>
+
+          <div>
+            <button
+              type="submit"
+              id="submit-btn"
+              class="cosmic-signup-button group relative w-full flex justify-center py-3 px-6 border border-transparent text-sm font-medium rounded-lg text-white transition-all duration-300"
+            >
+              {t('auth.signup.submit')}
+            </button>
+          </div>
+        </form>
+
+        <!-- Divider -->
+        <div class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-white/20" />
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-4 bg-white/10 text-white/80 rounded-full backdrop-blur-sm">{t('auth.github.or')}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- OAuth Sign-up Buttons -->
+        <div class="mt-6 space-y-3">
+          <GoogleOAuthButton mode="signup" lang="es" redirectTo="/es/dashboard" />
+          <GitHubButton lang="es" text="Registrarse con GitHub" />
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script type="module">
+  import { signUp } from '/lib/auth.js';
+
+  const form = document.getElementById('signup-form');
+  const errorMessage = document.getElementById('error-message');
+  const successMessage = document.getElementById('success-message');
+  const submitBtn = document.getElementById('submit-btn');
+
+  // Check for OAuth errors in URL parameters
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for global Toast to be initialized with timeout
+    let attempts = 0;
+    while (!window.Toast && attempts < 100) { // 5 second timeout
+      await new Promise(resolve => setTimeout(resolve, 50));
+      attempts++;
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (errorParam) {
+      let errorMessage = decodeURIComponent(errorParam);
+      
+      // Handle specific OAuth error types with Spanish translations
+      if (errorParam === 'access_denied') {
+        errorMessage = 'La autenticación fue cancelada. Por favor, inténtalo de nuevo.';
+      } else if (errorParam === 'server_error') {
+        errorMessage = 'El servicio de autenticación no está disponible temporalmente. Por favor, inténtalo más tarde.';
+      } else if (errorParam === 'invalid_request') {
+        errorMessage = 'La solicitud de autenticación no es válida. Por favor, inténtalo de nuevo.';
+      } else if (errorParam === 'email_already_exists') {
+        errorMessage = 'Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión en su lugar.';
+      } else if (errorDescription) {
+        errorMessage = decodeURIComponent(errorDescription);
+      }
+      
+      
+      // Clean up URL parameters after showing error
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const fullName = formData.get('fullName');
+    const courseName = formData.get('courseName');
+    const courseUrl = formData.get('courseUrl');
+
+
+    errorMessage.classList.add('hidden');
+    successMessage.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando cuenta...';
+    
+    try {
+      // Detect current language from URL  
+      const currentLang = window.location.pathname.startsWith('/es') ? 'es' : 'en';
+      
+      // Prepare metadata object
+      const metadata = {
+        full_name: fullName,
+        preferred_language: currentLang,
+        course_name: courseName || null,
+        course_url: courseUrl || null
+      };
+      
+      // Sign up the user with language preference
+      const { data, error } = await signUp(email, password, metadata);
+      
+      
+      if (error) {
+        
+        // Provide user-friendly error messages in Spanish
+        let userErrorMessage = error.message;
+        if (error.message.includes('already registered')) {
+          userErrorMessage = 'Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión en su lugar o usa un correo diferente.';
+        } else if (error.message.includes('password')) {
+          userErrorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+        } else if (error.message.includes('email')) {
+          userErrorMessage = 'Por favor, introduce una dirección de correo electrónico válida.';
+        }
+        
+        errorMessage.textContent = userErrorMessage;
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+
+      if (data && data.user) {
+        
+        // Wait a moment for the database trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Try to update the profile with additional fields (trigger may have created basic profile)
+        // Build update data object, only including non-empty optional fields  
+        const updateData = {
+          full_name: fullName,
+          provider: 'email',
+          subscription_tier: 'free',
+          updated_at: new Date().toISOString(),
+        };
+        
+        // Only add course fields if they have values
+        if (courseName && courseName.trim()) {
+          updateData.course_name = courseName.trim();
+        }
+        if (courseUrl && courseUrl.trim()) {
+          updateData.course_url = courseUrl.trim();
+        }
+
+        // Try UPDATE first (most likely scenario - trigger created basic profile)
+        const { error: updateError } = await window.supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', data.user.id);
+
+        if (updateError) {
+          
+          // If update failed, try upsert (in case trigger didn't work)
+          const upsertData = {
+            id: data.user.id,
+            email: email,
+            ...updateData
+          };
+
+          const { error: upsertError } = await window.supabase
+            .from('profiles')
+            .upsert(upsertData, {
+              onConflict: 'id'
+            });
+
+          if (upsertError) {
+            
+            // Only show error if it's not an RLS or duplicate issue
+            if (upsertError.code !== '42501' && upsertError.code !== '23505' && 
+                !upsertError.message.includes('duplicate') && 
+                !upsertError.message.includes('row-level security')) {
+              const profileErrorMessage = `Cuenta creada pero la configuración del perfil falló: ${upsertError.message}. Por favor, actualiza tu perfil más tarde.`;
+              errorMessage.textContent = profileErrorMessage;
+              errorMessage.classList.remove('hidden');
+            } else {
+            }
+          } else {
+          }
+        } else {
+        }
+
+        // Check if email confirmation is required
+        if (data.user.email && !data.session) {
+          const confirmationMessage = '¡Cuenta creada! Por favor, revisa tu correo electrónico para confirmar tu cuenta.';
+          successMessage.textContent = confirmationMessage;
+          successMessage.classList.remove('hidden');
+          form.reset();
+          
+          // Redirect to homepage after email signup (needs confirmation)
+          setTimeout(() => {
+            window.location.href = '/es';
+          }, 2000);
+        } else {
+          // Show success message and redirect to dashboard (direct login)
+          setTimeout(() => {
+            window.location.href = '/es/dashboard';
+          }, 1000);
+        }
+      }
+    } catch (err) {
+      const unexpectedErrorMessage = 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.';
+      errorMessage.textContent = unexpectedErrorMessage;
+      errorMessage.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Registrarse';
+    }
+  });
+</script>
+
+<style>
+  /* Cosmic Signup Background */
+  .cosmic-signup-bg {
+    background: linear-gradient(135deg, #1e40af 0%, #3730a3 50%, #1e1b4b 100%);
+    position: relative;
+  }
+
+  .cosmic-signup-canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .signup-cosmic-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+    animation: cosmic-shift 20s ease-in-out infinite;
+  }
+
+  /* Signup Particles */
+  .signup-particles-container {
+    position: absolute;
+    inset: 0;
+  }
+
+  .signup-particle {
+    position: absolute;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.2) 100%);
+    border-radius: 50%;
+    animation: cosmic-drift 12s linear infinite;
+  }
+
+  .signup-particle-1 { width: 3px; height: 3px; top: 10%; left: 15%; animation-delay: 0s; }
+  .signup-particle-2 { width: 2px; height: 2px; top: 20%; left: 85%; animation-delay: -2s; }
+  .signup-particle-3 { width: 4px; height: 4px; top: 40%; left: 10%; animation-delay: -4s; }
+  .signup-particle-4 { width: 3px; height: 3px; top: 60%; left: 90%; animation-delay: -6s; }
+  .signup-particle-5 { width: 2px; height: 2px; top: 80%; left: 20%; animation-delay: -8s; }
+  .signup-particle-6 { width: 3px; height: 3px; top: 30%; left: 70%; animation-delay: -10s; }
+  .signup-particle-7 { width: 4px; height: 4px; top: 70%; left: 30%; animation-delay: -12s; }
+  .signup-particle-8 { width: 2px; height: 2px; top: 90%; left: 80%; animation-delay: -14s; }
+
+  /* Signup Energy Rings */
+  .signup-energy-ring {
+    position: absolute;
+    border: 2px solid;
+    border-image: linear-gradient(45deg, rgba(79, 172, 254, 0.4), rgba(139, 92, 246, 0.4)) 1;
+    border-radius: 50%;
+    animation: pulse-glow 8s ease-in-out infinite;
+  }
+
+  .signup-ring-1 {
+    width: 200px;
+    height: 200px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+
+  .signup-ring-2 {
+    width: 150px;
+    height: 150px;
+    bottom: 20%;
+    right: 15%;
+    animation-delay: -4s;
+  }
+
+  /* Signup Floating Shapes */
+  .signup-cosmic-shapes {
+    position: absolute;
+    inset: 0;
+  }
+
+  .signup-shape {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(139, 92, 246, 0.2));
+    animation: gentle-float 8s ease-in-out infinite;
+  }
+
+  .signup-shape-hexagon {
+    width: 25px;
+    height: 25px;
+    top: 15%;
+    right: 20%;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    animation-delay: 0s;
+  }
+
+  .signup-shape-triangle {
+    width: 20px;
+    height: 20px;
+    bottom: 25%;
+    left: 15%;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    animation-delay: -2s;
+  }
+
+  .signup-shape-diamond {
+    width: 22px;
+    height: 22px;
+    top: 60%;
+    right: 10%;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    animation-delay: -4s;
+  }
+
+  /* Signup Card */
+  .signup-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .signup-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .signup-title {
+    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+
+  /* Cosmic Input */
+  .cosmic-input {
+    position: relative;
+  }
+
+  .cosmic-input:focus {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .cosmic-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Cosmic Signup Button */
+  .cosmic-signup-button {
+    background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cosmic-signup-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .cosmic-signup-button:hover::before {
+    left: 100%;
+  }
+
+  .cosmic-signup-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Animations */
+  @keyframes cosmic-shift {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+  }
+
+  @keyframes cosmic-drift {
+    0% { transform: translateY(0px) translateX(0px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.1); opacity: 0.6; }
+  }
+
+  @keyframes gentle-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.4; }
+    50% { transform: translateY(-15px) rotate(180deg); opacity: 0.7; }
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+</style> 

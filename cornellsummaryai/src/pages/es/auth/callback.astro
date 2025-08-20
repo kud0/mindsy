@@ -1,0 +1,79 @@
+---
+// OAuth callback page - handles OAuth redirects from providers (Spanish)
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Autenticando...">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full space-y-8">
+      <div class="text-center">
+        <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+          Completando autenticación...
+        </h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Por favor espera mientras te conectamos.
+        </p>
+        
+        <!-- Loading spinner -->
+        <div class="mt-8 flex justify-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OAuth callback processing script -->
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', async () => {
+      
+      // Get URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const error = urlParams.get('error');
+      const errorDescription = urlParams.get('error_description');
+      
+      // Handle OAuth errors
+      if (error) {
+        
+        let errorMessage = 'Autenticación falló. Por favor intenta de nuevo.';
+        if (error === 'access_denied') {
+          errorMessage = 'Autenticación cancelada.';
+        }
+        
+        // Redirect to login with error
+        window.location.replace(`/es/auth/login?error=${encodeURIComponent(errorMessage)}`);
+        return;
+      }
+      
+      // Handle OAuth success with code
+      if (code) {
+        
+        try {
+          // Use our API endpoint to exchange code for session
+          const response = await fetch('/api/auth/callback?' + window.location.search, {
+            method: 'GET',
+            credentials: 'same-origin'
+          });
+          
+          if (response.ok) {
+            
+            // Follow the redirect from the API
+            if (response.redirected) {
+              window.location.replace(response.url);
+            } else {
+              // Fallback: redirect to Spanish dashboard
+              window.location.replace('/es/dashboard');
+            }
+          } else {
+            window.location.replace('/es/auth/login?error=Intercambio de sesión falló');
+          }
+          
+        } catch (error) {
+          window.location.replace('/es/auth/login?error=Autenticación falló');
+        }
+      } else {
+        window.location.replace('/es/auth/login?error=No se recibió código de autenticación');
+      }
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Folder UI Debug Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .btn { padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; }
+    .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Folder Creation Debug Test</h1>
+  
+  <p>This page tests the folder creation functionality in isolation.</p>
+  
+  <button id="new-folder-btn" class="btn">+ New Folder</button>
+  <button id="test-event" class="btn">Test Custom Event</button>
+  
+  <div id="debug-log" style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+    <strong>Debug Log:</strong><br>
+  </div>
+  
+  <!-- Modal -->
+  <div id="create-folder-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Create New Folder</h2>
+      <form id="create-folder-form">
+        <div style="margin-bottom: 15px;">
+          <label>Folder Name:</label><br>
+          <input type="text" id="folder-name" name="name" placeholder="Enter folder name" required>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label>Color:</label><br>
+          <input type="color" name="color" value="#3B82F6">
+        </div>
+        <div>
+          <button type="button" class="btn-cancel">Cancel</button>
+          <button type="submit" class="btn-create">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function log(message) {
+      const debugLog = document.getElementById('debug-log');
+      debugLog.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
+    }
+    
+    log('Page loaded');
+    
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', () => {
+      log('DOM ready');
+      
+      const modal = document.getElementById('create-folder-modal');
+      const form = document.getElementById('create-folder-form');
+      const newFolderBtn = document.getElementById('new-folder-btn');
+      const testEventBtn = document.getElementById('test-event');
+      const cancelBtn = modal?.querySelector('.btn-cancel');
+      
+      log('Elements found: modal=' + !!modal + ', form=' + !!form + ', btn=' + !!newFolderBtn);
+      
+      // Show modal when event is dispatched
+      window.addEventListener('showCreateFolderModal', () => {
+        log('Custom event received: showCreateFolderModal');
+        modal?.classList.remove('hidden');
+        const nameInput = form?.querySelector('#folder-name');
+        nameInput?.focus();
+      });
+      
+      // Hide modal
+      function hideModal() {
+        log('Hiding modal');
+        modal?.classList.add('hidden');
+        form?.reset();
+      }
+      
+      cancelBtn?.addEventListener('click', hideModal);
+      
+      // Folder creation button
+      newFolderBtn?.addEventListener('click', () => {
+        log('New folder button clicked');
+        showCreateFolderModal();
+      });
+      
+      // Test button
+      testEventBtn?.addEventListener('click', () => {
+        log('Test button clicked - dispatching custom event');
+        window.dispatchEvent(new CustomEvent('showCreateFolderModal'));
+      });
+      
+      function showCreateFolderModal() {
+        log('showCreateFolderModal function called');
+        window.dispatchEvent(new CustomEvent('showCreateFolderModal'));
+      }
+      
+      // Handle form submission
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        log('Form submitted');
+        
+        const formData = new FormData(form);
+        const name = formData.get('name');
+        const color = formData.get('color');
+        
+        log('Form data: name=' + name + ', color=' + color);
+        
+        try {
+          log('Attempting API call to /api/folders...');
+          const response = await fetch('/api/folders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, color, icon: '📁' })
+          });
+          
+          log('API response status: ' + response.status);
+          
+          if (response.ok) {
+            const result = await response.json();
+            log('Success: ' + JSON.stringify(result));
+            hideModal();
+            alert('Folder created successfully!');
+          } else {
+            const error = await response.text();
+            log('API error: ' + error);
+            alert('Failed to create folder: ' + error);
+          }
+        } catch (error) {
+          log('Network error: ' + error.message);
+          alert('Network error: ' + error.message);
+        }
+      });
+      
+      log('All event listeners attached');
+    });
+    
+    log('Script loaded');
+  </script>
+</body>
+</html>

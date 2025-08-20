@@ -1,0 +1,105 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+//import HealthStatus from '../components/HealthStatus.astro';
+import { getLangFromUrl } from '../lib/i18n';
+
+export interface Props {
+  title: string;
+  currentPage?: 'dashboard' | 'account';
+  lang?: 'en' | 'es';
+}
+
+const { title, currentPage = 'dashboard', lang: propLang } = Astro.props;
+
+// Get current language - prioritize prop, fallback to URL detection
+const lang = propLang || getLangFromUrl(Astro.url);
+
+
+// Get user from locals (set by middleware)
+const user = Astro.locals.user;
+const isAuthenticated = !!user;
+---
+
+<BaseLayout title={title}>
+  <div class={`min-h-screen bg-gray-200 ${currentPage === 'dashboard' ? 'dashboard-grid-bg' : ''}`}>
+    <Navbar lang={lang} currentPage={currentPage} isAuthenticated={isAuthenticated} />
+    <main class="dashboard-container py-8">
+      <slot />
+    </main>
+    <!-- <HealthStatus /> -->
+  </div>
+
+  <!-- Load Toast system globally -->
+  <script>
+    // Load toast functionality
+    const loadToast = async () => {
+      try {
+        // Use dynamic import without module context
+        const toastModule = await import('../lib/toast.js');
+      } catch (error) {
+      }
+    };
+    loadToast();
+  </script>
+
+  <!-- Use global Supabase client for logout functionality -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Wait for global Supabase client from BaseLayout
+        while (!window.supabase) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        // Use the global Supabase client
+        const supabase = window.supabase;
+
+        // Simple logout function - let Supabase handle everything
+        window.authSignOut = async () => {
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            throw error;
+          }
+        };
+
+      } catch (error) {
+      }
+    });
+  </script>
+</BaseLayout>
+
+<style>
+  /* Notebook-style Grid Background */
+  .dashboard-grid-bg {
+    background-image: 
+      linear-gradient(rgb(255, 255, 255) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255, 255, 255) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Wider Dashboard Container */
+  .dashboard-container {
+    width: 96% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  @media (min-width: 1400px) {
+    .dashboard-container {
+      width: 94% !important;
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-container {
+      width: 98% !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+  }
+</style> 

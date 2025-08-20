@@ -1,0 +1,9 @@
+# Hero Images Directory
+
+This directory contains hero images for blog posts.
+
+## Organization:
+- Use descriptive filenames matching post slugs when possible
+- Recommended dimensions: 1200x630px (Open Graph standard)
+- Supported formats: .jpg, .jpeg, .png, .webp, .avif
+- Optimize for web delivery

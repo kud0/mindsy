@@ -1,0 +1,2172 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import { useTranslations } from "../lib/i18n";
+
+// Get user from locals (set by middleware)
+const user = Astro.locals.user;
+const isAuthenticated = !!user;
+const lang = "en";
+const t = useTranslations(lang);
+
+// Custom description for better social sharing
+const socialDescription = "🎓 Turn Your Lectures into Study Notes in Seconds! Just upload your class recording and we'll create beautiful, organized notes for you. No more scrambling to write everything down! Try free today!";
+---
+
+<BaseLayout title="Home" description={socialDescription} lang="en">
+	<div
+		class="min-h-screen bg-gradient-to-b from-blue-50 to-white relative overflow-hidden"
+	>
+		<Navbar
+			lang={lang}
+			currentPage="home"
+			isAuthenticated={isAuthenticated}
+		/>
+
+		<!-- OAuth handling script -->
+		<script type="module" is:inline>
+			document.addEventListener("DOMContentLoaded", async () => {
+				const hasTokens =
+					window.location.hash.includes("access_token") ||
+					window.location.search.includes("code=");
+
+				if (hasTokens) {
+					while (!window.supabase) {
+						await new Promise((resolve) => setTimeout(resolve, 50));
+					}
+
+					const {
+						data: { session },
+					} = await window.supabase.auth.getSession();
+
+					if (session && session.user) {
+						const url = new URL(window.location);
+						url.hash = "";
+						url.search = "";
+						window.location.replace(url.origin + "/dashboard");
+					}
+				}
+			});
+		</script>
+
+
+		<!-- Hero Section -->
+		<section
+			class="pt-20 pb-32 hero-section relative lg:pt-24 sm:pb-28lg:pb-40 md:pt-22 md:pb-36 sm:pt-20 overflow-hidden"
+		>
+			<!-- Cosmic Particle Background -->
+			<div class="cosmic-canvas absolute inset-0">
+				<!-- Animated Gradient Base -->
+				<div class="cosmic-bg"></div>
+				
+				<!-- Floating Particles -->
+				<div class="particles-container">
+					<div class="particle particle-1"></div>
+					<div class="particle particle-2"></div>
+					<div class="particle particle-3"></div>
+					<div class="particle particle-4"></div>
+					<div class="particle particle-5"></div>
+					<div class="particle particle-6"></div>
+					<div class="particle particle-7"></div>
+					<div class="particle particle-8"></div>
+					<div class="particle particle-9"></div>
+					<div class="particle particle-10"></div>
+					<div class="particle particle-11"></div>
+					<div class="particle particle-12"></div>
+				</div>
+				
+				
+				<!-- Dynamic Light Beams -->
+				<div class="light-beams">
+					<div class="beam beam-1"></div>
+					<div class="beam beam-2"></div>
+					<div class="beam beam-3"></div>
+				</div>
+				
+				<!-- Nebula Effects -->
+				<div class="nebula nebula-1"></div>
+				<div class="nebula nebula-2"></div>
+				<div class="nebula nebula-3"></div>
+			</div>
+			
+			<div class="container mx-auto px-4 relative z-10">
+				<div class="max-w-3xl mx-auto text-center relative">
+					<!-- Focused Geometric Shapes around text -->
+					<div class="focused-shapes">
+						<div class="shape shape-hexagon focused-hexagon"></div>
+						<div class="shape shape-triangle focused-triangle"></div>
+						<div class="shape shape-diamond focused-diamond"></div>
+					</div>
+					<h1 class="hero-title text-6xl font-bold mb-6 font-excalifont">
+						<span class="hero-text-gradient">
+							{t("hero.title.part1")}
+							<span class="highlight-study">{t("hero.title.highlight")}</span>
+							{t("hero.title.part2")}
+						</span>
+					</h1>
+					<p class="hero-subtitle text-xl text-gray-600 mb-8" set:html={t("hero.subtitle")} />
+					{
+						isAuthenticated ? (
+							<a
+								href="/dashboard"
+								class="hero-cta inline-block bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition"
+							>
+								{t("hero.cta.convert")}
+							</a>
+						) : (
+							<>
+								<a
+									href="/auth/signup"
+									class="hero-cta inline-block bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition"
+								>
+									{t("hero.cta.getStarted")}
+								</a>
+								<p class="mt-4 text-sm text-gray-500">
+									{t("hero.cta.subtitle")}
+								</p>
+							</>
+						)
+					}
+				</div>
+			</div>
+		</section>
+
+		<!-- Features Section -->
+		<section
+			class="py-20 lg:py-24 features-section bg-white"
+		>
+			<div class="container mx-auto px-4">
+				<div class="text-center mb-16">
+					<h2 class="features-title text-3xl lg:text-4xl font-bold text-gray-900 mb-4 relative inline-block font-excalifont">
+						<span class="relative z-10">{t("features.title")}</span>
+						<div class="title-decorator"></div>
+					</h2>
+					<p class="text-gray-600 max-w-2xl mx-auto mt-6 text-lg">
+						{t("features.subtitle")}
+					</p>
+				</div>
+				<div
+					class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 max-w-6xl mx-auto"
+				>
+					<div
+						class="feature-card relative"
+					>
+						<div class="step-number">1</div>
+						<div class="card-content bg-white rounded-2xl shadow-xl p-8 text-center group cursor-pointer h-full">
+							<div
+								class="icon-wrapper relative mx-auto mb-6"
+							>
+								<div class="icon-bg"></div>
+								<svg
+									class="feature-icon w-10 h-10"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+									></path>
+								</svg>
+							</div>
+							<h3
+								class="text-xl font-bold mb-4 text-gray-900"
+							>
+								{t("features.upload.title")}
+							</h3>
+							<p
+								class="text-gray-600 leading-relaxed"
+							>
+								{t("features.upload.desc")}
+							</p>
+						</div>
+					</div>
+					<div
+						class="feature-card relative"
+					>
+						<div class="step-number">2</div>
+						<div class="card-content bg-white rounded-2xl shadow-xl p-8 text-center group cursor-pointer h-full">
+							<div
+								class="icon-wrapper relative mx-auto mb-6"
+							>
+								<div class="icon-bg"></div>
+								<svg
+									class="feature-icon w-10 h-10"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+									></path>
+								</svg>
+							</div>
+							<h3
+								class="text-xl font-bold mb-4 text-gray-900"
+							>
+								{t("features.ai.title")}
+							</h3>
+							<p
+								class="text-gray-600 leading-relaxed"
+							>
+								{t("features.ai.desc")}
+							</p>
+						</div>
+					</div>
+					<div
+						class="feature-card relative sm:col-span-2 lg:col-span-1"
+					>
+						<div class="step-number">3</div>
+						<div class="card-content bg-white rounded-2xl shadow-xl p-8 text-center group cursor-pointer h-full">
+							<div
+								class="icon-wrapper relative mx-auto mb-6"
+							>
+								<div class="icon-bg"></div>
+								<svg
+									class="feature-icon w-10 h-10"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+									></path>
+								</svg>
+							</div>
+							<h3
+								class="text-xl font-bold mb-4 text-gray-900"
+							>
+								{t("features.download.title")}
+							</h3>
+							<p
+								class="text-gray-600 leading-relaxed"
+							>
+								{t("features.download.desc")}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Benefits Section -->
+		<section
+			class="py-20 lg:py-24 benefits-section bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden"
+		>
+			<div class="container mx-auto px-4">
+				<div class="text-center mb-16">
+					<h2 class="benefits-title text-3xl lg:text-4xl font-bold text-gray-900 mb-4 font-excalifont">
+						{t("benefits.title")}
+					</h2>
+					<p class="text-lg text-gray-600 max-w-2xl mx-auto">
+						{t("benefits.subtitle")}
+					</p>
+				</div>
+				<div class="max-w-7xl mx-auto">
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+						<!-- Mindsy Method Card -->
+						<div class="benefit-card group">
+							<div class="benefit-icon mindsy-icon">
+								<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+								</svg>
+							</div>
+							<h3 class="text-xl font-bold mb-3 text-gray-900">
+								{t("benefits.cornell.title")}
+							</h3>
+							<p class="text-gray-600 leading-relaxed">
+								{t("benefits.cornell.desc")}
+							</p>
+						</div>
+
+						<!-- Exam Preparation Card -->
+						<div class="benefit-card group">
+							<div class="benefit-icon exam-icon">
+								<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+								</svg>
+							</div>
+							<h3 class="text-xl font-bold mb-3 text-gray-900">
+								{t("benefits.exam.title")}
+							</h3>
+							<p class="text-gray-600 leading-relaxed">
+								{t("benefits.exam.desc")}
+							</p>
+						</div>
+
+						<!-- Better Retention Card -->
+						<div class="benefit-card group">
+							<div class="benefit-icon retention-icon">
+								<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+								</svg>
+							</div>
+							<h3 class="text-xl font-bold mb-3 text-gray-900">
+								{t("benefits.retention.title")}
+							</h3>
+							<p class="text-gray-600 leading-relaxed">
+								{t("benefits.retention.desc")}
+							</p>
+						</div>
+
+						<!-- Save Time Card -->
+						<div class="benefit-card group">
+							<div class="benefit-icon time-icon">
+								<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+								</svg>
+							</div>
+							<h3 class="text-xl font-bold mb-3 text-gray-900">
+								{t("benefits.time.title")}
+							</h3>
+							<p class="text-gray-600 leading-relaxed">
+								{t("benefits.time.desc")}
+							</p>
+						</div>
+
+						<!-- AI Enhanced Card -->
+						<div class="benefit-card group">
+							<div class="benefit-icon ai-icon">
+								<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+								</svg>
+							</div>
+							<h3 class="text-xl font-bold mb-3 text-gray-900">
+								{t("benefits.ai.title")}
+							</h3>
+							<p class="text-gray-600 leading-relaxed">
+								{t("benefits.ai.desc")}
+							</p>
+						</div>
+
+						<!-- Stay Organized Card -->
+						<div class="benefit-card group">
+							<div class="benefit-icon organize-icon">
+								<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/>
+								</svg>
+							</div>
+							<h3 class="text-xl font-bold mb-3 text-gray-900">
+								{t("benefits.organize.title")}
+							</h3>
+							<p class="text-gray-600 leading-relaxed">
+								{t("benefits.organize.desc")}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Pricing Section -->
+		<section class="py-20 bg-white" id="pricing">
+			<div class="container mx-auto px-4">
+				<div class="text-center mb-12">
+					<h2 class="text-4xl font-bold text-gray-900 mb-4">
+						{t("pricing.title")}
+					</h2>
+					<p class="text-xl text-gray-600">{t("pricing.subtitle")}</p>
+				</div>
+
+				<div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+					<!-- Free Tier -->
+					<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+						<div class="p-8">
+							<h3 class="text-2xl font-bold text-gray-900 mb-2">
+								{t("pricing.free.title")}
+							</h3>
+							<p class="text-gray-600 mb-6">
+								{t("pricing.free.desc")}
+							</p>
+							<div class="mb-6">
+								<span class="text-4xl font-bold">$0</span>
+								<span class="text-gray-600">/month</span>
+							</div>
+							<ul class="space-y-3 mb-8">
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.free.summaries")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.free.duration")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.free.format")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.free.download")}
+								</li>
+							</ul>
+							{
+								isAuthenticated ? (
+									<a
+										href="/dashboard"
+										class="block w-full text-center bg-gray-200 text-gray-700 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition"
+									>
+										{t("pricing.cta.dashboard")}
+									</a>
+								) : (
+									<a
+										href="/auth/signup"
+										class="block w-full text-center bg-gray-200 text-gray-700 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition"
+									>
+										{t("pricing.cta.getStarted")}
+									</a>
+								)
+							}
+						</div>
+					</div>
+
+					<!-- Student Tier -->
+					<div
+						class="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-500 relative"
+					>
+						<div
+							class="absolute top-0 right-0 bg-blue-500 text-white px-3 py-1 text-sm"
+						>
+							{t("pricing.student.popular")}
+						</div>
+						<div class="p-8">
+							<h3 class="text-2xl font-bold text-gray-900 mb-2">
+								{t("pricing.student.title")}
+							</h3>
+							<p class="text-gray-600 mb-6">
+								{t("pricing.student.desc")}
+							</p>
+							<div class="mb-6">
+								<span class="text-4xl font-bold">€5</span>
+								<span class="text-gray-600">/month</span>
+							</div>
+							<ul class="space-y-3 mb-8">
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.student.hours")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.student.duration")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.student.summaries")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.student.priority")}
+								</li>
+								<li class="flex items-center">
+									<svg
+										class="w-5 h-5 text-green-500 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"></path>
+									</svg>
+									{t("pricing.student.exports")}
+								</li>
+							</ul>
+							{
+								isAuthenticated ? (
+									<a
+										href="https://buy.stripe.com/3cI9AS4O64Jp4do8CgdIA00"
+										class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition"
+									>
+										{t("pricing.cta.upgrade")}
+									</a>
+								) : (
+									<a
+										href="/auth/signup"
+										class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition"
+									>
+										{t("pricing.cta.subscribe")}
+									</a>
+								)
+							}
+						</div>
+					</div>
+
+				</div>
+
+				<div class="mt-12 text-center text-gray-600">
+					<p class="mb-2">{t("pricing.note1")}</p>
+					<p>
+						{t("pricing.note2")}
+						<a
+							href="mailto:support@mysummary.app"
+							class="text-blue-600 hover:underline"
+							>{t("pricing.contact")}</a
+						>
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- CTA Section -->
+		<section class="py-20 cosmic-cta-section text-white relative overflow-hidden">
+			<!-- Cosmic CTA Background -->
+			<div class="cosmic-cta-canvas absolute inset-0">
+				<!-- Animated Gradient Base -->
+				<div class="cosmic-cta-bg"></div>
+				
+				<!-- Floating CTA Particles -->
+				<div class="cta-particles-container">
+					<div class="cta-particle cta-particle-1"></div>
+					<div class="cta-particle cta-particle-2"></div>
+					<div class="cta-particle cta-particle-3"></div>
+					<div class="cta-particle cta-particle-4"></div>
+					<div class="cta-particle cta-particle-5"></div>
+					<div class="cta-particle cta-particle-6"></div>
+				</div>
+				
+				<!-- CTA Energy Rings -->
+				<div class="cta-energy-ring cta-ring-1"></div>
+				<div class="cta-energy-ring cta-ring-2"></div>
+				
+				<!-- CTA Floating Shapes -->
+				<div class="cta-cosmic-shapes">
+					<div class="cta-shape cta-shape-circle"></div>
+					<div class="cta-shape cta-shape-diamond"></div>
+					<div class="cta-shape cta-shape-hexagon"></div>
+				</div>
+			</div>
+			
+			<div class="container mx-auto px-4 text-center relative z-10">
+				<h2 class="text-3xl font-bold mb-4 cosmic-cta-title font-excalifont">{t("cta.title")}</h2>
+				<p class="text-xl mb-8 cosmic-cta-subtitle">{t("cta.subtitle")}</p>
+				{
+					isAuthenticated ? (
+						<a
+							href="/dashboard"
+							class="cosmic-cta-button inline-block px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300"
+						>
+							{t("cta.dashboard")}
+						</a>
+					) : (
+						<a
+							href="/auth/signup"
+							class="cosmic-cta-button inline-block px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300"
+						>
+							{t("cta.getStarted")}
+						</a>
+					)
+				}
+			</div>
+		</section>
+
+		<!-- Footer -->
+		<Footer lang={lang} isAuthenticated={isAuthenticated} />
+	</div>
+</BaseLayout>
+
+<style>
+	/* === COSMIC HEADER BACKGROUND === */
+	.cosmic-canvas {
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	/* Animated Gradient Base */
+	.cosmic-bg {
+		position: absolute;
+		inset: 0;
+		background: 
+			radial-gradient(ellipse at 20% 70%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
+			radial-gradient(ellipse at 70% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+			radial-gradient(ellipse at 50% 50%, rgba(79, 172, 254, 0.2) 0%, transparent 50%),
+			linear-gradient(135deg, 
+				rgba(99, 102, 241, 0.1) 0%, 
+				rgba(139, 92, 246, 0.15) 25%,
+				rgba(236, 72, 153, 0.1) 50%,
+				rgba(59, 130, 246, 0.15) 75%,
+				rgba(79, 172, 254, 0.1) 100%
+			);
+		animation: cosmic-drift 25s ease-in-out infinite;
+	}
+
+	@keyframes cosmic-drift {
+		0%, 100% { 
+			background-position: 0% 50%, 100% 50%, 50% 0%, 0% 0%;
+			filter: hue-rotate(0deg) brightness(1);
+		}
+		25% { 
+			background-position: 25% 25%, 75% 75%, 25% 75%, 25% 25%;
+			filter: hue-rotate(45deg) brightness(1.1);
+		}
+		50% { 
+			background-position: 50% 0%, 50% 100%, 100% 50%, 50% 50%;
+			filter: hue-rotate(90deg) brightness(0.9);
+		}
+		75% { 
+			background-position: 75% 75%, 25% 25%, 75% 25%, 75% 75%;
+			filter: hue-rotate(180deg) brightness(1.05);
+		}
+	}
+
+	/* Floating Particles */
+	.particles-container {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+
+	.particle {
+		position: absolute;
+		background: linear-gradient(45deg, rgba(79, 172, 254, 0.8), rgba(139, 92, 246, 0.6));
+		border-radius: 50%;
+		animation: float-particle 15s ease-in-out infinite;
+		box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+	}
+
+	.particle-1 { width: 4px; height: 4px; top: 20%; left: 10%; animation-delay: 0s; animation-duration: 20s; }
+	.particle-2 { width: 6px; height: 6px; top: 60%; left: 20%; animation-delay: -2s; animation-duration: 18s; }
+	.particle-3 { width: 3px; height: 3px; top: 40%; left: 30%; animation-delay: -4s; animation-duration: 22s; }
+	.particle-4 { width: 5px; height: 5px; top: 80%; left: 15%; animation-delay: -1s; animation-duration: 19s; }
+	.particle-5 { width: 4px; height: 4px; top: 25%; left: 70%; animation-delay: -3s; animation-duration: 21s; }
+	.particle-6 { width: 7px; height: 7px; top: 70%; left: 80%; animation-delay: -5s; animation-duration: 17s; }
+	.particle-7 { width: 3px; height: 3px; top: 45%; left: 85%; animation-delay: -2.5s; animation-duration: 23s; }
+	.particle-8 { width: 5px; height: 5px; top: 15%; left: 60%; animation-delay: -1.5s; animation-duration: 16s; }
+	.particle-9 { width: 4px; height: 4px; top: 85%; left: 40%; animation-delay: -4.5s; animation-duration: 20s; }
+	.particle-10 { width: 6px; height: 6px; top: 35%; left: 5%; animation-delay: -0.5s; animation-duration: 24s; }
+	.particle-11 { width: 3px; height: 3px; top: 55%; left: 95%; animation-delay: -3.5s; animation-duration: 18s; }
+	.particle-12 { width: 8px; height: 8px; top: 10%; left: 90%; animation-delay: -6s; animation-duration: 15s; }
+
+	@keyframes float-particle {
+		0%, 100% {
+			transform: translateY(0px) translateX(0px) rotate(0deg);
+			opacity: 0.7;
+		}
+		25% {
+			transform: translateY(-30px) translateX(20px) rotate(90deg);
+			opacity: 1;
+		}
+		50% {
+			transform: translateY(-10px) translateX(-15px) rotate(180deg);
+			opacity: 0.8;
+		}
+		75% {
+			transform: translateY(-40px) translateX(10px) rotate(270deg);
+			opacity: 0.9;
+		}
+	}
+
+	/* Cosmic Energy Rings */
+	.energy-ring {
+		position: absolute;
+		border: 2px solid transparent;
+		border-radius: 50%;
+		background: 
+			linear-gradient(white, white) padding-box,
+			linear-gradient(45deg, rgba(79, 172, 254, 0.4), rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4)) border-box;
+		animation: ring-pulse 12s ease-in-out infinite;
+	}
+
+	.ring-1 {
+		width: 200px;
+		height: 200px;
+		top: 15%;
+		left: 75%;
+		animation-delay: 0s;
+	}
+
+	.ring-2 {
+		width: 150px;
+		height: 150px;
+		top: 70%;
+		left: 10%;
+		animation-delay: -4s;
+	}
+
+	.ring-3 {
+		width: 300px;
+		height: 300px;
+		top: 40%;
+		left: 60%;
+		animation-delay: -8s;
+	}
+
+	@keyframes ring-pulse {
+		0%, 100% {
+			transform: scale(1) rotate(0deg);
+			opacity: 0.3;
+		}
+		50% {
+			transform: scale(1.2) rotate(180deg);
+			opacity: 0.7;
+		}
+	}
+
+	/* Floating Geometric Shapes */
+	.cosmic-shapes {
+		position: absolute;
+		inset: 0;
+	}
+
+	.shape {
+		position: absolute;
+		background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(139, 92, 246, 0.2));
+		animation: shape-dance 20s ease-in-out infinite;
+	}
+
+	.shape-hexagon {
+		width: 40px;
+		height: 40px;
+		top: 25%;
+		left: 85%;
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		animation-delay: 0s;
+	}
+
+	.shape-triangle {
+		width: 30px;
+		height: 30px;
+		top: 80%;
+		left: 75%;
+		clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+		animation-delay: -5s;
+	}
+
+	.shape-circle {
+		width: 25px;
+		height: 25px;
+		top: 30%;
+		left: 15%;
+		border-radius: 50%;
+		animation-delay: -10s;
+	}
+
+	.shape-diamond {
+		width: 35px;
+		height: 35px;
+		top: 60%;
+		left: 90%;
+		clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+		animation-delay: -15s;
+	}
+
+	@keyframes shape-dance {
+		0%, 100% {
+			transform: translateY(0px) rotate(0deg) scale(1);
+			opacity: 0.5;
+		}
+		33% {
+			transform: translateY(-50px) rotate(120deg) scale(1.2);
+			opacity: 0.8;
+		}
+		66% {
+			transform: translateY(-25px) rotate(240deg) scale(0.8);
+			opacity: 0.6;
+		}
+	}
+
+	/* Focused Shapes around text content */
+	.focused-shapes {
+		position: absolute;
+		inset: -50px;
+		pointer-events: none;
+	}
+
+	.focused-hexagon {
+		top: -30px !important;
+		right: -40px !important;
+		left: auto !important;
+		width: 30px;
+		height: 30px;
+		animation: gentle-float 8s ease-in-out infinite;
+	}
+
+	.focused-triangle {
+		bottom: -20px !important;
+		left: -30px !important;
+		top: auto !important;
+		right: auto !important;
+		width: 25px;
+		height: 25px;
+		animation: gentle-float 8s ease-in-out infinite -2s;
+	}
+
+	.focused-diamond {
+		top: 50% !important;
+		right: -50px !important;
+		left: auto !important;
+		transform: translateY(-50%);
+		width: 28px;
+		height: 28px;
+		animation: gentle-float 8s ease-in-out infinite -4s;
+	}
+
+	@keyframes gentle-float {
+		0%, 100% {
+			transform: translateY(0px) rotate(0deg);
+			opacity: 0.4;
+		}
+		50% {
+			transform: translateY(-15px) rotate(180deg);
+			opacity: 0.7;
+		}
+	}
+
+
+	/* Dynamic Light Beams */
+	.light-beams {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+
+	.beam {
+		position: absolute;
+		background: linear-gradient(90deg, 
+			transparent 0%, 
+			rgba(79, 172, 254, 0.3) 30%, 
+			rgba(139, 92, 246, 0.4) 50%, 
+			rgba(79, 172, 254, 0.3) 70%, 
+			transparent 100%
+		);
+		animation: beam-sweep 15s linear infinite;
+	}
+
+	.beam-1 {
+		width: 2px;
+		height: 100%;
+		top: 0;
+		left: 20%;
+		animation-delay: 0s;
+		transform: skew(-10deg);
+	}
+
+	.beam-2 {
+		width: 1px;
+		height: 100%;
+		top: 0;
+		left: 60%;
+		animation-delay: -5s;
+		transform: skew(15deg);
+	}
+
+	.beam-3 {
+		width: 3px;
+		height: 100%;
+		top: 0;
+		left: 80%;
+		animation-delay: -10s;
+		transform: skew(-5deg);
+	}
+
+	@keyframes beam-sweep {
+		0% {
+			opacity: 0;
+			transform: translateX(-100px) skew(-10deg);
+		}
+		50% {
+			opacity: 1;
+			transform: translateX(0px) skew(-10deg);
+		}
+		100% {
+			opacity: 0;
+			transform: translateX(100px) skew(-10deg);
+		}
+	}
+
+	/* Nebula Effects */
+	.nebula {
+		position: absolute;
+		background: radial-gradient(ellipse, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+		border-radius: 50%;
+		animation: nebula-drift 30s ease-in-out infinite;
+		filter: blur(40px);
+	}
+
+	.nebula-1 {
+		width: 400px;
+		height: 200px;
+		top: 10%;
+		left: 30%;
+		animation-delay: 0s;
+	}
+
+	.nebula-2 {
+		width: 300px;
+		height: 300px;
+		top: 60%;
+		left: 70%;
+		animation-delay: -10s;
+		background: radial-gradient(ellipse, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+	}
+
+	.nebula-3 {
+		width: 250px;
+		height: 150px;
+		top: 40%;
+		left: 5%;
+		animation-delay: -20s;
+		background: radial-gradient(ellipse, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+	}
+
+	@keyframes nebula-drift {
+		0%, 100% {
+			transform: translateX(0px) translateY(0px) scale(1);
+		}
+		50% {
+			transform: translateX(50px) translateY(-30px) scale(1.3);
+		}
+	}
+
+	/* Interactive Hover Effects for Hero Content */
+	.hero-section:hover .cosmic-bg {
+		animation-duration: 15s;
+		filter: brightness(1.2) saturate(1.1);
+	}
+
+	.hero-section:hover .particle {
+		animation-duration: 8s;
+		box-shadow: 0 0 30px rgba(79, 172, 254, 0.8);
+	}
+
+	.hero-section:hover .energy-ring {
+		animation-duration: 6s;
+		border-width: 3px;
+	}
+
+	/* Responsive Optimizations */
+	@media (max-width: 768px) {
+		/* Hide desktop particles */
+		.particle { display: none; }
+		.energy-ring { display: none; }
+		.shape { transform: scale(0.5); opacity: 0.6; }
+		.beam { width: 1px; opacity: 0.3; }
+		.nebula { filter: blur(25px); transform: scale(0.7); opacity: 0.4; }
+		
+		/* Show mobile-optimized particles (only 3-4 key ones) */
+		.particle-1,
+		.particle-5,
+		.particle-9 {
+			display: block !important;
+			animation-duration: 25s !important; /* Slower for better performance */
+			opacity: 0.7;
+			transform: scale(0.8);
+		}
+	}
+
+	@media (max-width: 480px) {
+		/* Even more minimal for small screens */
+		.shape { 
+			display: none; /* Hide most shapes */
+		}
+		
+		/* Keep only one subtle shape */
+		.shape-hexagon {
+			display: block !important;
+			transform: scale(0.4);
+			opacity: 0.3;
+			animation-duration: 30s !important;
+		}
+		
+		.beam { display: none; }
+		.nebula { 
+			filter: blur(30px); 
+			transform: scale(0.5); 
+			opacity: 0.3;
+		}
+		
+		/* Keep only 2 particles for small mobile */
+		.particle { display: none; }
+		.particle-1,
+		.particle-5 {
+			display: block !important;
+			width: 3px !important;
+			height: 3px !important;
+			animation-duration: 30s !important;
+			opacity: 0.5;
+			box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+		}
+		
+		.cosmic-bg {
+			background: 
+				linear-gradient(135deg, 
+					rgba(99, 102, 241, 0.08) 0%, 
+					rgba(139, 92, 246, 0.12) 50%,
+					rgba(79, 172, 254, 0.08) 100%
+				);
+			animation-duration: 35s; /* Slower animation for performance */
+		}
+	}
+
+	/* === COSMIC CTA SECTION === */
+	.cosmic-cta-section {
+		background: linear-gradient(135deg, #1e40af 0%, #3730a3 50%, #1e1b4b 100%);
+		position: relative;
+	}
+
+	.cosmic-cta-canvas {
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	/* CTA Animated Gradient Base */
+	.cosmic-cta-bg {
+		position: absolute;
+		inset: 0;
+		background: 
+			radial-gradient(ellipse at 30% 80%, rgba(79, 172, 254, 0.2) 0%, transparent 50%),
+			radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+			radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+		animation: cta-cosmic-drift 20s ease-in-out infinite;
+	}
+
+	@keyframes cta-cosmic-drift {
+		0%, 100% { 
+			background-position: 0% 50%, 100% 50%, 50% 0%;
+			filter: hue-rotate(0deg) brightness(1);
+		}
+		50% { 
+			background-position: 100% 50%, 0% 50%, 50% 100%;
+			filter: hue-rotate(20deg) brightness(1.1);
+		}
+	}
+
+	/* CTA Floating Particles */
+	.cta-particles-container {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+
+	.cta-particle {
+		position: absolute;
+		background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), rgba(79, 172, 254, 0.4));
+		border-radius: 50%;
+		animation: cta-float-particle 12s ease-in-out infinite;
+		box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+	}
+
+	.cta-particle-1 { width: 6px; height: 6px; top: 20%; left: 15%; animation-delay: 0s; }
+	.cta-particle-2 { width: 4px; height: 4px; top: 70%; left: 25%; animation-delay: -2s; }
+	.cta-particle-3 { width: 5px; height: 5px; top: 40%; left: 80%; animation-delay: -4s; }
+	.cta-particle-4 { width: 3px; height: 3px; top: 60%; left: 70%; animation-delay: -1s; }
+	.cta-particle-5 { width: 7px; height: 7px; top: 30%; left: 90%; animation-delay: -3s; }
+	.cta-particle-6 { width: 4px; height: 4px; top: 80%; left: 10%; animation-delay: -5s; }
+
+	@keyframes cta-float-particle {
+		0%, 100% {
+			transform: translateY(0px) translateX(0px);
+			opacity: 0.6;
+		}
+		50% {
+			transform: translateY(-30px) translateX(15px);
+			opacity: 1;
+		}
+	}
+
+	/* CTA Energy Rings */
+	.cta-energy-ring {
+		position: absolute;
+		border: 2px solid transparent;
+		border-radius: 50%;
+		background: 
+			linear-gradient(rgba(30, 64, 175, 0), rgba(30, 64, 175, 0)) padding-box,
+			linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(79, 172, 254, 0.3), rgba(255, 255, 255, 0.2)) border-box;
+		animation: cta-ring-pulse 10s ease-in-out infinite;
+	}
+
+	.cta-ring-1 {
+		width: 150px;
+		height: 150px;
+		top: 10%;
+		right: 10%;
+		animation-delay: 0s;
+	}
+
+	.cta-ring-2 {
+		width: 120px;
+		height: 120px;
+		bottom: 15%;
+		left: 15%;
+		animation-delay: -5s;
+	}
+
+	@keyframes cta-ring-pulse {
+		0%, 100% {
+			transform: scale(1) rotate(0deg);
+			opacity: 0.4;
+		}
+		50% {
+			transform: scale(1.1) rotate(180deg);
+			opacity: 0.7;
+		}
+	}
+
+	/* CTA Floating Shapes */
+	.cta-cosmic-shapes {
+		position: absolute;
+		inset: 0;
+	}
+
+	.cta-shape {
+		position: absolute;
+		background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(79, 172, 254, 0.2));
+		animation: cta-shape-dance 15s ease-in-out infinite;
+	}
+
+	.cta-shape-circle {
+		width: 20px;
+		height: 20px;
+		top: 25%;
+		left: 20%;
+		border-radius: 50%;
+		animation-delay: 0s;
+	}
+
+	.cta-shape-diamond {
+		width: 25px;
+		height: 25px;
+		top: 70%;
+		right: 25%;
+		clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+		animation-delay: -5s;
+	}
+
+	.cta-shape-hexagon {
+		width: 30px;
+		height: 30px;
+		top: 50%;
+		right: 10%;
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		animation-delay: -10s;
+	}
+
+	@keyframes cta-shape-dance {
+		0%, 100% {
+			transform: translateY(0px) rotate(0deg) scale(1);
+			opacity: 0.6;
+		}
+		50% {
+			transform: translateY(-25px) rotate(180deg) scale(1.1);
+			opacity: 0.9;
+		}
+	}
+
+	/* CTA Typography */
+	.cosmic-cta-title {
+		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+		animation: cta-title-glow 3s ease-in-out infinite;
+	}
+
+	.cosmic-cta-subtitle {
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+		opacity: 0.95;
+		animation: fade-in-up 1s ease-out 0.3s both;
+	}
+
+	@keyframes cta-title-glow {
+		0%, 100% {
+			text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+		}
+		50% {
+			text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
+		}
+	}
+
+	/* CTA Button */
+	.cosmic-cta-button {
+		background: linear-gradient(135deg, 
+			rgba(255, 255, 255, 0.95) 0%,
+			rgba(255, 255, 255, 0.9) 100%
+		);
+		color: #1e40af;
+		border: 1px solid rgba(255, 255, 255, 0.3);
+		box-shadow: 
+			0 4px 15px rgba(0, 0, 0, 0.2),
+			0 0 20px rgba(255, 255, 255, 0.1),
+			inset 0 1px 0 rgba(255, 255, 255, 0.3);
+		text-shadow: none;
+		position: relative;
+		overflow: hidden;
+		animation: cta-button-pulse 4s ease-in-out infinite;
+	}
+
+	.cosmic-cta-button::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(90deg, 
+			transparent 0%, 
+			rgba(79, 172, 254, 0.3) 50%, 
+			transparent 100%
+		);
+		animation: cta-button-scan 3s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	.cosmic-cta-button:hover {
+		transform: translateY(-2px) scale(1.02);
+		box-shadow: 
+			0 6px 20px rgba(0, 0, 0, 0.25),
+			0 0 30px rgba(255, 255, 255, 0.2),
+			inset 0 1px 0 rgba(255, 255, 255, 0.4);
+		background: linear-gradient(135deg, 
+			rgba(255, 255, 255, 1) 0%,
+			rgba(255, 255, 255, 0.95) 100%
+		);
+	}
+
+	@keyframes cta-button-pulse {
+		0%, 100% {
+			box-shadow: 
+				0 4px 15px rgba(0, 0, 0, 0.2),
+				0 0 20px rgba(255, 255, 255, 0.1),
+				inset 0 1px 0 rgba(255, 255, 255, 0.3);
+		}
+		50% {
+			box-shadow: 
+				0 4px 15px rgba(0, 0, 0, 0.2),
+				0 0 25px rgba(255, 255, 255, 0.15),
+				inset 0 1px 0 rgba(255, 255, 255, 0.4);
+		}
+	}
+
+	@keyframes cta-button-scan {
+		0% { left: -100%; }
+		50% { left: 100%; }
+		100% { left: -100%; }
+	}
+
+	/* Enhanced hero text styling */
+	.hero-title {
+		position: relative;
+		z-index: 2;
+	}
+
+	.hero-text-gradient {
+		color: #1a202c;
+		font-weight: 900;
+		letter-spacing: -0.02em;
+	}
+
+	/* Highlight study word */
+	.highlight-study {
+		background: linear-gradient(135deg, #667eea 0%, #4facfe 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		font-weight: 900;
+		position: relative;
+		display: inline-block;
+		padding: 0 0.1em;
+	}
+
+	/* Add a subtle underline effect */
+	.highlight-study::after {
+		content: '';
+		position: absolute;
+		bottom: 0.1em;
+		left: 0;
+		right: 0;
+		height: 0.15em;
+		background: linear-gradient(135deg, #667eea 0%, #4facfe 100%);
+		border-radius: 0.1em;
+		opacity: 0.3;
+	}
+
+	/* Hero subtitle styling */
+	.hero-subtitle {
+		position: relative;
+		z-index: 2;
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+		animation: fade-in-up 1s ease-out 0.5s both;
+	}
+
+	/* Fade in animation for subtitle */
+	@keyframes fade-in-up {
+		0% {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+
+	/* Hero CTA button animation */
+	.hero-cta {
+		position: relative;
+		overflow: hidden;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		transform: translateY(0);
+		box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4);
+		animation: fade-in-up 1s ease-out 0.8s both;
+	}
+
+	.hero-cta::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 0;
+		height: 0;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.2);
+		transform: translate(-50%, -50%);
+		transition: width 0.6s, height 0.6s;
+	}
+
+	.hero-cta:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 7px 20px 0 rgba(79, 70, 229, 0.5);
+	}
+
+	.hero-cta:hover::before {
+		width: 300px;
+		height: 300px;
+	}
+
+	/* Enhanced logo watermark styling */
+	.logo-watermark {
+		opacity: 1;
+		transform: scale(1);
+		transition: opacity 0.3s ease-in-out;
+	}
+
+	.watermark-svg {
+		filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.1));
+		transform: rotate(-2deg);
+	}
+
+	/* Optimized responsive logo watermark scaling */
+	@media (max-width: 1400px) {
+		.hero-section .watermark-svg {
+			width: 5000px;
+			height: 1250px;
+		}
+	}
+
+	@media (max-width: 1200px) {
+		.hero-section .watermark-svg {
+			width: 4200px;
+			height: 1050px;
+		}
+	}
+
+	@media (max-width: 1024px) {
+		.hero-section .watermark-svg {
+			width: 3600px;
+			height: 900px;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.hero-section .watermark-svg {
+			width: 3000px;
+			height: 750px;
+			transform: rotate(-1deg);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.hero-section .watermark-svg {
+			width: 2400px;
+			height: 600px;
+			transform: rotate(-1deg);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.hero-section .watermark-svg {
+			width: 2000px;
+			height: 500px;
+			transform: rotate(0deg);
+		}
+	}
+
+	@media (max-width: 375px) {
+		.hero-section .watermark-svg {
+			width: 1800px;
+			height: 450px;
+			transform: rotate(0deg);
+		}
+	}
+
+	@media (max-width: 320px) {
+		.hero-section .watermark-svg {
+			width: 1600px;
+			height: 400px;
+			transform: rotate(0deg);
+		}
+	}
+
+	/* Ensure content stays above watermark */
+	.hero-section {
+		position: relative;
+		z-index: 10;
+	}
+
+	/* Features Section Styles */
+	.features-section {
+		position: relative;
+		overflow: hidden;
+	}
+
+	/* Features Title Styling */
+	.features-title {
+		display: inline-block;
+		position: relative;
+		padding: 0 20px;
+	}
+
+	.title-decorator {
+		position: absolute;
+		bottom: -8px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 80px;
+		height: 4px;
+		background: linear-gradient(90deg, #667eea 0%, #4facfe 100%);
+		border-radius: 2px;
+		animation: expand-width 1s ease-out 0.2s both;
+	}
+
+	@keyframes expand-width {
+		from {
+			width: 0;
+			opacity: 0;
+		}
+		to {
+			width: 80px;
+			opacity: 1;
+		}
+	}
+
+	.features-title::before {
+		content: '';
+		position: absolute;
+		left: -40px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 30px;
+		height: 2px;
+		background: linear-gradient(90deg, transparent 0%, #667eea 100%);
+		animation: slide-in-left 1s ease-out 0.5s both;
+	}
+
+	.features-title::after {
+		content: '';
+		position: absolute;
+		right: -40px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 30px;
+		height: 2px;
+		background: linear-gradient(90deg, #4facfe 0%, transparent 100%);
+		animation: slide-in-right 1s ease-out 0.5s both;
+	}
+
+	@keyframes slide-in-left {
+		from {
+			transform: translateY(-50%) translateX(-20px);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(-50%) translateX(0);
+			opacity: 1;
+		}
+	}
+
+	@keyframes slide-in-right {
+		from {
+			transform: translateY(-50%) translateX(20px);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(-50%) translateX(0);
+			opacity: 1;
+		}
+	}
+
+	/* Step Numbers */
+	.step-number {
+		position: absolute;
+		top: -20px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 40px;
+		height: 40px;
+		background: linear-gradient(135deg, #667eea 0%, #4facfe 100%);
+		color: white;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 700;
+		font-size: 1.25rem;
+		z-index: 10;
+		box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+		animation: pulse-glow 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse-glow {
+		0%, 100% {
+			box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+		}
+		50% {
+			box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+		}
+	}
+
+	/* Feature Card Styles */
+	.feature-card {
+		position: relative;
+		animation: fade-in-up 0.8s ease-out;
+		animation-fill-mode: both;
+	}
+
+	.feature-card:nth-child(1) {
+		animation-delay: 0.1s;
+	}
+
+	.feature-card:nth-child(2) {
+		animation-delay: 0.2s;
+	}
+
+	.feature-card:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+
+	.card-content {
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		transform: translateY(0);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.card-content::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: linear-gradient(90deg, #667eea 0%, #4facfe 100%);
+		transform: translateX(-100%);
+		transition: transform 0.5s ease;
+	}
+
+	.card-content:hover::before {
+		transform: translateX(0);
+	}
+
+	.card-content:hover {
+		transform: translateY(-8px);
+		box-shadow:
+			0 20px 40px -10px rgba(0, 0, 0, 0.1),
+			0 0 0 1px rgba(102, 126, 234, 0.1);
+	}
+
+	/* Icon Styles */
+	.icon-wrapper {
+		width: 80px;
+		height: 80px;
+		position: relative;
+	}
+
+	.icon-bg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(79, 172, 254, 0.1) 100%);
+		border-radius: 20px;
+		transform: rotate(45deg);
+		transition: all 0.3s ease;
+	}
+
+	.card-content:hover .icon-bg {
+		transform: rotate(45deg) scale(1.1);
+		background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(79, 172, 254, 0.15) 100%);
+	}
+
+	.feature-icon {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: #667eea;
+		transition: all 0.3s ease;
+	}
+
+	.card-content:hover .feature-icon {
+		color: #4f46e5;
+		transform: translate(-50%, -50%) scale(1.1);
+	}
+
+	/* Enhanced feature card hover effects */
+	.feature-card h3 {
+		transition: color 0.3s ease;
+	}
+
+	.card-content:hover h3 {
+		color: #4f46e5;
+	}
+
+	/* Benefits Section Styles */
+	.benefits-section {
+		position: relative;
+		overflow: hidden;
+	}
+
+	/* Animated Background Elements */
+	.benefits-section::before {
+		content: '';
+		position: absolute;
+		top: -50%;
+		left: -20%;
+		width: 140%;
+		height: 200%;
+		background: 
+			radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+			radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
+			radial-gradient(circle at 40% 40%, rgba(79, 172, 254, 0.2) 0%, transparent 50%);
+		animation: float-bg 20s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	.benefits-section::after {
+		content: '';
+		position: absolute;
+		top: 10%;
+		right: -10%;
+		width: 500px;
+		height: 500px;
+		background: 
+			conic-gradient(from 0deg at 50% 50%, 
+				rgba(139, 92, 246, 0.1) 0deg, 
+				rgba(59, 130, 246, 0.1) 120deg, 
+				rgba(236, 72, 153, 0.1) 240deg, 
+				rgba(139, 92, 246, 0.1) 360deg
+			);
+		border-radius: 50%;
+		animation: spin-slow 30s linear infinite;
+		pointer-events: none;
+	}
+
+	@keyframes float-bg {
+		0%, 100% {
+			transform: translateY(0px) rotate(0deg);
+		}
+		33% {
+			transform: translateY(-20px) rotate(1deg);
+		}
+		66% {
+			transform: translateY(-10px) rotate(-1deg);
+		}
+	}
+
+	@keyframes spin-slow {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Geometric Shapes */
+	.benefits-section .container::before {
+		content: '';
+		position: absolute;
+		top: 15%;
+		left: -5%;
+		width: 200px;
+		height: 200px;
+		background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+		border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+		animation: morph 15s ease-in-out infinite;
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	.benefits-section .container::after {
+		content: '';
+		position: absolute;
+		bottom: 20%;
+		right: -3%;
+		width: 150px;
+		height: 150px;
+		background: linear-gradient(45deg, rgba(236, 72, 153, 0.1) 0%, rgba(79, 172, 254, 0.1) 100%);
+		border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+		animation: morph 18s ease-in-out infinite reverse;
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	@keyframes morph {
+		0%, 100% {
+			border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+			transform: translateY(0px) rotate(0deg);
+		}
+		25% {
+			border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+			transform: translateY(-10px) rotate(5deg);
+		}
+		50% {
+			border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+			transform: translateY(-5px) rotate(-3deg);
+		}
+		75% {
+			border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+			transform: translateY(-15px) rotate(2deg);
+		}
+	}
+
+	.benefits-title {
+		position: relative;
+		z-index: 2;
+	}
+
+	.benefit-card {
+		background: rgba(255, 255, 255, 0.7);
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: 20px;
+		padding: 2rem;
+		text-align: center;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+		animation: fade-in-up 0.8s ease-out;
+		animation-fill-mode: both;
+	}
+
+	.benefit-card:nth-child(1) { animation-delay: 0.1s; }
+	.benefit-card:nth-child(2) { animation-delay: 0.2s; }
+	.benefit-card:nth-child(3) { animation-delay: 0.3s; }
+	.benefit-card:nth-child(4) { animation-delay: 0.4s; }
+	.benefit-card:nth-child(5) { animation-delay: 0.5s; }
+	.benefit-card:nth-child(6) { animation-delay: 0.6s; }
+
+	.benefit-card:hover {
+		transform: translateY(-8px);
+		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+		background: rgba(255, 255, 255, 0.9);
+		border-color: rgba(102, 126, 234, 0.2);
+	}
+
+	.benefit-icon {
+		width: 64px;
+		height: 64px;
+		margin: 0 auto 1.5rem;
+		border-radius: 16px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.3s ease;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.benefit-icon::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 16px;
+		background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.3) 100%);
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+
+	.benefit-card:hover .benefit-icon::before {
+		opacity: 1;
+	}
+
+	/* Individual icon colors */
+	.mindsy-icon {
+		background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+		color: #6366f1;
+	}
+
+	.exam-icon {
+		background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+		color: #d97706;
+	}
+
+	.retention-icon {
+		background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+		color: #16a34a;
+	}
+
+	.time-icon {
+		background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+		color: #7c3aed;
+	}
+
+	.ai-icon {
+		background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+		color: #ec4899;
+	}
+
+	.accessible-icon {
+		background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+		color: #0891b2;
+	}
+
+	.organize-icon {
+		background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+		color: #d97706;
+	}
+
+	.benefit-card:hover .benefit-icon {
+		transform: scale(1.1) rotate(5deg);
+	}
+
+	/* Benefits Section Responsive */
+	@media (max-width: 768px) {
+		.benefit-card {
+			padding: 1.5rem;
+		}
+
+		.benefit-icon {
+			width: 56px;
+			height: 56px;
+			margin-bottom: 1rem;
+		}
+
+		.benefit-card:hover {
+			transform: translateY(-4px);
+		}
+
+		.benefit-card:hover .benefit-icon {
+			transform: scale(1.05) rotate(3deg);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.benefit-card {
+			padding: 1.25rem;
+		}
+
+		.benefit-icon {
+			width: 48px;
+			height: 48px;
+		}
+	}
+
+	/* Optimized responsive behavior for features section */
+
+	/* Features section rounded corners optimization */
+	.py-20.bg-white.rounded-t-3xl {
+		border-radius: 3rem 3rem 0 0;
+	}
+
+	@media (max-width: 1024px) {
+		.py-20.bg-white.rounded-t-3xl {
+			border-radius: 2.5rem 2.5rem 0 0;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.py-20.bg-white.rounded-t-3xl {
+			border-radius: 2rem 2rem 0 0;
+			padding-top: 4rem;
+			padding-bottom: 4rem;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.py-20.bg-white.rounded-t-3xl {
+			border-radius: 1.5rem 1.5rem 0 0;
+			padding-top: 3rem;
+			padding-bottom: 3rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.py-20.bg-white.rounded-t-3xl {
+			border-radius: 1rem 1rem 0 0;
+			padding-top: 2.5rem;
+			padding-bottom: 2.5rem;
+		}
+	}
+
+	/* Responsive adjustments for feature cards */
+	@media (max-width: 1024px) {
+		.step-number {
+			width: 36px;
+			height: 36px;
+			font-size: 1.1rem;
+			top: -18px;
+		}
+
+		.icon-wrapper {
+			width: 70px;
+			height: 70px;
+		}
+
+		.feature-icon {
+			width: 2.25rem;
+			height: 2.25rem;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.features-title::before,
+		.features-title::after {
+			width: 25px;
+			display: none;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.card-content {
+			padding: 1.5rem;
+		}
+
+		.card-content:hover {
+			transform: translateY(-4px);
+		}
+
+		.step-number {
+			width: 32px;
+			height: 32px;
+			font-size: 1rem;
+			top: -16px;
+		}
+
+		.icon-wrapper {
+			width: 60px;
+			height: 60px;
+		}
+
+		.feature-icon {
+			width: 2rem;
+			height: 2rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.card-content {
+			padding: 1.25rem;
+		}
+
+		.card-content:hover {
+			transform: translateY(-2px);
+		}
+
+		.icon-bg {
+			border-radius: 16px;
+		}
+
+		.features-title::before,
+		.features-title::after {
+			display: none;
+		}
+
+		.title-decorator {
+			width: 60px;
+		}
+
+		@keyframes expand-width {
+			to {
+				width: 60px;
+			}
+		}
+	}
+
+	/* Optimized grid spacing for mobile */
+	@media (max-width: 640px) {
+		.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3 {
+			gap: 1rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3 {
+			gap: 0.75rem;
+		}
+	}
+
+	/* Smooth transitions for all interactive elements */
+	.feature-card * {
+		transition: inherit;
+	}
+
+	/* Hero section responsive spacing optimization */
+	@media (max-width: 768px) {
+		.hero-section h1 {
+			font-size: 3rem;
+			line-height: 1.1;
+			margin-bottom: 1.5rem;
+		}
+
+		.hero-section p {
+			font-size: 1.125rem;
+			margin-bottom: 2rem;
+		}
+
+		.hero-section .container {
+			padding: 1.5rem;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.hero-section h1 {
+			font-size: 2.75rem;
+			margin-bottom: 1.25rem;
+		}
+
+		.hero-section p {
+			font-size: 1rem;
+			margin-bottom: 1.75rem;
+		}
+
+	}
+
+	@media (max-width: 480px) {
+		.hero-section h1 {
+			font-size: 2.5rem;
+			margin-bottom: 1rem;
+		}
+
+		.hero-section p {
+			font-size: 0.95rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.hero-cta {
+			padding: 0.75rem 1.5rem;
+			font-size: 1rem;
+		}
+	}
+
+
+	/* Optimize logo watermark positioning for better visual balance */
+	.logo-watermark {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	@media (max-width: 768px) {
+		.logo-watermark {
+			align-items: flex-start;
+			padding-top: 2rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.logo-watermark {
+			align-items: center;
+			padding-top: 0;
+		}
+	}
+</style>

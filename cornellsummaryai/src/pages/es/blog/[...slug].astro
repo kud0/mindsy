@@ -1,0 +1,46 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import BlogPostLayout from '../../../layouts/BlogPostLayout.astro';
+
+export const prerender = false;
+
+// Get the slug from the URL
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/es/blog');
+}
+
+// Try to get the post from Spanish collection first, then English
+let post;
+let collection;
+
+try {
+  post = await getEntry('blog-es', slug);
+  collection = 'blog-es';
+} catch (e) {
+  // Fallback to English collection
+  try {
+    post = await getEntry('blog', slug);
+    collection = 'blog';
+  } catch (e2) {
+    // Post not found
+    return new Response(null, { status: 404 });
+  }
+}
+
+if (!post) {
+  return new Response(null, { status: 404 });
+}
+
+// Check if draft post should be shown
+if (post.data.draft && import.meta.env.PROD) {
+  return new Response(null, { status: 404 });
+}
+
+const { Content } = await post.render();
+---
+
+<BlogPostLayout post={post} lang="es">
+  <Content />
+</BlogPostLayout>

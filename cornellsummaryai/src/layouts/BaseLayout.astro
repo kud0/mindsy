@@ -1,0 +1,193 @@
+---
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+  lang?: 'en' | 'es';
+}
+
+const { title, description = 'Transform your online lectures into actionable notes instantly with MySummary APP.', lang = 'en' } = Astro.props;
+
+// Detect if this is Spanish based on URL or lang prop
+const isSpanish = lang === 'es' || Astro.url.pathname.startsWith('/es');
+const locale = isSpanish ? 'es_ES' : 'en_US';
+const htmlLang = isSpanish ? 'es' : 'en';
+---
+
+<!DOCTYPE html>
+<html lang={htmlLang}>
+  <head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4NL9K5ENQ7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4NL9K5ENQ7');
+</script>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={`${title} - MySummary APP`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL('/logo-wave.png', Astro.url)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:site_name" content="MySummary APP" />
+    <meta property="og:locale" content={locale} />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={`${title} - MySummary APP`} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL('/logo-wave.png', Astro.url)} />
+    
+    <!-- WhatsApp specific -->
+    <meta property="whatsapp:title" content={`${title} - MySummary APP`} />
+    <meta property="whatsapp:description" content={description} />
+    <meta property="whatsapp:image" content={new URL('/logo-wave.png', Astro.url)} />
+    
+    <!-- Font preloading -->
+    <link rel="preload" href="/fonts/Excalifont-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Google Fonts - Roboto with optimal loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    
+    <title>{title} - MySummary APP</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MCP4QGHN"
+  height="0" width="0" class="hidden invisible"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+    <slot />
+    
+    <!-- Vercel Analytics -->
+    <script>
+      import('@vercel/analytics').then(({ inject }) => {
+        inject();
+      });
+    </script>
+    
+    <!-- Load Toast system globally -->
+    <script type="module">
+      try {
+        await import('/lib/toast.js');
+      } catch (e) {
+        // Fallback toast implementation
+        window.Toast = {
+          success: (msg) => {},
+          error: (msg) => {},
+          info: (msg) => {}
+        };
+      }
+    </script>
+
+    <!-- Initialize global Supabase and Auth for client-side scripts -->
+    <script define:vars={{ 
+      supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL, 
+      supabaseAnonKey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY 
+    }}>
+      // Initialize global Supabase client for client-side scripts
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          // Initialize Supabase if not already done
+          if (!window.supabase) {
+            try {
+              // Try primary CDN first
+              const { createClient } = await import('https://cdn.skypack.dev/@supabase/supabase-js');
+              
+              window.supabase = createClient(supabaseUrl, supabaseAnonKey, {
+                auth: {
+                  autoRefreshToken: true,
+                  persistSession: true,
+                  detectSessionInUrl: false, // Let callback handle this
+                  flowType: 'pkce' // Use PKCE flow instead of implicit
+                },
+              });
+            } catch (cdnError) {
+              try {
+                // Fallback CDN
+                const { createClient } = await import('https://unpkg.com/@supabase/supabase-js');
+                
+                window.supabase = createClient(supabaseUrl, supabaseAnonKey, {
+                  auth: {
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: false,
+                    flowType: 'pkce'
+                  },
+                });
+                // Fallback CDN loaded successfully
+              } catch (fallbackError) {
+                // Set a flag to indicate Supabase failed to load
+                window.supabaseError = true;
+                throw new Error('Failed to load Supabase from all CDNs');
+              }
+            }
+          }
+
+          // Always ensure AuthStore exists (even if Supabase was already initialized)
+          window.AuthStore = window.AuthStore || {};
+          
+          // Simple auth functions
+          window.AuthStore.signOut = async () => {
+            const { error } = await window.supabase.auth.signOut();
+            if (error) throw new Error(`Sign-out failed: ${error.message}`);
+          };
+
+          window.AuthStore.signIn = async (email, password) => {
+            const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
+            if (error) throw new Error(`Sign-in failed: ${error.message}`);
+            return data;
+          };
+
+          // OAuth methods removed - handled by individual components
+          // This prevents competing implementations
+
+          window.AuthStore.signUp = async (email, password, metadata) => {
+            const { data, error } = await window.supabase.auth.signUp({
+              email,
+              password,
+              options: { data: metadata },
+            });
+            return { data, error };
+          };
+
+          window.AuthStore.resetPassword = async (email) => {
+            const { data, error } = await window.supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: `${window.location.origin}/auth/reset-password`,
+            });
+            if (error) throw new Error(`Failed to send reset email: ${error.message}`);
+            return data;
+          };
+
+          // Simple Toast utility
+          window.Toast = {
+            show(message, type = 'info') {
+              // Silent toast for now - could add UI notifications later
+            },
+            success(message) { this.show(message, 'success'); },
+            error(message) { this.show(message, 'error'); },
+            info(message) { this.show(message, 'info'); },
+            loading(message) { this.show(message, 'loading'); }
+          };
+
+        } catch (error) {
+        }
+      });
+    </script>
+  </body>
+</html> 

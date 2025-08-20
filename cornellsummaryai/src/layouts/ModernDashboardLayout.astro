@@ -1,0 +1,70 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { DashboardWrapper } from '@/components/dashboard/DashboardWrapper';
+import { requireAuth, createClient } from '@/lib/supabase-server';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
+
+export interface Props {
+  title: string;
+  description?: string;
+  showSearch?: boolean;
+  folders?: any[];
+}
+
+const { title, description, showSearch = true, folders = [] } = Astro.props;
+
+// Get authenticated user
+const { user, response } = await requireAuth(Astro.cookies);
+if (response) return response;
+
+const supabase = createClient(Astro.cookies);
+
+// Fetch user profile from database
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', user.id)
+  .single();
+
+// Get usage data using the same RPC function as other pages
+const { data: usageData } = await supabase
+  .rpc('get_current_usage', { p_user_id: user.id });
+
+const usage = usageData?.[0];
+
+// Get user data for sidebar and topbar
+const userData = {
+  id: user.id,
+  name: profile?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+  email: user.email || '',
+  avatar: profile?.avatar_url || user.user_metadata?.avatar_url,
+  plan: (profile?.subscription_tier || profile?.tier || usage?.user_tier || 'free').toLowerCase() === 'student' ? 'student' as const : 'free' as const,
+};
+
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={title}>
+  <DashboardWrapper
+    client:load
+    user={userData}
+    currentPath={currentPath}
+    folders={folders}
+    showSearch={showSearch}
+  >
+    <slot />
+  </DashboardWrapper>
+
+  <!-- Mobile sidebar toggle -->
+  <div class="lg:hidden fixed bottom-6 left-6 z-50">
+    <Button 
+      id="mobile-menu-toggle"
+      variant="default" 
+      size="icon"
+      className="rounded-full shadow-lg"
+    >
+      <Menu className="h-5 w-5" />
+    </Button>
+  </div>
+</BaseLayout>

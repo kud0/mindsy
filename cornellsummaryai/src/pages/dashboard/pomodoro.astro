@@ -1,0 +1,17 @@
+---
+import Layout from '@/layouts/ModernDashboardLayout.astro';
+import { PomodoroPageWrapper } from '@/components/dashboard/PomodoroPageWrapper';
+import { requireAuth } from '@/lib/supabase-server';
+
+const { user, response } = await requireAuth(Astro.cookies);
+if (response) return response;
+
+const title = 'Pomodoro Timer';
+const description = 'Focus with the Pomodoro technique';
+---
+
+<Layout title={title} description={description}>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <PomodoroPageWrapper client:load />
+  </div>
+</Layout>

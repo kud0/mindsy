@@ -1,0 +1,104 @@
+---
+import { Image } from 'astro:assets';
+import { 
+  validateAltText, 
+  generateResponsiveSizes, 
+  getOptimalImageFormat,
+  extractImageMetadata,
+  generateFallbackAltText 
+} from '../lib/image-utils';
+
+export interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  width?: number;
+  height?: number;
+  class?: string;
+  loading?: 'eager' | 'lazy';
+  sizes?: string;
+  quality?: number;
+  context?: string; // Additional context for alt text generation
+}
+
+const { 
+  src, 
+  alt, 
+  caption,
+  width = 800,
+  height,
+  class: className = '',
+  loading = 'lazy',
+  sizes,
+  quality = 80,
+  context
+} = Astro.props;
+
+// Extract image metadata
+const imageMetadata = extractImageMetadata(src);
+
+// Validate and enhance alt text
+const altValidation = validateAltText(alt, src);
+const enhancedAlt = alt || generateFallbackAltText(src, context);
+
+// Generate responsive sizes if not provided
+const responsiveSizes = sizes || generateResponsiveSizes(width);
+
+// Get optimal format for local images
+const optimalFormat = getOptimalImageFormat(imageMetadata.extension);
+
+// Log accessibility warnings in development
+if (import.meta.env.DEV && !altValidation.isValid) {
+}
+---
+
+<figure class={`blog-image ${className}`} role="img" aria-label={enhancedAlt}>
+  {imageMetadata.isLocal ? (
+    <Image
+      src={src}
+      alt={enhancedAlt}
+      width={width}
+      height={height}
+      loading={loading}
+      quality={quality}
+      class="w-full h-auto rounded-lg shadow-md"
+      sizes={responsiveSizes}
+      format={optimalFormat}
+      densities={[1, 2]}
+    />
+  ) : (
+    <img
+      src={src}
+      alt={enhancedAlt}
+      width={width}
+      height={height}
+      loading={loading}
+      class="w-full h-auto rounded-lg shadow-md"
+      sizes={responsiveSizes}
+      decoding="async"
+    />
+  )}
+  
+  {caption && (
+    <figcaption class="mt-2 text-sm text-gray-600 text-center italic" id={`caption-${src.replace(/[^a-zA-Z0-9]/g, '-')}`}>
+      {caption}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .blog-image {
+    @apply my-6 mx-auto max-w-full;
+  }
+  
+  .blog-image img {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+  
+  /* Responsive image sizing */
+  @media (max-width: 640px) {
+    .blog-image {
+      @apply mx-0;
+    }
+  }
+</style>

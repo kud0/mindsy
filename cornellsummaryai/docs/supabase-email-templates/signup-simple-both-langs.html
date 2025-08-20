@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to MySummary APP</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 40px 30px; text-align: center; color: white; }
+        .logo { font-size: 32px; font-weight: bold; margin-bottom: 10px; }
+        .content { padding: 40px 30px; }
+        .lang-section { margin-bottom: 30px; padding-bottom: 30px; border-bottom: 2px solid #e5e7eb; }
+        .lang-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .welcome-title { font-size: 24px; font-weight: bold; color: #1f2937; margin: 0 0 16px 0; text-align: center; }
+        .welcome-subtitle { font-size: 16px; color: #6b7280; margin: 0 0 20px 0; text-align: center; }
+        .confirm-button { display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; margin: 20px auto; text-align: center; }
+        .footer { background: #1f2937; color: #9ca3af; padding: 32px 30px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">MySummary APP</div>
+            <p>Transform your lectures into actionable notes</p>
+        </div>
+        
+        <div class="content">
+            
+            <!-- English Section -->
+            <div class="lang-section">
+                <h1 class="welcome-title">🇺🇸 Welcome aboard!</h1>
+                <p class="welcome-subtitle">You're just one step away from revolutionizing your note-taking experience.</p>
+                <div style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" class="confirm-button">Verify Your Account</a>
+                </div>
+                <p>Complete your account setup by verifying your email address. Click the button above to get started!</p>
+            </div>
+            
+            <!-- Spanish Section -->
+            <div class="lang-section">
+                <h1 class="welcome-title">🇪🇸 ¡Bienvenido a bordo!</h1>
+                <p class="welcome-subtitle">Estás a un paso de revolucionar tu forma de tomar notas.</p>
+                <div style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" class="confirm-button">Verificar Tu Cuenta</a>
+                </div>
+                <p>Completa la configuración de tu cuenta verificando tu dirección de email. ¡Haz clic en el botón de arriba para comenzar!</p>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 8px; margin: 20px 0;">
+                <h3>Questions? / ¿Preguntas?</h3>
+                <p>Contact us at <a href="mailto:support@mysummary.app">support@mysummary.app</a></p>
+            </div>
+            
+        </div>
+        
+        <div class="footer">
+            <p>Thanks for joining MySummary APP! / ¡Gracias por unirte a MySummary APP!</p>
+            <p>© 2024 MySummary APP. All rights reserved. / Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
