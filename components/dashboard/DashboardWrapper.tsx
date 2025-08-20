@@ -13,7 +13,11 @@ interface DashboardWrapperProps {
     avatar?: string;
     plan: 'free' | 'student';
   };
-  folders?: any[];
+  folders?: Array<{
+    id: string;
+    name: string;
+    count: number;
+  }>;
   showSearch?: boolean;
   children: React.ReactNode;
 }

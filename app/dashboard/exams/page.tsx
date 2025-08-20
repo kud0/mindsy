@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardWrapper } from '@/components/dashboard/DashboardWrapper'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import ExamDashboard from '@/components/exams/ExamDashboard'
 
 export default async function ExamsPage() {
   const supabase = await createClient()
@@ -22,26 +22,7 @@ export default async function ExamsPage() {
 
   return (
     <DashboardWrapper user={userData}>
-      <div className="p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">
-            Exam Center
-          </h1>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Create & Manage Exams</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">
-                This is where you'll create and manage your practice exams.
-                <br />
-                <span className="text-sm">TODO: Migrate ExamContent and ExamDashboard components</span>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <ExamDashboard user={userData} />
     </DashboardWrapper>
   )
 }

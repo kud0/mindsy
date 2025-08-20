@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 // import { PomodoroTimer } from './PomodoroTimer';
 
 interface MainSidebarProps {
@@ -19,11 +19,19 @@ interface MainSidebarProps {
     avatar?: string;
     plan: 'free' | 'student';
   };
+  folders?: Array<{
+    id: string;
+    name: string;
+    count: number;
+  }>;
 }
 
-export function MainSidebar({ user }: MainSidebarProps) {
+export function MainSidebar({ user, folders }: MainSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  
+  // Suppress unused variable warning for now
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _folders = folders;
 
   const menuItems = [
     {
@@ -50,9 +58,9 @@ export function MainSidebar({ user }: MainSidebarProps) {
     return pathname.startsWith(path);
   };
 
-  const handlePomodoroExpand = () => {
-    router.push('/dashboard/pomodoro');
-  };
+  // const handlePomodoroExpand = () => {
+  //   router.push('/dashboard/pomodoro');
+  // };
 
   return (
     <div className="flex h-full w-64 flex-col bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800">
