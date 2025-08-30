@@ -2,6 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 INSTRUCTION PROTOCOL - CRITICAL
+**Claude MUST follow these rules EXACTLY or user will terminate session:**
+
+### TASK EXECUTION RULES
+1. **Complete tasks in EXACT order given** - NO exceptions
+2. **ONLY edit files explicitly mentioned** - touching other files = FAILURE  
+3. **Do NOT add features not requested** - stick to exact requirements
+4. **When user says STOP** - immediately revert and ask for clarification
+5. **Read instructions TWICE before starting** - prevent misunderstanding
+
+### COMMUNICATION PROTOCOL  
+- **User will be EXPLICIT**: "DO THIS EXACT THING - DON'T DO ANYTHING ELSE"
+- **User will NUMBER tasks**: 1. Remove X, 2. Fix Y, 3. Test Z
+- **User will specify scope**: "ONLY edit file.tsx - DO NOT touch other files"
+- **When going off-track**: User says "STOP" - Claude must immediately halt
+
+### FORBIDDEN BEHAVIORS
+- ❌ Adding unrequested features or "improvements"
+- ❌ Touching files not explicitly mentioned
+- ❌ Making assumptions about what user "might want"
+- ❌ Continuing after user says STOP
+- ❌ Patching/band-aid fixes instead of proper solutions
+
+### SUCCESS CRITERIA
+- ✅ Follow exact instructions given
+- ✅ Complete tasks in specified order  
+- ✅ Only modify explicitly mentioned files
+- ✅ Ask clarification if instruction unclear
+- ✅ Stop immediately when told to stop
+
 ## Project Overview
 
 Mindsy is a Next.js 15 application using the App Router architecture, TypeScript, Tailwind CSS 4, and React 19. This is a fresh project created with `create-next-app` using Turbopack for development.
@@ -63,7 +93,70 @@ npm run lint
 ### File Organization
 - All app code in `app/` directory (App Router)
 - Static assets in `public/` directory
+- Business logic in `lib/` directory (shared services)
 - TypeScript configuration supports both `.ts` and `.tsx` files
+
+## Architecture Guidelines
+
+### Best Practices for Code Organization
+
+#### ✅ DO: Proper Separation of Concerns
+```
+/lib/              - Business logic and shared services
+/app/api/          - API routes (HTTP handling only)
+/app/              - Next.js App Router pages and layouts
+/components/       - React UI components
+/types/            - TypeScript type definitions
+/docs/             - Architecture and API documentation
+```
+
+#### ❌ DON'T: Common Anti-patterns
+- **No business logic in API routes** - Keep routes focused on HTTP concerns
+- **No duplicate code between routes** - Extract shared logic to `/lib` services  
+- **No direct imports between API routes** - Use shared services instead
+- **No missing documentation** - Update docs when modifying pipelines
+
+#### Content Processing Pipeline Architecture
+
+The application uses a **multi-stage async pipeline** for processing audio content:
+
+**Core Services:**
+- `/lib/content-processor.ts` - Multi-stage pipeline orchestration
+- `/lib/pdf-generator.ts` - PDF generation from study materials  
+- `/lib/runpod-client.ts` - RunPod API integration with webhooks
+- `/lib/openai-client.ts` - OpenAI API integration
+
+**API Endpoints:**
+- `/api/generate` - Main entry point, handles both sync/async modes
+- `/api/runpod-webhook` - Receives RunPod transcription results
+- `/api/openai-webhook` - (Future) Receives OpenAI generation results
+
+**Processing Modes:**
+- **Synchronous**: Polling with exponential backoff for development  
+- **Asynchronous**: Webhook-based for production scalability
+
+**Pipeline Stages:**
+```
+Audio Upload → RunPod Transcription → OpenAI Generation → PDF + Storage → Complete
+     ↓               ↓                      ↓                    ↓            ↓
+  uploading    transcribing           generating          finalizing    completed
+```
+
+For detailed pipeline documentation, see `/docs/content-processing-pipeline.md`
+
+#### Webhook Development Setup
+
+For local webhook testing, use ngrok:
+```bash
+# Start ngrok tunnel
+./scripts/start-ngrok.sh
+
+# Configure webhook URL  
+echo "WEBHOOK_BASE_URL=https://abc123.ngrok.io" >> .env.local
+
+# Restart Next.js server
+npm run dev
+```
 
 ### Styling Patterns
 - Uses Tailwind utility classes extensively

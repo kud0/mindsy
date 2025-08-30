@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { DashboardWrapper } from '@/components/dashboard/DashboardWrapper'
 import StructuredStudyDesk from '@/components/notes/StructuredStudyDesk'
 
 interface LectureDetailPageProps {
@@ -20,9 +19,5 @@ export async function generateMetadata({ params }: LectureDetailPageProps): Prom
 export default async function LectureDetailPage({ params }: LectureDetailPageProps) {
   const { jobId } = await params
 
-  return (
-    <DashboardWrapper>
-      <StructuredStudyDesk jobId={jobId} />
-    </DashboardWrapper>
-  )
+  return <StructuredStudyDesk jobId={jobId} />
 }

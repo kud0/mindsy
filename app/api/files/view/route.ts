@@ -24,12 +24,29 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Access denied', 403)
     }
 
+    // Create admin client for accessing generated files
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    
     const supabase = await createClient()
     
-    // Get file from storage
-    const { data: fileData, error } = await supabase.storage
+    // Try user-uploads bucket first
+    let { data: fileData, error } = await supabase.storage
       .from('user-uploads')
       .download(filePath)
+    
+    // If not found, try generated-notes bucket with admin client
+    if (error || !fileData) {
+      const result = await supabaseAdmin.storage
+        .from('generated-notes')
+        .download(filePath)
+      
+      fileData = result.data
+      error = result.error
+    }
 
     if (error || !fileData) {
       console.error('File download error:', error)

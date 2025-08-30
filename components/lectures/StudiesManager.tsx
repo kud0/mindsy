@@ -72,21 +72,21 @@ const typeIcons: Record<HierarchyType, React.ComponentType<{ className?: string 
 };
 
 const typeColors: Record<HierarchyType, string> = {
-  course: 'text-blue-600',
-  year: 'text-green-600',
-  subject: 'text-purple-600',
-  semester: 'text-orange-600',
-  custom: 'text-gray-600',
+  course: 'text-primary',
+  year: 'text-secondary-foreground',
+  subject: 'text-primary',
+  semester: 'text-primary',
+  custom: 'text-muted-foreground',
 };
 
 // Pastel color palette for folders
 const folderColorOptions = [
-  { name: 'Rose', value: 'rose', class: 'bg-rose-300', border: 'border-l-rose-300' },
-  { name: 'Blue', value: 'blue', class: 'bg-blue-300', border: 'border-l-blue-300' },
-  { name: 'Green', value: 'green', class: 'bg-green-300', border: 'border-l-green-300' },
-  { name: 'Yellow', value: 'yellow', class: 'bg-yellow-300', border: 'border-l-yellow-300' },
-  { name: 'Purple', value: 'purple', class: 'bg-purple-300', border: 'border-l-purple-300' },
-  { name: 'Indigo', value: 'indigo', class: 'bg-indigo-300', border: 'border-l-indigo-300' },
+  { name: 'Primary', value: 'primary', class: 'bg-primary/90', border: 'border-l-primary' },
+  { name: 'Secondary', value: 'secondary', class: 'bg-secondary', border: 'border-l-secondary-foreground' },
+  { name: 'Accent', value: 'accent', class: 'bg-accent', border: 'border-l-accent-foreground' },
+  { name: 'Muted', value: 'muted', class: 'bg-muted', border: 'border-l-muted-foreground' },
+  { name: 'Primary Dark', value: 'primary-dark', class: 'bg-primary/900', border: 'border-l-primary' },
+  { name: 'Secondary Dark', value: 'secondary-dark', class: 'bg-secondary/70', border: 'border-l-secondary-foreground' },
 ];
 
 interface StudiesManagerProps {
@@ -98,6 +98,10 @@ interface StudiesManagerProps {
   onBulkLectureDrop?: (lectureIds: string[], targetNodeId: string) => void;
   onDragEnd?: () => void;
   onNodesLoaded?: (nodes: DatabaseStudyNode[]) => void;
+  draggedFolder?: StudyNode | null;
+  onFolderDrop?: (folderId: string, targetParentId: string | null, position?: number) => void;
+  onFolderDragEnd?: () => void;
+  refreshTrigger?: number;
 }
 
 export default function StudiesManager({
@@ -108,7 +112,11 @@ export default function StudiesManager({
   onLectureDrop,
   onBulkLectureDrop,
   onDragEnd,
-  onNodesLoaded
+  onNodesLoaded,
+  draggedFolder,
+  onFolderDrop,
+  onFolderDragEnd,
+  refreshTrigger
 }: StudiesManagerProps) {
   const router = useRouter();
   const [nodes, setNodes] = useState<StudyNode[]>([]);
@@ -123,10 +131,18 @@ export default function StudiesManager({
     parent_id: null as string | null,
     color: 'blue',
   });
+  const [dragHoverNode, setDragHoverNode] = useState<string | null>(null);
+  const [dragHoverPosition, setDragHoverPosition] = useState<string | null>(null); // Format: "parentId:position" or "root:position"
 
   useEffect(() => {
     fetchNodes();
   }, []);
+
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchNodes();
+    }
+  }, [refreshTrigger]);
 
   const fetchNodes = async () => {
     try {
@@ -188,6 +204,20 @@ export default function StudiesManager({
         rootNodes.push(nodeWithChildren);
       }
     });
+
+    // Sort children by sort_order for each parent
+    const sortChildren = (nodes: StudyNode[]) => {
+      nodes.forEach(node => {
+        if (node.children && node.children.length > 0) {
+          node.children.sort((a, b) => a.sort_order - b.sort_order);
+          sortChildren(node.children);
+        }
+      });
+    };
+
+    // Sort root nodes and all children
+    rootNodes.sort((a, b) => a.sort_order - b.sort_order);
+    sortChildren(rootNodes);
 
     return rootNodes;
   };
@@ -254,37 +284,170 @@ export default function StudiesManager({
     }
   };
 
+  const handleFolderDragStart = (node: StudyNode) => {
+    // Don't allow dragging if it would create a cycle (can't drag parent into its own child)
+    if (draggedFolder && isDescendant(draggedFolder.id, node.id)) {
+      return;
+    }
+  };
+
+  const isDescendant = (ancestorId: string, nodeId: string): boolean => {
+    const findNode = (nodes: StudyNode[], id: string): StudyNode | null => {
+      for (const n of nodes) {
+        if (n.id === id) return n;
+        if (n.children) {
+          const found = findNode(n.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const checkDescendants = (node: StudyNode): boolean => {
+      if (node.children) {
+        for (const child of node.children) {
+          if (child.id === nodeId || checkDescendants(child)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    const ancestor = findNode(nodes, ancestorId);
+    return ancestor ? checkDescendants(ancestor) : false;
+  };
+
+  // Render a drop zone between folders for reordering
+  const renderDropZone = (parentId: string | null, position: number, depth: number = 0) => {
+    const dropZoneId = `${parentId || 'root'}:${position}`;
+    const isHovered = dragHoverPosition === dropZoneId;
+    
+    return (
+      <div
+        key={`dropzone-${dropZoneId}`}
+        className={cn(
+          "h-2 transition-all duration-200",
+          isHovered ? "h-8" : "h-2"
+        )}
+        style={{ marginLeft: `${depth * 16}px` }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'move';
+          setDragHoverPosition(dropZoneId);
+          setDragHoverNode(null);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragHoverPosition(null);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragHoverPosition(null);
+          
+          const draggedData = e.dataTransfer.getData('text/plain');
+          
+          if (draggedData.startsWith('folder:')) {
+            const draggedFolderId = draggedData.replace('folder:', '');
+            onFolderDrop?.(draggedFolderId, parentId, position);
+            onFolderDragEnd?.();
+          }
+        }}
+      >
+        {isHovered && (
+          <div 
+            className="h-1 bg-primary rounded-full mx-3 relative"
+            style={{ marginLeft: `${depth * 16 + 12}px` }}
+          >
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-primary rounded-full"></div>
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1 w-2 h-2 bg-primary rounded-full"></div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render nodes with drop zones for reordering
+  const renderNodesWithDropZones = (nodeList: StudyNode[], parentId: string | null = null, depth: number = 0) => {
+    const elements: React.ReactNode[] = [];
+    
+    // Add drop zone before first node
+    elements.push(renderDropZone(parentId, 0, depth));
+    
+    nodeList.forEach((node, index) => {
+      // Add the node
+      elements.push(renderNode(node, depth));
+      
+      // Add drop zone after each node
+      elements.push(renderDropZone(parentId, index + 1, depth));
+    });
+    
+    return elements;
+  };
+
   const renderNode = (node: StudyNode, depth: number = 0) => {
     const hasChildren = node.children && node.children.length > 0;
     const isExpanded = expandedNodes.has(node.id);
     const isSelected = selectedNodeId === node.id;
     const Icon = typeIcons[node.type] || FolderOpen;
+    const isDragHover = dragHoverNode === node.id;
+    const isDraggedFolder = draggedFolder?.id === node.id;
 
     return (
       <div key={node.id}>
         <div
+          draggable
           className={cn(
-            "group flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
-            isSelected && "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800",
+            "group flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
+            isSelected && "bg-accent border border-border",
+            isDragHover && "bg-accent/70 border-2 border-primary/50",
+            isDraggedFolder && "opacity-50",
             `ml-${depth * 4}`
           )}
           style={{ marginLeft: `${depth * 16}px` }}
           onClick={() => handleNodeClick(node.id)}
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', `folder:${node.id}`);
+            handleFolderDragStart(node);
+          }}
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
             e.dataTransfer.dropEffect = 'move';
+            setDragHoverNode(node.id);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragHoverNode(null);
           }}
           onDrop={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            setDragHoverNode(null);
             
-            if (draggedSelectedLectures && draggedSelectedLectures.length > 0) {
+            const draggedData = e.dataTransfer.getData('text/plain');
+            
+            if (draggedData.startsWith('folder:')) {
+              // Handle folder drop
+              const draggedFolderId = draggedData.replace('folder:', '');
+              if (draggedFolderId !== node.id) {
+                onFolderDrop?.(draggedFolderId, node.id);
+              }
+              onFolderDragEnd?.();
+            } else if (draggedSelectedLectures && draggedSelectedLectures.length > 0) {
+              // Handle bulk lecture drop
               onBulkLectureDrop?.(draggedSelectedLectures, node.id);
+              onDragEnd?.();
             } else if (draggedLecture) {
+              // Handle single lecture drop
               onLectureDrop?.(draggedLecture.job_id, node.id);
+              onDragEnd?.();
             }
-            onDragEnd?.();
           }}
         >
           {hasChildren && (
@@ -314,14 +477,14 @@ export default function StudiesManager({
               {node.name}
             </span>
             {node.description && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 truncate block">
+              <span className="text-xs text-muted-foreground truncate block">
                 {node.description}
               </span>
             )}
           </div>
           
           {node.note_count !== undefined && (
-            <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
               {node.note_count}
             </span>
           )}
@@ -352,7 +515,7 @@ export default function StudiesManager({
         
         {hasChildren && isExpanded && (
           <div>
-            {node.children!.map(child => renderNode(child, depth + 1))}
+            {renderNodesWithDropZones(node.children!, node.id, depth + 1)}
           </div>
         )}
       </div>
@@ -364,7 +527,7 @@ export default function StudiesManager({
       <div className="p-4">
         <div className="animate-pulse space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div key={i} className="h-8 bg-muted rounded"></div>
           ))}
         </div>
       </div>
@@ -374,9 +537,9 @@ export default function StudiesManager({
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-lg font-semibold text-foreground">
             Study Folders
           </h2>
           <Button
@@ -392,13 +555,47 @@ export default function StudiesManager({
         {/* All Lectures Option */}
         <div
           className={cn(
-            "flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
-            !selectedNodeId && "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            "flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
+            !selectedNodeId && "bg-accent border border-border"
           )}
           onClick={() => onNodeSelect?.(null)}
         >
-          <FolderOpen className="h-4 w-4 text-gray-600" />
+          <FolderOpen className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">All Lectures</span>
+        </div>
+        
+        {/* Root Level Drop Zone */}
+        <div
+          className={cn(
+            "mt-2 py-2 px-3 rounded-lg border-2 border-dashed border-transparent transition-colors",
+            dragHoverNode === "root" && "border-primary/50 bg-accent"
+          )}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            setDragHoverNode("root");
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragHoverNode(null);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragHoverNode(null);
+            
+            const draggedData = e.dataTransfer.getData('text/plain');
+            
+            if (draggedData.startsWith('folder:')) {
+              const draggedFolderId = draggedData.replace('folder:', '');
+              onFolderDrop?.(draggedFolderId, null); // null means move to root level
+              onFolderDragEnd?.();
+            }
+          }}
+        >
+          <span className="text-xs text-muted-foreground">Drop folder here to move to root level</span>
         </div>
       </div>
 
@@ -406,15 +603,15 @@ export default function StudiesManager({
       <div className="flex-1 overflow-y-auto p-2">
         {nodes.length === 0 ? (
           <div className="text-center py-8">
-            <FolderPlus className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 text-sm mb-3">No study folders yet</p>
+            <FolderPlus className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground text-sm mb-3">No study folders yet</p>
             <Button size="sm" onClick={handleCreateNode}>
               Create Your First Folder
             </Button>
           </div>
         ) : (
-          <div className="space-y-1">
-            {nodes.map(node => renderNode(node, 0))}
+          <div>
+            {renderNodesWithDropZones(nodes, null, 0)}
           </div>
         )}
       </div>

@@ -26,11 +26,7 @@ export async function GET(request: NextRequest) {
         lecture_title,
         course_subject,
         created_at,
-        updated_at,
-        status,
-        study_node_id,
-        original_file_path,
-        processing_metadata
+        status
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -46,13 +42,13 @@ export async function GET(request: NextRequest) {
       if (status === 'completed') {
         query = query.eq('status', 'completed')
       } else if (status === 'processing') {
-        query = query.in('status', ['processing', 'uploading'])
+        query = query.eq('status', 'processing')
       } else if (status === 'failed') {
         query = query.eq('status', 'failed')
       }
     } else {
-      // Default: exclude deleted items
-      query = query.in('status', ['processing', 'completed', 'failed', 'uploading'])
+      // Default: exclude deleted items - only include valid enum values
+      query = query.in('status', ['processing', 'completed', 'failed'])
     }
 
     const { data: notes, error, count } = await query
@@ -113,14 +109,7 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         lecture_title: lecture_title.trim(),
         course_subject: course_subject?.trim() || null,
-        study_node_id: study_node_id || null,
         status: 'processing',
-        processing_metadata: {
-          audio_file_path,
-          pdf_file_path,
-          processing_mode,
-          created_via_api: true
-        },
         created_at: new Date().toISOString()
       })
       .select()

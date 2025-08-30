@@ -297,7 +297,10 @@ export class RunPodClient {
     
     if (errorMessage.includes('fetch') || 
         errorMessage.includes('network') || 
-        errorMessage.includes('connection')) {
+        errorMessage.includes('connection') ||
+        errorMessage.includes('socket') ||
+        errorMessage.includes('und_err_socket') ||
+        errorMessage.includes('other side closed')) {
       return RunPodErrorType.NETWORK;
     }
     
@@ -340,9 +343,9 @@ export class RunPodClient {
       topLevelKeys: Object.keys(response)
     });
     
-    // Check if the job is still in progress
-    if (response.status === 'IN_PROGRESS') {
-      this.logger.info('Job is still in progress, cannot extract transcription yet', {
+    // Check if the job is still in progress or queued
+    if (response.status === 'IN_PROGRESS' || response.status === 'IN_QUEUE') {
+      this.logger.info('Job is still processing, cannot extract transcription yet', {
         status: response.status,
         id: response.id
       });
@@ -431,7 +434,74 @@ export class RunPodClient {
   }
 
   /**
-   * Transcribe audio with language detection using RunPod Whisper API /runsync endpoint
+   * Transcribe audio with webhook (recommended for production)
+   * @param audioUrl - Signed URL to the audio file
+   * @param webhookUrl - URL where RunPod will POST the results
+   * @returns Promise<{jobId: string}> - Job ID for tracking
+   */
+  async transcribeAudioWithWebhook(
+    audioUrl: string,
+    webhookUrl: string
+  ): Promise<{ jobId: string }> {
+    if (!audioUrl || !webhookUrl) {
+      throw new Error('Audio URL and webhook URL are required');
+    }
+
+    if (!this.apiKey) {
+      throw new Error('RunPod API key is not configured');
+    }
+
+    const requestBody: any = {
+      input: {
+        audio: audioUrl
+      },
+      webhook: webhookUrl // RunPod will POST to this URL when complete
+    };
+
+    this.logger.info('Starting ASYNC transcription with webhook', {
+      baseUrl: this.baseUrl,
+      webhookUrl,
+      audioUrl: audioUrl.substring(0, 50) + '...'
+    });
+
+    try {
+      const submitResponse = await fetch(`${this.baseUrl}/run`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!submitResponse.ok) {
+        const errorText = await submitResponse.text();
+        throw new Error(`Failed to submit RunPod job: ${submitResponse.status} - ${errorText}`);
+      }
+
+      const submitResult = await submitResponse.json();
+      const jobId = submitResult.id;
+
+      if (!jobId) {
+        throw new Error('No job ID returned from RunPod');
+      }
+
+      this.logger.info('Job submitted with webhook successfully', { jobId, webhookUrl });
+      
+      return { jobId };
+
+    } catch (error) {
+      this.logger.error('Failed to submit webhook job', error);
+      throw new RunPodClientError(
+        error instanceof Error ? error.message : 'Failed to submit job',
+        RunPodErrorType.API_ERROR,
+        { originalError: error instanceof Error ? error : undefined }
+      );
+    }
+  }
+
+  /**
+   * Transcribe audio with language detection using polling (fallback)
    * @param audioUrl - Signed URL to the audio file
    * @param maxRetries - Maximum number of retries for IN_PROGRESS status (default: 3)
    * @param retryDelayMs - Delay between retries in milliseconds (default: 5000)
@@ -458,7 +528,7 @@ export class RunPodClient {
       }
     };
 
-    this.logger.info('Sending transcription request with language detection to RunPod API', {
+    this.logger.info('Starting ASYNC transcription with RunPod API', {
       baseUrl: this.baseUrl,
       audioUrl: audioUrl.substring(0, 50) + '...' // Truncate URL for logging
     });
@@ -468,7 +538,9 @@ export class RunPodClient {
 
     while (retries <= maxRetries) {
       try {
-        const response = await fetch(`${this.baseUrl}/runsync`, {
+        // Step 1: Submit job to async endpoint
+        this.logger.info('Submitting async job to RunPod');
+        const submitResponse = await fetch(`${this.baseUrl}/run`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -477,105 +549,156 @@ export class RunPodClient {
           body: JSON.stringify(requestBody)
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `RunPod API error: ${response.status} ${response.statusText}`;
-          let errorData: RunPodError | null = null;
-
-          try {
-            errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch {
-            errorMessage = errorText || errorMessage;
-          }
-
-          throw new RunPodClientError(
-            errorMessage,
-            RunPodErrorType.API_ERROR,
-            {
-              responseData: errorData || errorText,
-              retryAttempt: retries,
-              maxRetries
-            }
-          );
+        if (!submitResponse.ok) {
+          const errorText = await submitResponse.text();
+          throw new Error(`Failed to submit RunPod job: ${submitResponse.status} - ${errorText}`);
         }
 
-        const rawData: RunPodResponseAny = await response.json();
-        
-        this.logger.info('RunPod API response received with language detection', {
-          status: rawData.status,
-          hasOutput: !!rawData.output,
-          outputKeys: rawData.output ? Object.keys(rawData.output) : [],
-          language: rawData.output?.language,
-          languageProbability: rawData.output?.language_probability
-        });
+        const submitResult = await submitResponse.json();
+        const jobId = submitResult.id;
 
-        try {
-          const text = this.extractTranscriptionText(rawData);
-          
-          // Extract language information if available
-          const result: TranscriptionResult = {
-            text,
-            detectedLanguage: rawData.output?.language,
-            languageConfidence: rawData.output?.language_probability
-          };
-
-          return result;
-        } catch (extractError) {
-          if (extractError instanceof Error && extractError.message.includes('Job is still in progress')) {
-            if (retries < maxRetries) {
-              this.logger.info(`Job is still in progress, retrying in ${retryDelayMs}ms (retry ${retries + 1}/${maxRetries})`);
-              retries++;
-              lastError = extractError;
-              await new Promise(resolve => setTimeout(resolve, retryDelayMs));
-              continue;
-            }
-          }
-          
-          throw new RunPodClientError(
-            extractError instanceof Error ? extractError.message : 'could not extract transcription',
-            RunPodErrorType.RESPONSE_FORMAT,
-            {
-              originalError: extractError instanceof Error ? extractError : undefined,
-              responseData: rawData,
-              retryAttempt: retries,
-              maxRetries
-            }
-          );
+        if (!jobId) {
+          throw new Error('No job ID returned from RunPod');
         }
+
+        this.logger.info('Job submitted successfully, starting polling', { jobId });
+
+        // Step 2: Poll for completion
+        return await this.pollJobStatus(jobId, maxRetries);
+
       } catch (error) {
-        const errorType = this.categorizeError(error);
-        
-        if (retries >= maxRetries || errorType !== RunPodErrorType.IN_PROGRESS) {
-          if (error instanceof RunPodClientError) {
-            error.retryAttempt = retries;
-            error.maxRetries = maxRetries;
-            this.logger.error(`RunPod transcription with language detection failed (${error.type})`, error);
-            throw error;
-          } else if (error instanceof Error) {
-            throw new RunPodClientError(
-              error.message,
-              errorType,
-              {
-                originalError: error,
-                retryAttempt: retries,
-                maxRetries
-              }
-            );
-          }
+        if (error instanceof RunPodClientError) {
+          throw error;
         }
         
-        lastError = error instanceof Error ? error : new Error(String(error));
+        const errorType = this.categorizeError(error);
+        const isRetryableError = errorType === RunPodErrorType.NETWORK;
+        
+        if (retries >= maxRetries || !isRetryableError) {
+          throw new RunPodClientError(
+            error instanceof Error ? error.message : 'Unknown error during async job submission',
+            errorType,
+            {
+              originalError: error instanceof Error ? error : undefined,
+              retryAttempt: retries,
+              maxRetries
+            }
+          );
+        }
+
+        this.logger.warn(`Retrying RunPod request due to ${errorType} (attempt ${retries + 1}/${maxRetries})`, { error: error instanceof Error ? error.message : String(error), retryDelay: retryDelayMs });
         retries++;
+        lastError = error instanceof Error ? error : new Error(String(error));
         await new Promise(resolve => setTimeout(resolve, retryDelayMs));
       }
     }
+
+    // This shouldn't be reached, but just in case
+    throw lastError || new Error('Max retries exceeded');
+  }
+
+  /**
+   * Poll RunPod job status until completion with exponential backoff
+   */
+  private async pollJobStatus(jobId: string, maxRetries: number = 10): Promise<TranscriptionResult> {
+    let attempts = 0;
+    const maxPollingTime = 600000; // 10 minutes total timeout
+    const startTime = Date.now();
     
-    if (lastError) {
-      throw lastError;
+    // Exponential backoff: starts at 2s, doubles up to 30s max
+    const getBackoffDelay = (attempt: number): number => {
+      const baseDelay = 2000; // 2 seconds
+      const maxDelay = 30000; // 30 seconds max
+      const exponentialDelay = baseDelay * Math.pow(2, Math.min(attempt, 4));
+      return Math.min(exponentialDelay, maxDelay);
+    };
+
+    while (Date.now() - startTime < maxPollingTime) {
+      try {
+        const currentDelay = getBackoffDelay(attempts);
+        const elapsedTime = Math.round((Date.now() - startTime) / 1000);
+        
+        this.logger.info(`Polling job status (attempt ${attempts + 1}, ${elapsedTime}s elapsed, next check in ${currentDelay/1000}s)`, { jobId });
+        
+        const statusResponse = await fetch(`${this.baseUrl}/status/${jobId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`
+          }
+        });
+
+        if (!statusResponse.ok) {
+          const errorText = await statusResponse.text();
+          throw new Error(`Failed to check job status: ${statusResponse.status} - ${errorText}`);
+        }
+
+        const statusData = await statusResponse.json();
+        
+        this.logger.info('Job status check', { 
+          jobId, 
+          status: statusData.status,
+          hasOutput: !!statusData.output,
+          elapsedSeconds: elapsedTime
+        });
+
+        // Check if job is completed
+        if (statusData.status === 'COMPLETED' && statusData.output) {
+          // Process the completed result
+          const text = this.extractTranscriptionText(statusData);
+          
+          const result: TranscriptionResult = {
+            text,
+            detectedLanguage: statusData.output?.detected_language || statusData.output?.language,
+            languageConfidence: statusData.output?.language_probability
+          };
+
+          this.logger.info('Async transcription completed successfully', {
+            jobId,
+            textLength: text.length,
+            detectedLanguage: result.detectedLanguage,
+            totalTime: `${elapsedTime}s`,
+            totalAttempts: attempts + 1
+          });
+
+          return result;
+        }
+
+        // Check if job failed
+        if (statusData.status === 'FAILED' || statusData.status === 'CANCELLED') {
+          throw new Error(`RunPod job ${statusData.status.toLowerCase()}: ${statusData.error || 'Unknown error'}`);
+        }
+
+        // Job is still processing, wait with exponential backoff
+        if (statusData.status === 'IN_PROGRESS' || statusData.status === 'IN_QUEUE') {
+          await new Promise(resolve => setTimeout(resolve, currentDelay));
+          attempts++;
+          continue;
+        }
+
+        // Unknown status
+        throw new Error(`Unknown job status: ${statusData.status}`);
+
+      } catch (error) {
+        // If we're close to timeout, throw the error
+        if (Date.now() - startTime >= maxPollingTime - 5000) {
+          const totalSeconds = Math.round((Date.now() - startTime) / 1000);
+          throw new Error(`Polling timeout after ${totalSeconds} seconds: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        
+        const currentDelay = getBackoffDelay(attempts);
+        this.logger.warn(`Polling error, retrying in ${currentDelay/1000}s`, { 
+          jobId, 
+          attempt: attempts + 1, 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, currentDelay));
+        attempts++;
+      }
     }
-    
-    throw new Error('Unexpected error: No result after all retries');
+
+    const totalSeconds = Math.round((Date.now() - startTime) / 1000);
+    throw new Error(`Polling timeout: Job did not complete within ${totalSeconds} seconds`);
   }
 
   /**

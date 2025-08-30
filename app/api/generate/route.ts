@@ -2,19 +2,35 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth/require-auth';
 import { createRunPodClient } from '@/lib/runpod-client';
-import { createGotenbergClient } from '@/lib/gotenberg-client';
-import { generateMindsyNotes, convertMarkdownToHtml, type MindsyNotesInput } from '@/lib/openai-client';
+import { generateMindsyNotes, type MindsyNotesInput } from '@/lib/openai-client';
+
+// Configure API route for dynamic operations
+export const dynamic = 'force-dynamic';
 
 /**
  * Interface for the request body of the generate API
  */
 interface GenerateRequest {
-  audioFilePath: string;      // Path to the uploaded audio file in Supabase Storage
+  // Audio upload processing
+  audioFilePath?: string;      // Path to the uploaded audio file in Supabase Storage
   pdfFilePath?: string;       // Optional path to the uploaded PDF file in Supabase Storage
+  
+  // Document upload processing
+  documentPaths?: string[];   // Array of paths to uploaded documents
+  
+  // Link upload processing
+  linkData?: {
+    linkType: 'youtube' | 'podcast' | 'article';
+    extractedData: unknown;   // Content extracted from the URL
+    originalUrl: string;      // Original URL provided by user
+  };
+  
+  // Common fields
   lectureTitle: string;       // Title of the lecture for naming the output file
   courseSubject?: string;     // Optional subject/course name for better context in note generation
   processingMode?: 'enhance' | 'store'; // Processing mode: enhance (full Mindsy notes) or store (light formatting)
   studyNodeId?: string;       // Optional study node ID to organize the note
+  uploadType: 'audio' | 'link' | 'documents'; // Type of upload being processed
 }
 
 /**
@@ -32,44 +48,57 @@ export async function POST(request: NextRequest) {
   try {
     const body: GenerateRequest = await request.json();
     
-    // Validate required fields
-    if (!body.audioFilePath) {
-      return createErrorResponse('audioFilePath is required');
+    // Validate required fields based on upload type
+    if (!body.uploadType) {
+      return createErrorResponse('uploadType is required');
     }
     
     if (!body.lectureTitle) {
       return createErrorResponse('lectureTitle is required');
+    }
+    
+    // Validate type-specific requirements
+    if (body.uploadType === 'audio' && !body.audioFilePath) {
+      return createErrorResponse('audioFilePath is required for audio uploads');
+    }
+    
+    if (body.uploadType === 'link' && !body.linkData) {
+      return createErrorResponse('linkData is required for link uploads');
+    }
+    
+    if (body.uploadType === 'documents' && (!body.documentPaths || body.documentPaths.length === 0)) {
+      return createErrorResponse('documentPaths is required for document uploads');
     }
 
     console.log('🚀 Generate API: Starting processing pipeline for', body.lectureTitle);
 
     const supabase = await createClient();
 
-    // Step 1: Get existing job or find by audioFilePath
-    console.log('🔍 Generate API: Looking for existing job with audio path:', body.audioFilePath);
+    // Step 1: Create new job record (like original generate API)
+    console.log('🔨 Generate API: Creating new job for processing');
     
-    const { data: existingJobs, error: findError } = await supabase
+    const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('*')
-      .eq('audio_file_path', body.audioFilePath)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .insert({
+        user_id: user.id,
+        lecture_title: body.lectureTitle,
+        course_subject: body.courseSubject || null,
+        status: 'processing',
+        audio_file_path: body.audioFilePath,
+        pdf_file_path: body.pdfFilePath || null,
+        processing_started_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-    if (findError) {
-      console.error('❌ Generate API: Error finding job', findError);
-      return createErrorResponse('Failed to find processing job', 500);
+    if (jobError) {
+      console.error('❌ Generate API: Error creating job', jobError);
+      return createErrorResponse('Failed to create processing job', 500);
     }
 
-    if (!existingJobs || existingJobs.length === 0) {
-      console.error('❌ Generate API: No job found for audio file path:', body.audioFilePath);
-      return createErrorResponse('No processing job found for this file', 404);
-    }
-
-    const job = existingJobs[0];
     const jobId = job.job_id;
 
-    console.log('✅ Generate API: Found existing job', { jobId, title: job.lecture_title });
+    console.log('✅ Generate API: Created new job', { jobId, title: job.lecture_title });
 
     try {
       // Step 2: Get signed URL for audio file
@@ -83,145 +112,111 @@ export async function POST(request: NextRequest) {
 
       console.log('🎵 Generate API: Audio URL created, starting transcription...');
 
-      // Step 3: Transcribe audio with RunPod
-      const runpodClient = createRunPodClient();
-      const transcriptionResult = await runpodClient.transcribeAudioWithLanguage(audioSignedUrl.signedUrl);
+      // Step 3: Import webhook configuration
+      const { getWebhookConfig, logWebhookConfig } = await import('@/lib/webhook-config');
+      const webhookConfig = getWebhookConfig();
       
-      // Use browser-provided duration if available, otherwise estimate from transcript
-      const actualDurationMinutes = job.duration_minutes && job.duration_minutes > 0
-        ? job.duration_minutes
-        : Math.max(1, Math.ceil(transcriptionResult.text.split(' ').length / 150)); // Fallback: ~150 words per minute
+      // Log configuration for debugging
+      logWebhookConfig();
+      
+      // Step 3: Transcribe audio with RunPod (webhook or polling based on config)
+      const runpodClient = createRunPodClient();
+      let transcriptionResult: any;
+      
+      if (webhookConfig.isWebhookEnabled && webhookConfig.webhookUrl) {
+        // Use webhook approach - submit and let webhook handle the rest
+        console.log('🔄 Using webhook approach for transcription');
+        const { jobId: runpodJobId } = await runpodClient.transcribeAudioWithWebhook(
+          audioSignedUrl.signedUrl,
+          webhookConfig.webhookUrl
+        );
+        
+        // Store RunPod job ID and set processing mode
+        const updateResult = await supabase
+          .from('jobs')
+          .update({ 
+            runpod_job_id: runpodJobId,
+            status: 'transcribing',
+            processing_mode: 'async'
+          })
+          .eq('job_id', jobId);
+
+        if (updateResult.error) {
+          console.error('❌ Failed to update job with RunPod ID:', updateResult.error);
+          throw new Error('Failed to update job status');
+        }
+        
+        console.log('✅ Successfully updated job with RunPod ID:', {
+          internalJobId: jobId,
+          runpodJobId,
+          updateSuccess: !updateResult.error
+        });
+        
+        // Return early - webhook will handle the rest
+        return createSuccessResponse({
+          jobId,
+          message: 'Audio submitted for transcription. Processing in background.',
+          status: 'transcribing',
+          mode: 'webhook',
+          runpodJobId
+        });
+      } else {
+        // Fall back to polling approach
+        console.log('📊 Using polling approach for transcription');
+        
+        // Set processing mode for sync
+        await supabase
+          .from('jobs')
+          .update({ 
+            status: 'transcribing',
+            processing_mode: 'sync'
+          })
+          .eq('job_id', jobId);
+          
+        transcriptionResult = await runpodClient.transcribeAudioWithLanguage(audioSignedUrl.signedUrl);
+      }
       
       console.log('✅ Generate API: Transcription completed', { 
         textLength: transcriptionResult.text.length,
-        language: transcriptionResult.detectedLanguage,
-        actualMinutes: actualDurationMinutes,
-        source: job.duration_minutes && job.duration_minutes > 0 ? 'browser' : 'estimated'
+        language: transcriptionResult.detectedLanguage
       });
 
-      // Step 4: Generate Cornell notes with OpenAI
-      console.log('🤖 Generate API: Starting AI note generation...');
+      // Use the new content processor to handle the complete pipeline
+      const { handleTranscriptionCompletion } = await import('@/lib/content-processor');
       
-      const mindsyInput: MindsyNotesInput = {
-        transcript: transcriptionResult.text,
-        lectureTitle: body.lectureTitle,
-        courseSubject: body.courseSubject,
-        detectedLanguage: transcriptionResult.detectedLanguage,
-        formatMode: 'cornell-notes'
-      };
-
-      const notesResult = await generateMindsyNotes(mindsyInput);
-      
-      if (!notesResult.success || !notesResult.notes) {
-        throw new Error(`AI note generation failed: ${notesResult.error}`);
-      }
-
-      console.log('✅ Generate API: AI notes generated', { 
-        notesLength: notesResult.notes.length 
+      const result = await handleTranscriptionCompletion(jobId, {
+        text: transcriptionResult.text,
+        detectedLanguage: transcriptionResult.detectedLanguage || 'en',
+        languageConfidence: transcriptionResult.languageConfidence
       });
 
-      // Step 5: Convert markdown to HTML
-      console.log('📄 Generate API: Converting to HTML...');
-      const htmlContent = await convertMarkdownToHtml(notesResult.notes);
-
-      // Step 6: Generate PDF with Gotenberg
-      console.log('📋 Generate API: Generating PDF...');
-      const gotenbergClient = createGotenbergClient();
-      const pdfResult = await gotenbergClient.generatePdfFromHtml(htmlContent, {
-        title: body.lectureTitle,
-        generateBookmarks: true
-      });
-
-      if (!pdfResult.success || !pdfResult.pdfBuffer) {
-        throw new Error(`PDF generation failed: ${pdfResult.error}`);
-      }
-
-      // Step 7: Upload generated files to Supabase Storage
-      console.log('💾 Generate API: Uploading generated files...');
+      console.log('✅ Generate API: Complete pipeline finished successfully');
       
-      const timestamp = Date.now();
-      const pdfPath = `${user.id}/${timestamp}_${body.lectureTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      const markdownPath = `${user.id}/${timestamp}_${body.lectureTitle.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
-      const txtPath = `${user.id}/${timestamp}_${body.lectureTitle.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
-
-      // Upload PDF
-      const { error: pdfUploadError } = await supabase.storage
-        .from('generated-notes')
-        .upload(pdfPath, pdfResult.pdfBuffer, {
-          contentType: 'application/pdf',
-          cacheControl: '3600'
-        });
-
-      if (pdfUploadError) {
-        throw new Error(`PDF upload failed: ${pdfUploadError.message}`);
-      }
-
-      // Upload markdown and text versions
-      const { error: mdUploadError } = await supabase.storage
-        .from('generated-notes')
-        .upload(markdownPath, notesResult.notes, {
-          contentType: 'text/markdown',
-          cacheControl: '3600'
-        });
-
-      const { error: txtUploadError } = await supabase.storage
-        .from('generated-notes')
-        .upload(txtPath, transcriptionResult.text, {
-          contentType: 'text/plain',
-          cacheControl: '3600'
-        });
-
-      console.log('✅ Generate API: Files uploaded to storage');
-
-      // Step 8: Create notes record (match original schema)
-      const { error: notesError } = await supabase
-        .from('notes')
-        .insert({
-          job_id: jobId,
-          user_id: user.id,
-          title: body.lectureTitle,
-          course_subject: body.courseSubject || null,
-          notes_column: notesResult.notes,
-          transcript_text: transcriptionResult.text,
-          cue_column: '', // Extract from notes if needed
-          summary_section: '', // Extract from notes if needed
-          created_at: new Date().toISOString()
-        });
-
-      if (notesError) {
-        console.warn('⚠️ Generate API: Notes record creation failed', notesError);
-      }
-
-      // Update job status to completed with duration tracking
-      const { error: jobUpdateError } = await supabase
+      // Get the completed job data for response
+      const { data: completedJob } = await supabase
         .from('jobs')
-        .update({
-          status: 'completed',
-          output_pdf_path: pdfPath,
-          md_file_path: markdownPath,
-          txt_file_path: txtPath,
-          duration_minutes: actualDurationMinutes, // Use actual duration for usage tracking
-          processing_completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('job_id', jobId);
+        .select('*')
+        .eq('job_id', jobId)
+        .single();
 
-      if (jobUpdateError) {
-        console.warn('⚠️ Generate API: Job status update failed', jobUpdateError);
-      }
-
-      console.log('🎉 Generate API: Processing completed successfully!');
-
+      const { data: studyGuide } = await supabase
+        .from('study_guides')
+        .select('*')
+        .eq('job_id', jobId)
+        .single();
+      
+      // Return success with all data
       return createSuccessResponse({
         jobId,
-        message: 'Cornell notes generated successfully',
+        message: 'Processing completed successfully!',
         status: 'completed',
+        studyGuide,
         files: {
-          pdf: pdfPath,
-          markdown: markdownPath,
-          transcript: txtPath
+          transcript: completedJob?.txt_file_path,
+          json: completedJob?.json_file_path,
+          pdf: completedJob?.pdf_file_path
         },
-        processingTime: Math.round((Date.now() - timestamp) / 1000)
+        mode: 'sync'
       });
 
     } catch (processingError) {

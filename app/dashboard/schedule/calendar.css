@@ -1,0 +1,171 @@
+/* React Big Calendar Styles - Tailwind Compatible */
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+@import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+
+.study-calendar {
+  /* Override default styles with Tailwind-compatible classes */
+  font-family: inherit;
+}
+
+.rbc-calendar {
+  background: transparent;
+}
+
+.rbc-header {
+  @apply text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+  padding: 12px 8px;
+}
+
+.rbc-time-view {
+  @apply border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
+}
+
+.rbc-time-content {
+  @apply border-l border-gray-200 dark:border-gray-700;
+}
+
+.rbc-time-gutter {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+.rbc-timeslot-group {
+  @apply border-b border-gray-100 dark:border-gray-700;
+  min-height: 60px;
+}
+
+.rbc-time-slot {
+  @apply border-r border-gray-100 dark:border-gray-700;
+}
+
+.rbc-day-slot {
+  @apply border-r border-gray-100 dark:border-gray-700;
+}
+
+.rbc-day-slot:last-child {
+  border-right: none;
+}
+
+.rbc-timeslot-group:last-child .rbc-time-slot {
+  border-bottom: none;
+}
+
+.rbc-label {
+  @apply text-xs text-gray-500 dark:text-gray-400;
+  padding: 4px 8px;
+}
+
+.rbc-time-header-gutter {
+  @apply bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+}
+
+.rbc-time-header-content {
+  @apply border-b border-gray-200 dark:border-gray-700;
+}
+
+.rbc-allday-cell {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+/* Event styling */
+.rbc-event {
+  @apply rounded-md border-l-4 shadow-sm;
+  background: transparent !important;
+  border: none !important;
+}
+
+.rbc-event:hover {
+  @apply shadow-md;
+}
+
+.rbc-event-content {
+  @apply p-1;
+}
+
+.rbc-event.rbc-selected {
+  @apply shadow-lg ring-2 ring-blue-500 ring-opacity-50;
+}
+
+/* Today styling */
+.rbc-today {
+  @apply bg-blue-50 dark:bg-blue-950/20;
+}
+
+/* Toolbar styling */
+.rbc-toolbar {
+  @apply flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg;
+}
+
+.rbc-toolbar-label {
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
+}
+
+.rbc-btn-group {
+  @apply flex gap-1;
+}
+
+.rbc-btn-group button {
+  @apply px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors;
+}
+
+.rbc-btn-group button.rbc-active {
+  @apply bg-blue-500 text-white border-blue-500 hover:bg-blue-600;
+}
+
+/* Week view specific */
+.rbc-time-view .rbc-time-gutter .rbc-label {
+  text-align: right;
+  padding-right: 8px;
+}
+
+/* Custom scrollbar for time content */
+.rbc-time-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rbc-time-content::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    @apply flex-col gap-3;
+  }
+  
+  .rbc-toolbar-label {
+    @apply text-base;
+  }
+  
+  .rbc-time-view .rbc-time-gutter {
+    min-width: 50px;
+  }
+  
+  .rbc-label {
+    @apply text-xs;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .rbc-calendar {
+    color: rgb(243 244 246);
+  }
+  
+  .rbc-off-range {
+    color: rgb(107 114 128);
+  }
+  
+  .rbc-off-range-bg {
+    background: rgb(31 41 55);
+  }
+}

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Study Guide Design</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            /* Modern Color Palette */
+            --primary-color: #4338ca;
+            --primary-light: #6366f1;
+            --primary-dark: #3730a3;
+            --secondary-color: #0891b2;
+            --accent-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            
+            /* Text Colors */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --text-accent: #1e40af;
+            
+            /* Background Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-accent: #f1f5f9;
+            --bg-question: #fef3c7;
+            --bg-answer: #ecfdf5;
+            --bg-summary: #ede9fe;
+            --bg-toc: #f0f9ff;
+            
+            /* Border Colors */
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+            --border-strong: #94a3b8;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: var(--space-lg);
+            background: var(--bg-primary);
+            font-size: 15px;
+            font-weight: 400;
+        }
+        
+        /* === HEADER SECTION === */
+        .study-guide-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+            padding: var(--space-xl) var(--space-lg);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 50%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .study-guide-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .study-guide-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .study-guide-header .subtitle {
+            margin-top: var(--space-sm);
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* === TYPOGRAPHY === */
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-lg) 0;
+            letter-spacing: -0.025em;
+        }
+        
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: var(--space-2xl) 0 var(--space-lg) 0;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: var(--space-xl) 0 var(--space-md) 0;
+            letter-spacing: -0.015em;
+        }
+        
+        h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-accent);
+            margin: var(--space-lg) 0 var(--space-sm) 0;
+        }
+        
+        p {
+            margin: 0 0 var(--space-md) 0;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        strong, b {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        em, i {
+            font-style: italic;
+            color: var(--text-accent);
+        }
+        
+        /* === TABLE OF CONTENTS === */
+        .toc-section {
+            background: var(--bg-toc);
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: var(--space-xl);
+            margin-bottom: var(--space-2xl);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .toc-header {
+            color: var(--secondary-color) !important;
+            margin-top: 0 !important;
+            margin-bottom: var(--space-lg) !important;
+            padding-bottom: var(--space-sm);
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        
+        .toc-section ul {
+            margin: 0;
+            padding-left: var(--space-lg);
+            list-style: none;
+        }
+        
+        .toc-section li {
+            margin: var(--space-sm) 0;
+            font-weight: 500;
+            color: var(--text-secondary);
+            position: relative;
+        }
+        
+        .toc-section li::before {
+            content: '▶';
+            position: absolute;
+            left: -var(--space-md);
+            color: var(--secondary-color);
+            font-size: 12px;
+        }
+        
+        .toc-section ul ul {
+            padding-left: var(--space-lg);
+            margin-top: var(--space-xs);
+        }
+        
+        .toc-section ul ul li::before {
+            content: '▸';
+            color: var(--text-muted);
+        }
+        
+        /* === STUDY QUESTIONS SECTION === */
+        .questions-section {
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .questions-header {
+            color: var(--warning-color) !important;
+            margin-bottom: var(--space-xl) !important;
+            position: relative;
+        }
+        
+        .questions-header::after {
+            content: '';
+            position: absolute;
+            bottom: -var(--space-sm);
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--warning-color);
+            border-radius: 2px;
+        }
+        
+        .question-card {
+            background: var(--bg-question);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        
+        .question-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        
+        .question-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--warning-color);
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 50%;
+            margin-right: var(--space-md);
+            flex-shrink: 0;
+        }
+        
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* === DETAILED EXPLANATIONS SECTION === */
+        .explanations-section {
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .explanations-header {
+            color: var(--accent-color) !important;
+            margin-bottom: var(--space-xl) !important;
+            position: relative;
+        }
+        
+        .explanations-header::after {
+            content: '';
+            position: absolute;
+            bottom: -var(--space-sm);
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+        
+        .answer-card {
+            background: var(--bg-answer);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .answer-card h4 {
+            margin-top: 0;
+            color: var(--accent-color);
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .answer-card h4::before {
+            content: '💡';
+            font-size: 20px;
+        }
+        
+        .answer-content ul {
+            padding-left: var(--space-lg);
+            margin: 0;
+        }
+        
+        .answer-content li {
+            margin: var(--space-sm) 0;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        .answer-content li::marker {
+            color: var(--accent-color);
+        }
+        
+        .answer-content ul ul {
+            padding-left: var(--space-lg);
+            margin-top: var(--space-xs);
+        }
+        
+        .answer-content ul ul li {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        /* === SUMMARY SECTION === */\n        .summary-section {\n            background: var(--bg-summary);\n            border: 2px solid #a855f7;\n            border-radius: 16px;\n            padding: var(--space-2xl);\n            margin-bottom: var(--space-2xl);\n            box-shadow: var(--shadow-md);\n        }\n        \n        .summary-header {\n            color: var(--primary-color) !important;\n            margin-top: 0 !important;\n            margin-bottom: var(--space-xl) !important;\n            text-align: center;\n            position: relative;\n        }\n        \n        .summary-header::before {\n            content: '';\n            position: absolute;\n            top: -var(--space-md);\n            left: 50%;\n            transform: translateX(-50%);\n            width: 100px;\n            height: 4px;\n            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));\n            border-radius: 2px;\n        }\n        \n        .summary-content {\n            font-size: 16px;\n            line-height: 1.8;\n            color: var(--text-secondary);\n        }\n        \n        .summary-content p {\n            margin-bottom: var(--space-lg);\n            text-align: justify;\n        }\n        \n        .summary-content p:first-child {\n            font-weight: 500;\n            font-size: 17px;\n            color: var(--text-primary);\n        }\n        \n        /* === PAGE BREAKS === */\n        .page-break {\n            page-break-before: always;\n            break-before: page;\n            min-height: 100vh;\n            display: block;\n        }\n        \n        /* === UTILITY CLASSES === */\n        .text-center {\n            text-align: center;\n        }\n        \n        .text-left {\n            text-align: left;\n        }\n        \n        .text-right {\n            text-align: right;\n        }\n        \n        .font-bold {\n            font-weight: 700;\n        }\n        \n        .font-semibold {\n            font-weight: 600;\n        }\n        \n        .font-medium {\n            font-weight: 500;\n        }\n        \n        .text-primary {\n            color: var(--text-primary);\n        }\n        \n        .text-secondary {\n            color: var(--text-secondary);\n        }\n        \n        .text-muted {\n            color: var(--text-muted);\n        }\n        \n        .mb-0 {\n            margin-bottom: 0 !important;\n        }\n        \n        .mt-0 {\n            margin-top: 0 !important;\n        }\n        \n        /* === PRINT OPTIMIZATION === */\n        @media print {\n            body {\n                font-size: 12px;\n                line-height: 1.5;\n            }\n            \n            .study-guide-header {\n                background: var(--primary-color) !important;\n                print-color-adjust: exact;\n                -webkit-print-color-adjust: exact;\n            }\n            \n            .question-card, .answer-card, .summary-section, .toc-section {\n                break-inside: avoid;\n                page-break-inside: avoid;\n            }\n            \n            .page-break {\n                page-break-before: always !important;\n                break-before: page !important;\n            }\n        }\n    </style>\n</head>\n<body>\n    <!-- This is a template for the new study guide design -->\n    <div class=\"study-guide-header\">\n        <h1>Sample Study Guide</h1>\n        <div class=\"subtitle\">Modern Learning Companion</div>\n    </div>\n    \n    <div class=\"toc-section\">\n        <h2 class=\"toc-header\">📋 Table of Contents</h2>\n        <ul>\n            <li>Introduction to the Topic</li>\n            <li>Core Concepts\n                <ul>\n                    <li>Fundamental Principles</li>\n                    <li>Key Terminology</li>\n                </ul>\n            </li>\n            <li>Practical Applications</li>\n            <li>Summary and Conclusions</li>\n        </ul>\n    </div>\n    \n    <div class=\"questions-section\">\n        <h2 class=\"questions-header\">🤔 Study Questions</h2>\n        \n        <div class=\"question-card\">\n            <div class=\"question-text\">\n                <span class=\"question-number\">1</span>\n                What are the fundamental principles behind this concept?\n            </div>\n        </div>\n        \n        <div class=\"question-card\">\n            <div class=\"question-text\">\n                <span class=\"question-number\">2</span>\n                How does this concept apply to real-world scenarios?\n            </div>\n        </div>\n    </div>\n    \n    <div class=\"page-break\"></div>\n    \n    <div class=\"explanations-section\">\n        <h2 class=\"explanations-header\">💡 Detailed Explanations</h2>\n        \n        <div class=\"answer-card\">\n            <h4>Fundamental Principles</h4>\n            <div class=\"answer-content\">\n                <ul>\n                    <li>The concept is based on several key principles</li>\n                    <li>These principles work together to create a comprehensive framework\n                        <ul>\n                            <li>Principle A focuses on foundational elements</li>\n                            <li>Principle B addresses implementation details</li>\n                        </ul>\n                    </li>\n                    <li>Understanding these principles is crucial for mastery</li>\n                </ul>\n            </div>\n        </div>\n    </div>\n    \n    <div class=\"page-break\"></div>\n    \n    <div class=\"summary-section\">\n        <h2 class=\"summary-header\">📚 Comprehensive Summary</h2>\n        <div class=\"summary-content\">\n            <p>This study guide has covered the essential concepts and principles needed to understand the topic thoroughly.</p>\n            <p>The key takeaways include understanding the fundamental principles, recognizing practical applications, and being able to apply the concepts in various scenarios. These elements work together to provide a comprehensive foundation for further learning and application.</p>\n        </div>\n    </div>\n</body>\n</html>

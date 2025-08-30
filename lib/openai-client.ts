@@ -1,13 +1,16 @@
 import OpenAI from 'openai';
 import { config } from './config';
+import { getLanguageTermsFromText } from './language-utils';
 
-// Initialize OpenAI client with API key from configuration
+// Initialize OpenAI client with API key from configuration - keep it simple
 const openai = new OpenAI({
   apiKey: config.openaiKey,
 });
 
-// Import marked for Markdown to HTML conversion
-import { marked } from 'marked';
+// Export the OpenAI client for use in other modules
+export { openai };
+
+// No markdown needed - we only work with JSON
 
 export interface MindsyNotesInput {
   transcript?: string;
@@ -20,10 +23,18 @@ export interface MindsyNotesInput {
 
 export interface CornellNotesOutput {
   success: boolean;
-  notes?: string;
+  masterContent?: {
+    metadata: any;
+    tableOfContents: any;
+    questions: any[];
+    explanations: any[];
+    summary: any;
+  };
   error?: string;
   errorCode?: string;
 }
+
+// Removed old streaming functions - now using SSE approach
 
 export interface LightFormattingInput {
   content: string;
@@ -40,27 +51,101 @@ export interface LightFormattingOutput {
 
 
 /**
- * Converts Markdown text to HTML
- * @param markdown - Markdown text to convert
- * @returns HTML string
+ * Create JSON-focused prompt for generateMindsyNotes
  */
-export async function convertMarkdownToHtml(markdown: string): Promise<string> {
-  if (!markdown || markdown.trim().length === 0) {
-    return '';
-  }
+function createJSONPrompt(input: MindsyNotesInput): string {
+  const { transcript, pdfText, lectureTitle, detectedLanguage } = input;
+  
+  // Get language-specific terms
+  const textForLanguageDetection = transcript || pdfText || '';
+  const { terms, language } = getLanguageTermsFromText(textForLanguageDetection, detectedLanguage);
+  
+  const content = transcript || pdfText || '';
+  const title = lectureTitle || 'Study Session';
+  
+  // Use full content - no truncation needed
+  const truncatedContent = content;
+  
+  return `Transform this content into a comprehensive study guide. Return a JSON object with this EXACT structure:
 
-  try {
-    return await marked.parse(markdown);
-  } catch (error) {
-    console.error('Error converting Markdown to HTML:', error);
-    // Return escaped HTML as fallback
-    return markdown
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+## Content to Transform:
+**Title:** ${title}
+**Content:** ${truncatedContent}
+
+## Language Instructions:
+Use ${language} consistently throughout. Use these terms:
+- Table of Contents = "${terms.tableOfContents}"
+- Questions = "${terms.cueColumn}"
+- Explanations = "${terms.detailedNotes}"  
+- Summary = "${terms.comprehensiveSummary}"
+
+## Required JSON Output Format:
+{
+  "metadata": {
+    "title": "${title}",
+    "subject": "Extract subject area from content",
+    "language": "${language}",
+    "estimatedStudyTime": "Estimate in minutes",
+    "difficulty": "beginner|intermediate|advanced",
+    "topicArea": "Main topic area",
+    "generatedAt": "${new Date().toISOString()}"
+  },
+  "tableOfContents": {
+    "title": "${terms.tableOfContents}",
+    "items": [
+      {
+        "title": "Main Topic 1",
+        "description": "Brief description"
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Complete question testing understanding?",
+      "answer": "Clear explanation with key points and practical applications",
+      "type": "concept|definition|application|review",
+      "difficulty": "basic|intermediate|advanced",
+      "tags": ["relevant", "tags"],
+      "section": "Related topic section"
+    }
+  ],
+  "explanations": [
+    {
+      "id": "exp1",
+      "title": "Core Concepts",
+      "content": "Detailed explanation of main ideas and principles",
+      "keyPoints": ["Key insight 1", "Important principle 2"],
+      "examples": ["Practical example", "Real-world application"],
+      "section": "Main Topic 1"
+    }
+  ],
+  "summary": {
+    "overview": "Comprehensive overview in 2-3 paragraphs",
+    "keyTakeaways": [
+      "Main learning point 1",
+      "Essential insight 2",
+      "Important conclusion 3"
+    ],
+    "learningObjectives": [
+      "What students should understand",
+      "Skills they should develop",
+      "Knowledge they should retain"
+    ],
+    "nextSteps": [
+      "Suggested follow-up topics",
+      "Practice recommendations"
+    ]
   }
+}
+
+## Generation Requirements:
+1. Create appropriate number of questions based on content depth and complexity (QUALITY OVER QUANTITY - no forced numbers)
+2. Create questions for each important matter in the content
+3. Use clear, factual answers with key points and practical applications
+4. Bold important technical terms within content
+5. Use ${language} consistently throughout
+6. Return ONLY the JSON object, no additional text`;
 }
 
 
@@ -82,33 +167,37 @@ export async function generateMindsyNotes(input: MindsyNotesInput): Promise<Corn
       };
     }
 
-    // Create structured prompt - use clean document formatting for store mode
-    const prompt = input.formatMode === 'clean-document' 
-      ? createCleanDocumentPrompt(input)
-      : createCornellNotesPrompt(input);
+    // Create JSON-focused prompt
+    const prompt = createJSONPrompt(input);
 
-    // Call OpenAI API with proper error handling
+    // Call OpenAI API with JSON mode - no timeout, let OpenAI finish naturally
+    console.log('🤖 OpenAI API: No timeout - letting OpenAI finish naturally');
+    console.log('📤 Sending request to OpenAI...');
+    
+    const startTime = Date.now();
+    
     const completion = await openai.chat.completions.create({
-      model: 'gpt-5-mini', // Use gpt-5-mini for both modes
+      model: 'gpt-5-mini',
       messages: [
         {
           role: 'system',
-          content: input.formatMode === 'clean-document' 
-            ? 'You are a professional document formatter specializing in cleaning and structuring text while preserving all original content. You excel at fixing spacing issues, removing artifacts, and creating beautiful readable documents.'
-            : 'You are an expert academic note-taker who creates high-quality Mindsy Notes. Your notes are well-structured, comprehensive, and help students study effectively. You create content that flows directly from cue column to detailed notes without intermediate sections.'
+          content: 'You are a world-class academic assistant and instructional designer with expertise in cognitive science and learning psychology. Your mission is to create comprehensive, standalone study guides that maximize learning retention and exam success. You combine the depth of a university professor with the clarity of an expert tutor, creating educational content that helps students master complex topics through structured, scientifically-informed approaches to knowledge organization and retrieval practice.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      //temperature: 0.3, // Lower temperature for more consistent, structured output
-      max_completion_tokens: 80000, // Sufficient for comprehensive Mindsy Notes
+      response_format: { type: "json_object" },
+      max_completion_tokens: 30000
     });
+    
+    const elapsed = Date.now() - startTime;
+    console.log(`✅ OpenAI API request successful in ${elapsed}ms`);
 
-    const generatedNotes = completion.choices[0]?.message?.content;
+    const generatedContent = completion.choices[0]?.message?.content;
 
-    if (!generatedNotes) {
+    if (!generatedContent) {
       return {
         success: false,
         error: 'OpenAI API returned empty response',
@@ -116,12 +205,29 @@ export async function generateMindsyNotes(input: MindsyNotesInput): Promise<Corn
       };
     }
 
-    // Process the generated content to remove any unwanted sections
-    const processedNotes = processGeneratedContent(generatedNotes);
+    // Parse JSON response
+    let masterContent;
+    try {
+      masterContent = JSON.parse(generatedContent);
+      console.log('✅ OpenAI JSON parsed successfully', {
+        hasMetadata: !!masterContent.metadata,
+        hasQuestions: !!masterContent.questions,
+        hasExplanations: !!masterContent.explanations,
+        hasSummary: !!masterContent.summary
+      });
+    } catch (parseError) {
+      console.error('❌ Failed to parse OpenAI JSON response:', parseError);
+      console.error('📄 Raw response:', generatedContent?.substring(0, 200) + '...');
+      return {
+        success: false,
+        error: 'Failed to parse JSON response from OpenAI',
+        errorCode: 'JSON_PARSE_ERROR'
+      };
+    }
 
     return {
       success: true,
-      notes: processedNotes
+      masterContent: masterContent
     };
 
   } catch (error) {
@@ -162,6 +268,8 @@ export async function generateMindsyNotes(input: MindsyNotesInput): Promise<Corn
     };
   }
 }
+
+// Removed generateMindsyNotesWithStreaming - now using SSE approach
 
 
 
@@ -225,8 +333,8 @@ function formatCueColumnForTable(content: string): string {
 }
 
 /**
- * Create structured prompt template combining transcript and PDF text
- * Formats content for optimal Mindsy Notes generation with table layout
+ * Create structured prompt template for the new improved study guide format
+ * Generates: Table of Contents → Study Questions → Detailed Explanations → Summary
  * Uses language-aware terms for headings
  */
 function createCornellNotesPrompt(input: MindsyNotesInput): string {
@@ -236,38 +344,60 @@ function createCornellNotesPrompt(input: MindsyNotesInput): string {
   const textForLanguageDetection = transcript || pdfText || '';
   const { terms, language } = getLanguageTermsFromText(textForLanguageDetection, detectedLanguage);
   console.log(`Using language-specific terms for ${language}:`, terms);
-  const prompt = `You are a world-class academic assistant and instructional designer. Your mission is to create a comprehensive, 
-  standalone study guide from the provided lecture content. The output must be perfectly structured in Markdown.
-     The entire document you generate, including all headings, the table of contents, cues, notes, and the summary, MUST be in the same language of the content you are given. 
-     Relevance Filtering Rules (Apply Objectively):
-    - Focus only on educational content related to the core topic. Include explanations, examples, scientific references, and practical applications.
-    - If the speaker discusses personal experiences or background:
   
+  const prompt = `You are a world-class academic assistant and instructional designer. Your mission is to create a comprehensive, standalone study guide from the provided lecture content. The output must be perfectly structured in Markdown that functions as the ultimate study companion for academic success.
+
+**CRITICAL RULE:** The entire document you generate, including all headings, questions, explanations, and summary, MUST be in the same language as the content you are given (${language}).
+
+**RELEVANCE FILTERING RULES (Apply Objectively):**
+- Focus only on educational content related to the core topic. Include explanations, examples, scientific references, and practical applications.
+- If the speaker discusses personal experiences or background:
   - EXCLUDE if it is not relevant to the studies (e.g., unrelated personal anecdotes, off-topic hobbies, or self-promotion without educational tie-in).
-  - To decide: Check if the personal content provides objective value like evidence, case studies, or insights that enhance understanding of the topic. If the lecture's main focus is the speaker's experiences 
-
-**CRITICAL RULE:** same language of the content you are given, even the markdowns titles you are given.
+  - To decide: Check if the personal content provides objective value like evidence, case studies, or insights that enhance understanding of the topic. If the lecture's main focus is the speaker's experiences and they're educationally relevant, include them.
 
 ---
 
-**Step-by-Step Instructions:**
+**STEP-BY-STEP INSTRUCTIONS:**
 
-1.  **Create a ${terms.tableOfContents}:** First, generate a "${terms.tableOfContents}" section. This must be a bulleted list of the main topics and sub-topics covered in the lecture, in chronological order. This provides a high-level overview.
+1. **Create a ${terms.tableOfContents}:** First, generate a "${terms.tableOfContents}" section. This must be a bulleted list of the main topics and sub-topics covered in the lecture, in chronological order. This provides a high-level overview.
 
-2.  **Generate the Mindsy Notes:**
-    *   **${terms.cueColumn}:** Create an insightful "${terms.cueColumn}" section formatted as a structured list suitable for table layout. Generate exam-style questions that test understanding of key concepts. These should be the types of questions students will likely encounter on their exams. Include important terms **bolded** and focus on critical thinking questions that require comprehension, not just memorization. Each question should be concise and exam-focused.
-    *   **${terms.detailedNotes}:** For each item in the ${terms.cueColumn}, write detailed, well-structured notes that flow directly from the cue items. Synthesize information from the transcript and PDF. Use bullet points, sub-bullets, and bold text to create a clear hierarchy. **Crucially, explain all concepts as if you are teaching them to someone who missed the lecture entirely.** Define terms and provide necessary context.
+2. **Generate Study Questions:**
+   - Create insightful study questions formatted as a structured list suitable for exam preparation
+   - Generate exam-style questions that test understanding of key concepts
+   - These should be the types of questions students will likely encounter on their exams
+   - Include important terms **bolded** and focus on critical thinking questions that require comprehension, not just memorization
+   - Each question should be concise and exam-focused
+   - Examples of excellent questions:
+     * What is the primary function of the **Plantar Fascia** and how does it contribute to locomotion?
+     * Compare and contrast the **subtalar** and **talocrural** joints in terms of movement and function.
+     * Explain the biomechanical difference between **pronation** and **supination** during gait.
+     * Which anatomical structures are responsible for **force distribution** in the foot?
+     * Describe the **windlass mechanism** and its clinical significance.
 
-3.  **Generate the ${terms.comprehensiveSummary}:** After the detailed notes, insert the page break marker "<!-- NEW_PAGE -->". Then, write the "${terms.comprehensiveSummary}".
-    *   **Objective:** This summary MUST function as a standalone study guide. A student should be able to read this section alone and understand all the critical concepts, their connections, and the main conclusions of the lecture.
-    *   **Style:** Use a clear, academic, **Expository Style**, like a paper. Write in full, well-structured paragraphs.
-    *   **Content:** Define key terms, explain processes, and synthesize the information. Do not just list facts; explain the "why" and "how" that connect them. The summary must be substantial and detailed.
+3. **Generate Detailed Explanations:**
+   - For each study question, write detailed, well-structured explanations that flow directly from the questions
+   - Synthesize information from the transcript and PDF
+   - Use bullet points, sub-bullets, and bold text to create a clear hierarchy
+   - **Crucially, explain all concepts as if you are teaching them to someone who missed the lecture entirely**
+   - Define terms and provide necessary context
+   - Example format:
+     #### Primary function of the **Plantar Fascia**
+     * The Plantar Fascia is a thick connective tissue band that runs across the bottom of the foot...
+     * Its main roles include:
+       * Supporting the medial longitudinal arch
+       * Absorbing shock during activities like walking and running
+
+4. **Generate the ${terms.comprehensiveSummary}:** 
+   - After the detailed explanations, write the "${terms.comprehensiveSummary}"
+   - **Objective:** This summary MUST function as a standalone study guide. A student should be able to read this section alone and understand all the critical concepts, their connections, and the main conclusions of the lecture.
+   - **Style:** Use a clear, academic, **Expository Style**, like a paper. Write in full, well-structured paragraphs.
+   - **Content:** Define key terms, explain processes, and synthesize the information. Do not just list facts; explain the "why" and "how" that connect them. The summary must be substantial and detailed.
 
 ---
 
-**Input Content:**
+**INPUT CONTENT:**
 **Lecture Title:** ${lectureTitle}
-**Language:** same language of the content you are given.
+**Language:** ${language}
 
 ${transcript ? `**Transcript:**\n${transcript}\n` : ''}
 ${pdfText ? `**Document Text:**\n${pdfText}` : ''}
@@ -286,41 +416,46 @@ ${pdfText ? `**Document Text:**\n${pdfText}` : ''}
 
 ---
 
-## Mindsy Notes
+## Study Questions
+<!-- Generate exam-style questions that test understanding of key concepts. Focus on what students will likely see on exams. -->
 
-### ${terms.cueColumn}
-<!-- Generate exam-style questions that test understanding of key concepts. Focus on what students will likely see on exams. --> here some examples:
-*   What is the primary function of the **Plantar Fascia** and how does it contribute to locomotion?
-*   Compare and contrast the **subtalar** and **talocrural** joints in terms of movement and function.
-*   Explain the biomechanical difference between **pronation** and **supination** during gait.
-*   Which anatomical structures are responsible for **force distribution** in the foot?
-*   Describe the **windlass mechanism** and its clinical significance.
-*   ...
-
-<!-- NEW_PAGE -->
-
-### ${terms.detailedNotes}
-<!-- Generate the detailed, explanatory notes corresponding to each cue item here. Content flows directly from cue column without intermediate sections. --> here an example:
-  #### Primary function of the **Plantar Fascia**
-*   The Plantar Fascia is a thick connective tissue band that runs across the bottom of the foot...
-*   Its main roles include:
-    *   Supporting the medial longitudinal arch.
-    *   Absorbing shock during activities like walking and running.
-
-#### Difference between subtalar and talocrural joints
-*   **Talocrural Joint:** This is the primary ankle joint, responsible for dorsiflexion (pointing the foot up) and plantarflexion (pointing the foot down).
-*   **Subtalar Joint:** Located below the talocrural joint, it is primarily responsible for inversion (turning the sole of the foot inward) and eversion (turning it outward).
-
-#### **Pronation & Supination**
-*   **Pronation:** A complex motion involving eversion, abduction, and dorsiflexion of the foot.
-*   **Supination:** The opposite motion involving inversion, adduction, and plantarflexion.
-*   These movements are crucial for shock absorption and propulsion during gait.
+1. What is the primary function of the **[Key Term]** and how does it contribute to [relevant process]?
+2. Compare and contrast **[Concept A]** and **[Concept B]** in terms of [specific criteria].
+3. Explain the [mechanism/process] and its [clinical/practical] significance.
+4. Which [structures/elements] are responsible for **[key function]** in [context]?
+5. Describe the **[important concept]** and its implications for [application].
 ...
 
 <!-- NEW_PAGE -->
 
+---
+
+## Detailed Explanations
+<!-- Generate the detailed, explanatory content corresponding to each study question here. Content flows directly from questions without intermediate sections. -->
+
+### Answer 1: [Restate the first question]
+*   [Clear, comprehensive explanation that teaches the concept from scratch]
+*   [Key points with bullet structure]:
+    *   [Supporting details and examples]
+    *   [Real-world applications or connections]
+*   **[Important terms defined and bolded]**
+*   [Additional context and connections to broader themes]
+
+### Answer 2: [Restate the second question]
+*   [Detailed comparison or analysis]
+*   [Structured breakdown of concepts]:
+    *   [Specific examples and evidence]
+    *   [Practical implications]
+*   [Connections to other topics covered]
+
+[...continue with detailed explanations for ALL questions]
+
+<!-- NEW_PAGE -->
+
+---
+
 ## ${terms.comprehensiveSummary}
-<!-- Generate the detailed, multi-paragraph expository summary here, written in the detected language. -->
+<!-- Generate the detailed, multi-paragraph expository summary here, written in the detected language. This must function as a standalone study guide that synthesizes all key concepts, shows relationships, and provides comprehensive understanding. -->
 
 `;
   return prompt;

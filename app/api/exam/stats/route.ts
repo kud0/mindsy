@@ -1,102 +1,129 @@
-import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth/require-auth'
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
-// GET /api/exam/stats - Get user's exam statistics
 export async function GET(request: NextRequest) {
-  const authResult = await requireAuth(request)
-  if (authResult.error) {
-    return createErrorResponse(authResult.error.message, authResult.error.status)
-  }
-
-  const { user } = authResult
-
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Get exam attempts
-    const { data: examAttempts, error: attemptsError } = await supabase
+    // Get recent exam attempts directly
+    const { data: recentExams, error: examsError } = await supabase
       .from('exam_attempts')
       .select(`
         id,
         score,
         percentage,
         time_spent,
-        question_count,
         completed_at,
-        exam_config,
-        study_nodes (
-          name
-        )
+        exam_id,
+        correct_count,
+        incorrect_count
       `)
       .eq('user_id', user.id)
-      .eq('completed', true)
+      .eq('status', 'completed')
       .order('completed_at', { ascending: false })
+      .limit(10);
 
-    if (attemptsError) {
-      console.error('Error fetching exam attempts:', attemptsError)
-      return createErrorResponse('Failed to fetch exam statistics', 500)
+    if (examsError) {
+      console.error('Exam attempts query error:', examsError);
+      return NextResponse.json({
+        totalExams: 0,
+        averageScore: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        xpPoints: 0,
+        level: 1,
+        recentExams: [],
+        error: 'Could not load exam data: ' + examsError.message
+      });
     }
 
-    const attempts = examAttempts || []
+    // Get exam details for recent attempts
+    const formattedExams = await Promise.all((recentExams || []).map(async (attempt) => {
+      const { data: exam } = await supabase
+        .from('exams')
+        .select('title, folder_name, question_count')
+        .eq('id', attempt.exam_id)
+        .single();
+      
+      return {
+        id: attempt.id,
+        examTitle: exam?.title || 'Unknown Exam',
+        folderName: exam?.folder_name || 'Unknown Folder',
+        score: attempt.score,
+        percentage: attempt.percentage,
+        completedAt: attempt.completed_at,
+        timeSpent: attempt.time_spent,
+        questionCount: exam?.question_count || 0
+      };
+    }));
 
-    // Calculate statistics
-    const totalExams = attempts.length
+    // Calculate aggregated stats from exam attempts
+    const totalExams = recentExams?.length || 0;
     const averageScore = totalExams > 0 
-      ? Math.round(attempts.reduce((sum, attempt) => sum + attempt.percentage, 0) / totalExams)
-      : 0
+      ? Math.round((recentExams.reduce((sum, e) => sum + (e.percentage || 0), 0) / totalExams) * 100) / 100
+      : 0;
 
-    // Calculate streaks
-    let currentStreak = 0
-    let longestStreak = 0
-    let tempStreak = 0
+    // Calculate XP and level (10 XP per correct answer)
+    const totalXP = (recentExams || []).reduce((sum, exam) => {
+      return sum + (exam.correct_count || 0) * 10;
+    }, 0);
+    const level = Math.floor(totalXP / 1000) + 1;
 
-    // Sort by date for streak calculation
-    const sortedAttempts = [...attempts].sort((a, b) => 
-      new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
-    )
-
-    // Current streak (from most recent)
-    for (let i = 0; i < sortedAttempts.length; i++) {
-      if (sortedAttempts[i].percentage >= 70) { // 70% threshold for success
-        currentStreak++
-      } else {
-        break
+    // Calculate current streak (simplified - consecutive days)
+    let currentStreak = 0;
+    let longestStreak = 0;
+    
+    if (recentExams && recentExams.length > 0) {
+      const today = new Date();
+      const lastExamDate = new Date(recentExams[0].completed_at);
+      const daysDiff = Math.floor((today.getTime() - lastExamDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff <= 1) {
+        currentStreak = 1;
+        // Check for consecutive days
+        for (let i = 1; i < recentExams.length; i++) {
+          const prevExamDate = new Date(recentExams[i].completed_at);
+          const currExamDate = new Date(recentExams[i-1].completed_at);
+          const diff = Math.floor((currExamDate.getTime() - prevExamDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (diff <= 1) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        }
       }
+      longestStreak = currentStreak; // Simplified for now
     }
 
-    // Longest streak
-    for (const attempt of sortedAttempts) {
-      if (attempt.percentage >= 70) {
-        tempStreak++
-        longestStreak = Math.max(longestStreak, tempStreak)
-      } else {
-        tempStreak = 0
-      }
-    }
+    // Try to get achievements (optional - might not exist yet)
+    const { data: achievements } = await supabase
+      .from('user_achievements')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('earned_at', { ascending: false });
 
-    // Recent exams (last 10)
-    const recentExams = attempts.slice(0, 10).map(attempt => ({
-      id: attempt.id,
-      folderName: (attempt.study_nodes as { name?: string })?.name || 'General',
-      score: attempt.score,
-      percentage: attempt.percentage,
-      completedAt: attempt.completed_at,
-      timeSpent: attempt.time_spent,
-      questionCount: attempt.question_count
-    }))
-
-    const stats = {
+    return NextResponse.json({
       totalExams,
       averageScore,
       currentStreak,
       longestStreak,
-      recentExams
-    }
+      xpPoints: totalXP,
+      level,
+      recentExams: formattedExams,
+      achievements: achievements || []
+    });
 
-    return createSuccessResponse(stats)
   } catch (error) {
-    console.error('Exam stats API error:', error)
-    return createErrorResponse('Internal server error', 500)
+    console.error('Error fetching exam stats:', error);
+    return NextResponse.json({
+      error: 'Failed to fetch stats',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

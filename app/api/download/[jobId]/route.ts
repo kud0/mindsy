@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient()
 
-    // Verify ownership and get job details
+    // Verify ownership and get job details with file paths
     const { data: job, error: jobError } = await supabase
       .from('jobs')
       .select(`
@@ -31,12 +31,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         lecture_title,
         status,
         user_id,
-        notes!inner (
-          id,
-          content,
-          summary,
-          key_points
-        )
+        output_pdf_path,
+        md_file_path,
+        txt_file_path
       `)
       .eq('job_id', jobId)
       .eq('user_id', user.id)
@@ -50,34 +47,34 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse('Note is not ready for download', 400)
     }
 
-    const note = job.notes[0]
-    if (!note) {
-      return createErrorResponse('Note content not found', 404)
-    }
-
     // Generate filename
     const sanitizedTitle = job.lecture_title.replace(/[^a-zA-Z0-9]/g, '_')
     const timestamp = new Date().toISOString().split('T')[0]
 
+    // Create admin supabase client for file downloads
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
     try {
       switch (format.toLowerCase()) {
         case 'pdf':
-          // TODO: Generate PDF using a PDF library like Puppeteer or react-pdf
-          // For now, return a simple text response
-          const pdfContent = `
-# ${job.lecture_title}
+          if (!job.output_pdf_path) {
+            return createErrorResponse('PDF file not available for this note', 404)
+          }
+          
+          const { data: pdfData, error: pdfError } = await supabaseAdmin.storage
+            .from('generated-notes')
+            .download(job.output_pdf_path)
+          
+          if (pdfError || !pdfData) {
+            console.error('PDF download error:', pdfError)
+            return createErrorResponse('Failed to download PDF file', 500)
+          }
 
-## Summary
-${note.summary || 'No summary available'}
-
-## Key Points
-${Array.isArray(note.key_points) ? note.key_points.join('\n- ') : 'No key points available'}
-
-## Full Content
-${note.content || 'No content available'}
-          `.trim()
-
-          return new Response(pdfContent, {
+          return new Response(pdfData, {
             headers: {
               'Content-Type': 'application/pdf',
               'Content-Disposition': `attachment; filename="${sanitizedTitle}_${timestamp}.pdf"`
@@ -86,18 +83,20 @@ ${note.content || 'No content available'}
 
         case 'markdown':
         case 'md':
-          const markdownContent = `
-# ${job.lecture_title}
-
-## Summary
-${note.summary || 'No summary available'}
-
-## Key Points
-${Array.isArray(note.key_points) ? note.key_points.map(point => `- ${point}`).join('\n') : '- No key points available'}
-
-## Full Content
-${note.content || 'No content available'}
-          `.trim()
+          if (!job.md_file_path) {
+            return createErrorResponse('Markdown file not available for this note', 404)
+          }
+          
+          const { data: mdData, error: mdError } = await supabaseAdmin.storage
+            .from('generated-notes')
+            .download(job.md_file_path)
+          
+          if (mdError || !mdData) {
+            console.error('Markdown download error:', mdError)
+            return createErrorResponse('Failed to download Markdown file', 500)
+          }
+          
+          const markdownContent = await mdData.text()
 
           return new Response(markdownContent, {
             headers: {
@@ -108,22 +107,20 @@ ${note.content || 'No content available'}
 
         case 'txt':
         case 'text':
-          const textContent = `
-${job.lecture_title}
-${'='.repeat(job.lecture_title.length)}
-
-SUMMARY
--------
-${note.summary || 'No summary available'}
-
-KEY POINTS
-----------
-${Array.isArray(note.key_points) ? note.key_points.map(point => `• ${point}`).join('\n') : '• No key points available'}
-
-FULL CONTENT
-------------
-${note.content || 'No content available'}
-          `.trim()
+          if (!job.txt_file_path) {
+            return createErrorResponse('Text file not available for this note', 404)
+          }
+          
+          const { data: txtData, error: txtError } = await supabaseAdmin.storage
+            .from('generated-notes')
+            .download(job.txt_file_path)
+          
+          if (txtError || !txtData) {
+            console.error('Text download error:', txtError)
+            return createErrorResponse('Failed to download text file', 500)
+          }
+          
+          const textContent = await txtData.text()
 
           return new Response(textContent, {
             headers: {
@@ -133,12 +130,24 @@ ${note.content || 'No content available'}
           })
 
         case 'json':
+          // Get notes data from database for JSON export
+          const { data: notesData, error: notesError } = await supabase
+            .from('notes')
+            .select('cue_column, notes_column, summary_section, transcript_text')
+            .eq('job_id', jobId)
+            .single()
+          
+          if (notesError || !notesData) {
+            return createErrorResponse('Notes data not found', 404)
+          }
+          
           const jsonContent = {
             title: job.lecture_title,
             jobId: job.job_id,
-            summary: note.summary,
-            keyPoints: note.key_points,
-            content: note.content,
+            cueColumn: notesData.cue_column,
+            notesColumn: notesData.notes_column,
+            summarySection: notesData.summary_section,
+            transcriptText: notesData.transcript_text,
             exportedAt: new Date().toISOString()
           }
 

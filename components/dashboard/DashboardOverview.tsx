@@ -49,7 +49,7 @@ export default function DashboardOverview({
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Welcome back, {userName}!
           </h1>
-          <p className="text-base text-gray-600 dark:text-gray-400">
+          <p className="text-base text-muted-foreground">
             Your personalized learning dashboard
           </p>
         </div>
@@ -64,13 +64,13 @@ export default function DashboardOverview({
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                  <FolderTree className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <div className="p-3 bg-accent/40 dark:bg-accent/50 rounded-lg">
+                  <FolderTree className="w-6 h-6 text-foreground" />
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-400" />
+                <ArrowRight className="w-5 h-5 text-muted-foreground" />
               </div>
               <h3 className="font-semibold text-lg mb-1">Organize Studies</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Structure your courses & subjects
               </p>
             </CardContent>
@@ -82,13 +82,13 @@ export default function DashboardOverview({
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                  <Brain className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <div className="p-3 bg-secondary/10 dark:bg-secondary/20 rounded-lg">
+                  <Brain className="w-6 h-6 text-secondary dark:text-secondary" />
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-400" />
+                <ArrowRight className="w-5 h-5 text-muted-foreground" />
               </div>
               <h3 className="font-semibold text-lg mb-1">Practice Exams</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Test your knowledge with AI
               </p>
             </CardContent>
@@ -100,13 +100,13 @@ export default function DashboardOverview({
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                <div className="p-3 bg-accent/10 dark:bg-accent/20 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-accent dark:text-accent" />
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-400" />
+                <ArrowRight className="w-5 h-5 text-muted-foreground" />
               </div>
               <h3 className="font-semibold text-lg mb-1">Pomodoro Timer</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Focus with timed study sessions
               </p>
             </CardContent>
@@ -131,20 +131,20 @@ export default function DashboardOverview({
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">{totalNotes}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Notes</div>
+                    <div className="text-3xl font-bold text-primary">{totalNotes}</div>
+                    <div className="text-sm text-muted-foreground">Total Notes</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600">{totalStudyNodes}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Study Folders</div>
+                    <div className="text-3xl font-bold text-secondary">{totalStudyNodes}</div>
+                    <div className="text-sm text-muted-foreground">Study Folders</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600">0</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Exams Taken</div>
+                    <div className="text-3xl font-bold text-accent">0</div>
+                    <div className="text-sm text-muted-foreground">Exams Taken</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600">0</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Study Streak</div>
+                    <div className="text-3xl font-bold text-muted-foreground">0</div>
+                    <div className="text-sm text-muted-foreground">Study Streak</div>
                   </div>
                 </div>
 
@@ -173,7 +173,7 @@ export default function DashboardOverview({
               <CardContent>
                 <div className="space-y-4">
                   {totalNotes > 0 ? (
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                       <FileText className="w-5 h-5 text-gray-500" />
                       <div className="flex-1">
                         <p className="text-sm font-medium">You have {totalNotes} notes</p>
@@ -210,7 +210,7 @@ export default function DashboardOverview({
             {/* Subscription Status */}
             <Card className={cn(
               "border-2",
-              subscriptionTier === 'student' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300'
+              subscriptionTier === 'student' ? 'border-secondary bg-secondary/10 dark:bg-secondary/20' : 'border-muted'
             )}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -222,7 +222,7 @@ export default function DashboardOverview({
                 <div className="text-center">
                   <div className={cn(
                     "text-2xl font-bold mb-2",
-                    subscriptionTier === 'student' ? 'text-green-600' : 'text-gray-600'
+                    subscriptionTier === 'student' ? 'text-secondary' : 'text-muted-foreground'
                   )}>
                     {subscriptionTier === 'student' ? 'Student' : 'Free'} Plan
                   </div>
@@ -250,20 +250,20 @@ export default function DashboardOverview({
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5"></div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5"></div>
+                    <p className="text-sm text-muted-foreground">
                       Review your notes within 24 hours for better retention
                     </p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5"></div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-secondary mt-1.5"></div>
+                    <p className="text-sm text-muted-foreground">
                       Use the Pomodoro timer for focused study sessions
                     </p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-1.5"></div>
+                    <p className="text-sm text-muted-foreground">
                       Take practice exams to identify knowledge gaps
                     </p>
                   </div>

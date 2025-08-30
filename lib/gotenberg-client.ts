@@ -384,10 +384,15 @@ export class GotenbergClient {
       '<h2 class="cornell-header">📝 Mindsy Notes</h2>'
     );
 
-    // Convert Cue Column to table format
+    // Convert Cue Column to table format - handle multiple possible headers
+    console.log('🔍 Looking for Cue Column sections in HTML...');
+    const cueColumnMatches = processedHtml.match(/<h3>(?:Cue Column|Exam Prep Questions|Questions|Key Points)<\/h3>/gi);
+    console.log('📊 Found Cue Column headers:', cueColumnMatches);
+    
     processedHtml = processedHtml.replace(
-      /<h3>Cue Column<\/h3>([\s\S]*?)(?=<h3|<h2|$)/gi,
+      /<h3>(?:Cue Column|Exam Prep Questions|Questions|Key Points)<\/h3>([\s\S]*?)(?=<h3|<h2|$)/gi,
       (match, content) => {
+        console.log('🎯 Converting Cue Column to table format:', match.substring(0, 100));
         return this.createCueColumnTable(content);
       }
     );

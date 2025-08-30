@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createLargeFileClient } from '@/lib/supabase/large-file-client'
 import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth/require-auth'
+import { LinkContentExtractor } from '@/lib/content-extractors'
 
 // POST /api/upload - Handle file upload and create processing job
 export async function POST(request: NextRequest) {
@@ -26,6 +28,7 @@ export async function POST(request: NextRequest) {
     const processingMode = formData.get('processingMode') as string || 'enhance'
     const clientDurationMinutes = formData.get('clientDurationMinutes') as string | null
 
+
     // Validate required fields based on upload type
     if (!lectureTitle) {
       return createErrorResponse('Missing required field: lecture title')
@@ -39,26 +42,32 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Missing required field: URL')
     }
 
-    // Validate URL format for link uploads
+    // Validate URL format and support for link uploads
     if (uploadType === 'link' && linkUrl) {
       try {
         new URL(linkUrl)
       } catch {
         return createErrorResponse('Invalid URL format')
       }
+      
+      // Check if the URL is supported by our content extractors
+      if (!LinkContentExtractor.isUrlSupported(linkUrl)) {
+        const supportedDomains = LinkContentExtractor.getSupportedDomains().slice(0, 8).join(', ')
+        return createErrorResponse(`Unsupported URL type. Supported sites include: ${supportedDomains}...`)
+      }
     }
 
     // Validate file types and sizes
-    const MAX_AUDIO_SIZE = 100 * 1024 * 1024 // 100MB
+    const MAX_AUDIO_SIZE = 500 * 1024 * 1024 // 500MB
     const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024    // 50MB
 
     // Validate audio file if present
     if (audioFile) {
       if (audioFile.size > MAX_AUDIO_SIZE) {
-        return createErrorResponse('Audio file too large (max 100MB)')
+        return createErrorResponse('Audio file too large (max 500MB)')
       }
 
-      const audioMimeTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/mp4', 'audio/m4a']
+      const audioMimeTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/mp4', 'audio/m4a', 'audio/x-m4a', 'audio/aac']
       if (!audioMimeTypes.includes(audioFile.type)) {
         return createErrorResponse('Invalid audio file type. Supported: MP3, WAV, MP4, M4A')
       }
@@ -104,21 +113,29 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Generate unique job ID and file paths
-    const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
     const timestamp = Date.now()
     
     let audioUpload: { path: string } | null = null
     let pdfUploadPath: string | null = null
     const documentUploads: string[] = []
     const uploadedFiles: string[] = [] // Track all uploaded files for cleanup
+    let linkContent: any = null // Store extracted link content
 
     try {
       // Upload audio file if present
       if (audioFile) {
         const audioFileName = `${user.id}/${timestamp}_${audioFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+        const fileSizeMB = (audioFile.size / 1024 / 1024).toFixed(2)
+        
+        console.log(`🎵 Uploading large audio file: ${audioFile.name} (${fileSizeMB}MB)`)
+        
         const audioBuffer = await audioFile.arrayBuffer()
-        const { data: audioData, error: audioError } = await supabase.storage
+        
+        // Use specialized client for large audio file uploads
+        const largeFileClient = createLargeFileClient()
+        const uploadStart = Date.now()
+        
+        const { data: audioData, error: audioError } = await largeFileClient.storage
           .from('user-uploads')
           .upload(audioFileName, audioBuffer, {
             contentType: audioFile.type,
@@ -126,10 +143,14 @@ export async function POST(request: NextRequest) {
             upsert: false
           })
 
+        const uploadDuration = ((Date.now() - uploadStart) / 1000).toFixed(2)
+        
         if (audioError) {
-          console.error('Audio upload error:', audioError)
-          return createErrorResponse('Failed to upload audio file', 500)
+          console.error(`❌ Audio upload failed after ${uploadDuration}s:`, audioError)
+          return createErrorResponse(`Failed to upload audio file (${fileSizeMB}MB): ${audioError.message || 'Unknown error'}`, 500)
         }
+        
+        console.log(`✅ Audio upload successful: ${fileSizeMB}MB in ${uploadDuration}s`)
 
         audioUpload = audioData
         uploadedFiles.push(audioFileName)
@@ -187,84 +208,71 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Parse client-provided duration (browser calculated)
-      const durationMinutes = clientDurationMinutes ? parseInt(clientDurationMinutes, 10) : null
-      
-      // Create job record in database (updated schema with duration tracking)
-      const { data: job, error: jobError } = await supabase
-        .from('jobs')
-        .insert({
-          job_id: jobId,
-          user_id: user.id,
-          lecture_title: lectureTitle.trim(),
-          course_subject: courseSubject?.trim() || null,
-          status: 'processing',
-          audio_file_path: audioUpload?.path || 'none', // Required field
-          pdf_file_path: pdfUploadPath || null,
-          folder_id: studyNodeId || null, // Updated schema has folder_id
-          processing_started_at: new Date().toISOString(),
-          duration_minutes: durationMinutes, // Use browser-calculated duration
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (jobError) {
-        console.error('Job creation error:', jobError)
-        // Clean up uploaded files
-        if (uploadedFiles.length > 0) {
-          await supabase.storage.from('user-uploads').remove(uploadedFiles)
-        }
-        return createErrorResponse('Failed to create processing job', 500)
-      }
-
-      // Trigger background processing using the generate API
-      console.log('🔄 Upload API: Triggering background processing for', job.lecture_title);
-      
-      // Call the generate API asynchronously (don't await to avoid timeout)
-      const generateRequest = {
-        audioFilePath: audioUpload?.path || '',
-        pdfFilePath: pdfUploadPath,
-        lectureTitle: job.lecture_title,
-        courseSubject: job.course_subject,
-        processingMode: processingMode,
-        studyNodeId: studyNodeId
-      };
-
-      // Start processing in background (fire and forget) - only for audio files
-      if (uploadType === 'audio' && audioUpload?.path) {
-        console.log('🔄 Upload API: Starting background processing...');
+      // Process link content if this is a link upload
+      if (uploadType === 'link' && linkUrl) {
+        console.log(`🔗 Processing link content for: ${linkUrl}`)
         
-        // Use proper base URL for internal requests
-        const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
-          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-          : 'http://localhost:3001';
+        try {
+          const extractionResult = await LinkContentExtractor.extractContent(linkUrl, user.id)
           
-        fetch(`${baseUrl}/api/generate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': request.headers.get('Authorization') || '',
-            'Cookie': request.headers.get('Cookie') || ''
-          },
-          body: JSON.stringify(generateRequest)
-        }).catch(error => {
-          console.error('❌ Background processing failed:', error);
-        });
-      } else {
-        console.log('📄 Upload API: Document upload completed (no background processing needed)');
+          if (!extractionResult.success || !extractionResult.data) {
+            // Clean up already uploaded files
+            if (uploadedFiles.length > 0) {
+              await supabase.storage.from('user-uploads').remove(uploadedFiles)
+            }
+            
+            // Handle OAuth authentication required case
+            if (extractionResult.requiresAuth && extractionResult.authUrl) {
+              return createErrorResponse(
+                extractionResult.error || 'Authentication required', 
+                401,
+                { requiresAuth: true, authUrl: extractionResult.authUrl }
+              )
+            }
+            
+            return createErrorResponse(
+              extractionResult.error || 'Failed to extract content from URL', 
+              400
+            )
+          }
+          
+          linkContent = {
+            linkType: extractionResult.linkType,
+            extractedData: extractionResult.data,
+            originalUrl: linkUrl
+          }
+          
+          console.log(`✅ Successfully extracted ${extractionResult.linkType} content`)
+          
+        } catch (linkError) {
+          console.error('Link content extraction error:', linkError)
+          // Clean up already uploaded files
+          if (uploadedFiles.length > 0) {
+            await supabase.storage.from('user-uploads').remove(uploadedFiles)
+          }
+          return createErrorResponse('Failed to process link content', 500)
+        }
       }
 
-      return createSuccessResponse({
-        jobId,
-        message: 'File uploaded successfully and processing started',
-        job: {
-          job_id: jobId,
-          lecture_title: job.lecture_title,
-          status: job.status,
-          created_at: job.created_at
-        }
-      }, 201)
+      // Return upload success with link content if applicable
+      const response: any = {
+        success: true,
+        audioPath: audioUpload ? (audioUpload.path || audioUpload.fullPath || audioFileName) : null,
+        pdfPath: pdfUploadPath,
+        documentPaths: documentUploads.length > 0 ? documentUploads : null,
+        message: uploadType === 'link' ? 'Link content extracted successfully' : 
+                 uploadType === 'documents' ? 'Documents uploaded successfully' :
+                 'Files uploaded successfully'
+      }
+
+      
+      // Include link data if this was a link upload
+      if (linkContent) {
+        response.linkData = linkContent
+      }
+      
+      
+      return createSuccessResponse(response, 200)
 
     } catch (uploadError) {
       console.error('File upload error:', uploadError)

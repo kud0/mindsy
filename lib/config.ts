@@ -5,7 +5,7 @@
 
 export const config = {
   // OpenAI Configuration
-  openaiKey: process.env.OPENAI_API_KEY || '',
+  openaiKey: process.env.OPENAI_KEY || '',
   
   // RunPod Configuration
   runpodApiKey: process.env.RUNPOD_API_KEY || '',
@@ -26,7 +26,7 @@ export const config = {
 export function validateConfig() {
   const missing: string[] = [];
 
-  if (!config.openaiKey) missing.push('OPENAI_API_KEY');
+  if (!config.openaiKey) missing.push('OPENAI_KEY');
   if (!config.runpodApiKey) missing.push('RUNPOD_API_KEY');
   if (!config.supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
   if (!config.supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');

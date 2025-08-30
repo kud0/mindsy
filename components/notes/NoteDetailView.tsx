@@ -285,7 +285,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
-        return <AlertCircle className="w-4 h-4 text-gray-400" />;
+        return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -293,12 +293,12 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-            <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-8 bg-muted rounded w-1/4"></div>
+            <div className="h-64 bg-muted rounded"></div>
+            <div className="h-96 bg-muted rounded"></div>
           </div>
         </div>
       </div>
@@ -307,15 +307,15 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
 
   if (!note) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto text-center">
           <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Lecture Not Found</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Lecture Not Found</h2>
+          <p className="text-gray-600 dark:text-muted-foreground mb-4">
             This lecture doesn&apos;t exist or you don&apos;t have permission to view it.
           </p>
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4 text-sm text-left max-w-md mx-auto">
-            <p className="font-mono text-gray-600 dark:text-gray-400">
+          <div className="bg-muted rounded-lg p-4 mb-4 text-sm text-left max-w-md mx-auto">
+            <p className="font-mono text-gray-600 dark:text-muted-foreground">
               <strong>Lecture ID:</strong> {jobId}
             </p>
             <p className="text-gray-500 dark:text-gray-500 mt-2">
@@ -341,7 +341,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
   const selectedDocument = noteDocuments[selectedDocumentIndex];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -485,7 +485,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                   <>
                     <CardTitle className="text-2xl mb-2">{note.lecture_title}</CardTitle>
                     {note.course_subject && (
-                      <p className="text-lg text-gray-600 dark:text-gray-400">{note.course_subject}</p>
+                      <p className="text-lg text-gray-600 dark:text-muted-foreground">{note.course_subject}</p>
                     )}
                   </>
                 )}
@@ -581,7 +581,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                     {selectedDocument?.key_points && selectedDocument.key_points.length > 0 ? (
                       <div className="grid gap-3">
                         {selectedDocument.key_points.map((point, index) => (
-                          <div key={index} className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:shadow-sm transition-shadow">
+                          <div key={index} className="p-4 bg-accent/30/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:shadow-sm transition-shadow">
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-sm font-medium text-blue-600 dark:text-blue-300">
                                 {index + 1}
@@ -611,7 +611,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                     
                     {selectedDocument?.content ? (
                       <div className="prose prose-lg max-w-none dark:prose-invert">
-                        <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+                        <div className="p-6 bg-card rounded-lg border shadow-sm">
                           <div className="whitespace-pre-wrap leading-relaxed">
                             {selectedDocument.content}
                           </div>
@@ -683,7 +683,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                 {/* Raw Content Tab */}
                 <TabsContent value="raw" className="mt-6">
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm overflow-x-auto">
+                    <pre className="whitespace-pre-wrap p-4 bg-muted rounded-lg text-sm overflow-x-auto">
                       {selectedDocument.content}
                     </pre>
                   </div>
@@ -700,7 +700,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                             <FileText className="w-5 h-5 text-blue-500" />
                             <h3 className="font-semibold">Cornell Notes PDF</h3>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          <p className="text-sm text-gray-600 dark:text-muted-foreground mb-3">
                             Generated Cornell-style notes from your lecture
                           </p>
                           <div className="flex gap-2">
@@ -732,7 +732,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                             <FileText className="w-5 h-5 text-green-500" />
                             <h3 className="font-semibold">Original PDF</h3>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          <p className="text-sm text-gray-600 dark:text-muted-foreground mb-3">
                             The original document you uploaded
                           </p>
                           <div className="flex gap-2">
@@ -764,7 +764,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                             <BookOpen className="w-5 h-5 text-purple-500" />
                             <h3 className="font-semibold">Markdown Notes</h3>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          <p className="text-sm text-gray-600 dark:text-muted-foreground mb-3">
                             Text-based notes in Markdown format
                           </p>
                           <div className="flex gap-2">
@@ -796,7 +796,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                             <FileText className="w-5 h-5 text-gray-500" />
                             <h3 className="font-semibold">Plain Text</h3>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          <p className="text-sm text-gray-600 dark:text-muted-foreground mb-3">
                             Raw text transcript of your lecture
                           </p>
                           <div className="flex gap-2">
@@ -843,7 +843,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
             <CardContent className="p-12 text-center">
               <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Processing Your Content</h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-muted-foreground">
                 Your lecture is being processed and notes are being generated. This usually takes a few minutes.
               </p>
             </CardContent>
@@ -853,7 +853,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
             <CardContent className="p-12 text-center">
               <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Processing Failed</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-gray-600 dark:text-muted-foreground mb-4">
                 There was an error processing your content. Please try uploading again.
               </p>
               <Button onClick={() => router.push('/dashboard/lectures')}>
@@ -864,9 +864,9 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
         ) : (
           <Card>
             <CardContent className="p-12 text-center">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Content Not Ready</h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-muted-foreground">
                 The notes for this lecture are not yet available.
               </p>
             </CardContent>

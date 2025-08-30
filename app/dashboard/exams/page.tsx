@@ -1,28 +1,53 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { DashboardWrapper } from '@/components/dashboard/DashboardWrapper'
-import ExamDashboard from '@/components/exams/ExamDashboard'
+import { ExamDashboard } from '@/components/exams/ExamDashboard';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function ExamsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   
-  const { data: { user } } = await supabase.auth.getUser()
-
+  // Get user from layout context
+  const { data: { user } } = await supabase.auth.getUser();
+  
   if (!user) {
-    redirect('/auth/login')
+    return <div>Loading...</div>;
   }
 
-  const userData = {
-    id: user.id,
-    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-    email: user.email || '',
-    avatar: user.user_metadata?.avatar_url,
-    plan: 'free' as const
-  }
+  // Get user's folders for exam generation
+  const { data: folders = [] } = await supabase
+    .from('study_nodes')
+    .select(`
+      id,
+      name,
+      parent_id,
+      type,
+      description,
+      created_at
+    `)
+    .eq('user_id', user.id)
+    .order('name');
 
-  return (
-    <DashboardWrapper user={userData}>
-      <ExamDashboard user={userData} />
-    </DashboardWrapper>
-  )
+  // Transform folders with note counts
+  const foldersWithCounts = await Promise.all(
+    folders.map(async (folder) => {
+      const { count } = await supabase
+        .from('jobs')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('folder_id', folder.id)
+        .eq('status', 'completed');
+
+      return {
+        id: folder.id,
+        name: folder.name,
+        count: count || 0,
+        parentId: folder.parent_id,
+        type: folder.type,
+        description: folder.description
+      };
+    })
+  );
+
+  // Filter folders that have notes
+  const foldersWithNotes = foldersWithCounts.filter(folder => folder.count > 0);
+
+  return <ExamDashboard initialFolders={foldersWithNotes} />;
 }
