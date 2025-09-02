@@ -4,6 +4,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
+  MoreVertical, 
+  Play, 
+  Pause, 
+  Volume2,
   Eye,
   HelpCircle,
   BookOpen,
@@ -12,15 +16,40 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { TabStrip, Tab } from './student-desk/TabStrip';
-import { OverviewTab } from './student-desk/OverviewTab';
-import { QuestionsTab } from './student-desk/QuestionsTab';
-import { ExplanationsTab } from './student-desk/ExplanationsTab';
-import { SummaryTab } from './student-desk/SummaryTab';
-import { StudyTimeTab } from './student-desk/StudyTimeTab';
-import { MaterialsTab } from './student-desk/MaterialsTab';
-import { mapLectureDataToTabs, loadLectureData } from '@/lib/lecture-data-mapper';
-import { LectureData } from '@/types/lecture-data';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { TabStrip, Tab } from './TabStrip';
+import { OverviewTab } from './OverviewTab';
+import { QuestionsTab } from './QuestionsTab';
+import { ExplanationsTab } from './ExplanationsTab';
+import { SummaryTab } from './SummaryTab';
+import { StudyTimeTab } from './StudyTimeTab';
+import { MaterialsTab } from './MaterialsTab';
+import { cn } from '@/lib/utils';
+
+// Lecture data interface
+interface LectureData {
+  id: string;
+  title: string;
+  toc: Array<{ label: string; ts: number }>;
+  overviewHtml: string;
+  keyPoints: Array<{ title: string; bodyHtml: string }>;
+  questions: Array<{ 
+    id: string; 
+    promptHtml: string; 
+    choices?: string[]; 
+    answerHtml: string;
+  }>;
+  explanationsHtml: string;
+  summaryHtml: string;
+  studyStats: { minutes: number; sessions: number };
+  materials: Array<{ id: string; name: string; type: string; url: string; size: string }>;
+  lectureAudio: { url: string; duration: number };
+}
 
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview', icon: Eye },
@@ -31,19 +60,16 @@ const TABS: Tab[] = [
   { id: 'materials', label: 'Materials', icon: FolderOpen },
 ];
 
-interface StructuredStudyDeskProps {
-  jobId: string;
+interface StudentDeskProps {
+  lectureId: string;
 }
 
-export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps) {
+export const StudentDesk: React.FC<StudentDeskProps> = ({ lectureId }) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [lectureData, setLectureData] = useState<LectureData | null>(null);
-  const [tabProps, setTabProps] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  console.log('🔍 StructuredStudyDesk refactored - using new JSON structure for jobId:', jobId);
   
   // State preservation for each tab
   const tabScrollPositions = useRef<Record<string, number>>({});
@@ -55,71 +81,96 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
   const swipeThreshold = 50;
   const isSwipingHorizontally = useRef(false);
 
-  // Load lecture data using the new structure
+  // Mock lecture data from our working mockup
+  const mockLectureData: LectureData = {
+    id: lectureId,
+    title: "Machine Learning Basics",
+    toc: [
+      { label: "Introduction to ML", ts: 0 },
+      { label: "Supervised Learning", ts: 150 },
+      { label: "Classification vs Regression", ts: 300 },
+      { label: "Decision Trees", ts: 450 },
+      { label: "Neural Networks Basics", ts: 600 },
+      { label: "Model Evaluation", ts: 750 },
+    ],
+    overviewHtml: "<p>This lecture covers the fundamental concepts of machine learning algorithms and their applications.</p>",
+    keyPoints: [
+      { 
+        title: "Supervised Learning", 
+        bodyHtml: "<p>Learning with labeled training data to make predictions on new, unseen data.</p>" 
+      },
+      { 
+        title: "Unsupervised Learning", 
+        bodyHtml: "<p>Finding patterns in data without explicit labels or target variables.</p>" 
+      },
+      { 
+        title: "Model Evaluation", 
+        bodyHtml: "<p>Techniques to assess model performance using metrics like accuracy, precision, and recall.</p>" 
+      },
+    ],
+    questions: [
+      {
+        id: "q1",
+        promptHtml: "<p>What is the main difference between supervised and unsupervised learning?</p>",
+        choices: [
+          "Supervised learning uses labeled data",
+          "Unsupervised learning is faster",
+          "They are the same thing",
+          "Supervised learning doesn't need data"
+        ],
+        answerHtml: "<p><strong>Supervised learning uses labeled data</strong> - Supervised learning algorithms learn from input-output pairs, while unsupervised learning finds patterns without labels.</p>"
+      },
+      {
+        id: "q2", 
+        promptHtml: "<p>Which evaluation metric is best for imbalanced datasets?</p>",
+        answerHtml: "<p>For imbalanced datasets, <strong>F1-score, precision, and recall</strong> are more informative than accuracy, as accuracy can be misleading when classes are skewed.</p>"
+      }
+    ],
+    explanationsHtml: `
+      <h3>Machine Learning Fundamentals</h3>
+      <p>Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed.</p>
+      
+      <h3>Types of Learning</h3>
+      <p>There are three main categories of machine learning approaches...</p>
+    `,
+    summaryHtml: `
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li>Machine learning algorithms can be categorized into supervised, unsupervised, and reinforcement learning</li>
+        <li>Model evaluation is crucial for assessing performance and avoiding overfitting</li>
+        <li>Different algorithms work better for different types of problems and data</li>
+      </ul>
+    `,
+    studyStats: { minutes: 45, sessions: 3 },
+    materials: [
+      { id: "pdf1", name: "ML Algorithms Cheat Sheet.pdf", type: "pdf", url: "/materials/ml-cheat-sheet.pdf", size: "2.3 MB" },
+      { id: "code1", name: "sklearn_examples.py", type: "code", url: "/materials/sklearn_examples.py", size: "12 KB" },
+      { id: "slide1", name: "Lecture Slides.pptx", type: "slides", url: "/materials/lecture-slides.pptx", size: "8.7 MB" },
+    ],
+    lectureAudio: { url: "", duration: 0 }
+  };
+
+  // Load lecture data
   useEffect(() => {
-    const loadData = async () => {
+    const loadLectureData = async () => {
       try {
         setLoading(true);
-        setError(null);
         
-        console.log('🚀 Loading lecture data from new API...');
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Fetch from the simplified API endpoint
-        const response = await fetch(`/api/lectures/${jobId}`, {
-          cache: 'no-cache',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch lecture: ${response.status}`);
-        }
-        
-        const apiData = await response.json();
-        console.log('✅ New API response:', apiData);
-        
-        if (apiData.error) {
-          throw new Error(apiData.error);
-        }
-        
-        if (!apiData.data?.lecture?.data) {
-          throw new Error('Invalid API response structure');
-        }
-        
-        const lectureData: LectureData = apiData.data.lecture.data;
-        const actualStats = apiData.data.stats;
-        const actualMaterials = apiData.data.materials;
-        
-        console.log('🎯 Lecture data loaded:', {
-          title: lectureData.metadata.title,
-          questionsCount: lectureData.questions.length,
-          explanationsCount: lectureData.explanations.length,
-          hasStats: !!actualStats,
-          materialsCount: actualMaterials?.length || 0
-        });
-        
-        // Map to tab props using the new mapper
-        const mappedProps = mapLectureDataToTabs(lectureData, {
-          actualStats,
-          actualMaterials
-        });
-        
-        setLectureData(lectureData);
-        setTabProps(mappedProps);
-        
-        console.log('🚀 All tabs mapped successfully:', Object.keys(mappedProps));
+        setLectureData(mockLectureData);
         
       } catch (err) {
-        console.error('❌ Error loading lecture data:', err);
-        setError(`${err instanceof Error ? err.message : 'Unknown error'}`);
+        setError('Failed to load lecture data');
+        console.error('Error loading lecture:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
-  }, [jobId]);
+    loadLectureData();
+  }, [lectureId]);
 
   // Preserve scroll position when switching tabs
   const handleTabChange = useCallback((newTabId: string) => {
@@ -201,7 +252,7 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
     );
   }
 
-  if (error || !lectureData || !tabProps) {
+  if (error || !lectureData) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
@@ -217,17 +268,23 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab {...tabProps.overview} />;
+        return (
+          <OverviewTab 
+            toc={lectureData.toc}
+            keyPoints={lectureData.keyPoints}
+            overviewHtml={lectureData.overviewHtml}
+          />
+        );
       case 'questions':
-        return <QuestionsTab {...tabProps.questions} />;
+        return <QuestionsTab questions={lectureData.questions} />;
       case 'explanations':
-        return <ExplanationsTab {...tabProps.explanations} />;
+        return <ExplanationsTab content={lectureData.explanationsHtml} />;
       case 'summary':
-        return <SummaryTab {...tabProps.summary} />;
+        return <SummaryTab content={lectureData.summaryHtml} />;
       case 'study-time':
-        return <StudyTimeTab {...tabProps.studyTime} />;
+        return <StudyTimeTab stats={lectureData.studyStats} />;
       case 'materials':
-        return <MaterialsTab {...tabProps.materials} />;
+        return <MaterialsTab materials={lectureData.materials} />;
       default:
         return null;
     }
@@ -250,7 +307,7 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
             </Button>
             
             <h1 className="text-lg font-semibold truncate min-w-0 flex-1">
-              {tabProps.title}
+              {lectureData.title}
             </h1>
           </div>
         </div>

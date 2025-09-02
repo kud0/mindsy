@@ -1,0 +1,418 @@
+{
+    "metadata": {
+    "title": "Cráneo y rakis",
+    "hook": "El atlas recibe su nombre por el titán Atlas de la mitología griega, porque 'sostiene' la cabeza.",
+    "difficulty": "intermediate",
+    "estimatedTime": "30 minutes",
+    "subjectDomain": "Biomecánica y anatomía humana",
+    "examImportance": "medium"
+    },
+    
+    "overview": {
+    "mainTopic": "Descripción del cráneo y la columna vertebral (raquis): funciones, movimientos, anatomía regional y problemas clínicos iniciales.",
+    "keyObjectives": [
+    "Identificar las partes principales del esqueleto axial (cráneo y raquis) y su terminología básica.",
+    "Describir los movimientos de la columna por planos y las diferencias de movilidad entre regiones (cervical, torácica, lumbar).",
+    "Reconocer características estructurales de las vértebras, curvas normales (lordosis/cifosis) y la relevancia clínica de L5-S1 (fuerzas de cizalla, espondilolistesis)."
+    ],
+    "conceptMap": {
+    "coreIdeas": [
+    "Funciones del esqueleto axial: protección y estabilidad",
+    "Movimientos del raquis en planos (sagital, frontal, transversal) y mecanismos articulares (slide/rol)",
+    "Anatomía vertebral regional y problemas asociados (L5-S1, curvas, espondilolistesis)"
+    ],
+    "connections": "La forma y orientación de las vértebras explican la movilidad regional; la unión con costillas y esternón limita movilidad torácica; la geometría L5-S1 explica fuerzas de cizalla y riesgo de espondilolistesis."
+    }
+    },
+    
+    "questions": [
+    {
+    "id": "q1",
+    "type": "quiz",
+    "topic": "Funciones del esqueleto axial",
+    "question": "¿Cuáles son las funciones principales del esqueleto axial según la clase?",
+    "format": "multiple-choice",
+    "choices": [
+    "Movilidad y generación de calor",
+    "Protección y estabilidad",
+    "Almacenamiento de calcio y producción hormonal",
+    "Soporte exclusivo del miembro superior"
+    ],
+    "correctAnswer": 1,
+    "hint": "El ponente lo resume en dos palabras al explicar la función general.",
+    "quickExplanation": "El profesor indica que el esqueleto axial se decanta por protección y estabilidad; la movilidad existe pero es secundaria.",
+    "transcriptReference": "«¿Cuál es la función del esqueleto axial? Pues bueno, sobre todo la protección y la estabilidad.» (inicio, presentación)",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q2",
+    "type": "quiz",
+    "topic": "Movilidad regional",
+    "question": "Según la clase, ¿qué región de la columna presenta mayor movilidad global?",
+    "format": "multiple-choice",
+    "choices": [
+    "Region torácica",
+    "Region cervical",
+    "Region lumbar",
+    "Región sacra"
+    ],
+    "correctAnswer": 1,
+    "hint": "Se necesita mucha movilidad para orientar ojos y oídos.",
+    "quickExplanation": "El profesor destaca que la zona cervical tiene la mayor movilidad, especialmente para rotación y orientación de los receptores sensoriales.",
+    "transcriptReference": "«La zona en la que más movilidad tenemos es la zona cervical...» (movilidad regional)",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q3",
+    "type": "quiz",
+    "topic": "Nomenclatura vertebral",
+    "question": "¿Qué letra se utiliza para nombrar las vértebras torácicas?",
+    "format": "multiple-choice",
+    "choices": [
+    "C",
+    "T",
+    "L",
+    "S"
+    ],
+    "correctAnswer": 1,
+    "hint": "Cervical es C, lumbar es L.",
+    "quickExplanation": "En la clase se explica que las vértebras se nombran por región: cervical C, torácica T, lumbar L, sacra S.",
+    "transcriptReference": "«si es la columna atorácica por la T...» (nomenclatura de vertebras)",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q4",
+    "type": "quiz",
+    "topic": "Mecanismos articulares",
+    "question": "El mecanismo de rol y slide (rodar y deslizar) se menciona que ocurre especialmente en:",
+    "format": "multiple-choice",
+    "choices": [
+    "Las articulaciones lumbares L4-L5",
+    "La articulación atlanto-occipital (occipital-atlas)",
+    "La articulación sacroilíaca",
+    "Las articulaciones costovertebrales"
+    ],
+    "correctAnswer": 1,
+    "hint": "El ejemplo con el atlas y el occipital fue destacado como único caso donde se produce ese mecanismo.",
+    "quickExplanation": "El ponente indica que el rol y slide se da en la articulación atlanto-occipital entre el occipital y el atlas.",
+    "transcriptReference": "«esto solo ocurre ... en la articulación atlanto occipital...» (mecanismo rol/slide)",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q5",
+    "type": "quiz",
+    "topic": "Anatomía cervical",
+    "question": "¿Qué estructura pasa por el foramen/transverso de las vértebras cervicales según la clase?",
+    "format": "multiple-choice",
+    "choices": [
+    "Arteria subclavia",
+    "Arteria vertebral",
+    "Nervio espinal torácico",
+    "Conducto torácico"
+    ],
+    "correctAnswer": 1,
+    "hint": "Nutre una parte del cerebro.",
+    "quickExplanation": "El profesor menciona que por el foramen/transverso pasa la arteria vertebral, que nutre el cerebro.",
+    "transcriptReference": "«hay un par de edificios, por donde están pasando algunas arterias relevantes... la arteria vertebral, que de hecho, está nutriendo el cerebro.» (visión superior atlas)",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q6",
+    "type": "quiz",
+    "topic": "Planos de movimiento",
+    "question": "¿En qué plano se producen las flexo-extensiones de la columna (flexión y extensión)?",
+    "format": "multiple-choice",
+    "choices": [
+    "Plano frontal",
+    "Plano sagital",
+    "Plano transversal (horizontal)",
+    "Plano oblicuo"
+    ],
+    "correctAnswer": 1,
+    "hint": "Es el plano que divide anterior y posterior.",
+    "quickExplanation": "El docente indica que flexión y extensión son movimientos en el plano sagital (inclinarse hacia adelante y atrás).",
+    "transcriptReference": "«en el plano sagital tenemos las flexo extensiones... flexionar columna, extender columna.» (movimientos básicos)",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q7",
+    "type": "quiz",
+    "topic": "Clasificación articular",
+    "question": "Las articulaciones intervertebrales se describen en la clase como 'anciartrodias', es decir, con movimiento intermedio entre muy móvil y inmóvil.",
+    "format": "true-false",
+    "statement": "Las articulaciones intervertebrales son 'anciartrodias' (movimiento intermedio).",
+    "correctAnswer": true,
+    "hint": "El ponente las compara con diartrosis y sinartrosis.",
+    "quickExplanation": "Se explica que no son diartrosis (muy móviles) ni sinartrodias (casi inmóviles), sino una posición intermedia: 'anciartrodias'.",
+    "transcriptReference": "«las articulaciones intervertebrales son articulaciones anciertrodias, es decir, no es una articulación diartrodia... es un algo intermedio.»",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q8",
+    "type": "quiz",
+    "topic": "Movilidad lumbar",
+    "question": "La mayor movilidad global de la columna se encuentra en la región lumbar.",
+    "format": "true-false",
+    "statement": "La región lumbar es la más móvil de la columna.",
+    "correctAnswer": false,
+    "hint": "Piensa en movimiento de cabeza y orientación sensorial.",
+    "quickExplanation": "El docente indica que la zona cervical es la más móvil; la lumbar tiene más función de carga y menos movilidad relativa.",
+    "transcriptReference": "«La zona en la que más movilidad tenemos es la zona cervical...» (movilidad regional)",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q9",
+    "type": "quiz",
+    "topic": "Curvaturas de la columna",
+    "question": "Las lordosis naturales se localizan en cervical y lumbar.",
+    "format": "true-false",
+    "statement": "Las lordosis están en la zona cervical y lumbar.",
+    "correctAnswer": true,
+    "hint": "Recuerda la distribución lordosis vs cifosis mencionada.",
+    "quickExplanation": "El profesor explica que las lordosis son cervical y lumbar; las cifosis son torácica y sacra.",
+    "transcriptReference": "«Las lordosis están en la zona lumbar y en la zona cervical. Y las cifosis... en la zona torácica y en la zona sacrocoxígea.»",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q10",
+    "type": "quiz",
+    "topic": "Cuenta vertebral",
+    "question": "Complete: La columna vertebral tiene ___ vértebras: ___ cervicales, ___ torácicas y ___ lumbares.",
+    "format": "fill-blank",
+    "template": "La columna vertebral tiene ___ vértebras: ___ cervicales, ___ torácicas y ___ lumbares.",
+    "answers": [
+    "33",
+    "7",
+    "12",
+    "5"
+    ],
+    "hint": "El profesor dio el conteo total y por regiones al describir el esqueleto axial: 7, 12, 5...",
+    "quickExplanation": "El docente dijo que hay 33 vértebras: 7 cervicales, 12 torácicas y 5 lumbares (más sacras y coxígeas mencionadas después).",
+    "transcriptReference": "«tenemos siete vértebras cervicales, 12 torácicas y 5 lumbares...» (conteo vertebral)",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q11",
+    "type": "quiz",
+    "topic": "Anécdota histórica",
+    "question": "Rellena: El atlas recibe su nombre por ___",
+    "format": "fill-blank",
+    "template": "El atlas recibe su nombre por ___",
+    "answers": [
+    "el titán Atlas de la mitología griega"
+    ],
+    "hint": "Se contó una pequeña anécdota mitológica sobre por qué se llama atlas.",
+    "quickExplanation": "El profesor contó la anécdota de la mitología griega: el gigante Atlas sostenía el mundo, por eso la C1 se llama atlas.",
+    "transcriptReference": "«¿por qué se llama atlas? En la mitología griega... se llama ese gigante atlas, es por eso que al primer... se llamó atlas.»",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q12",
+    "type": "quiz",
+    "topic": "Fuerzas en L5-S1",
+    "question": "Complete: En la clase se menciona que la articulación L5-S1 puede imponer aproximadamente ___% del peso corporal como fuerza por su ángulo característico.",
+    "format": "fill-blank",
+    "template": "En la clase se menciona que la articulación L5-S1 puede imponer aproximadamente ___% del peso corporal.",
+    "answers": [
+    "164%"
+    ],
+    "hint": "Es un número mayor que 100% mencionado al hablar del ángulo de L5-S1.",
+    "quickExplanation": "El profesor indicó que con el ángulo descrito L5-S1 puede someterse a fuerzas equivalentes al 164% del peso corporal (y aumenta con mayor ángulo).",
+    "transcriptReference": "«Esto, impone una fuerza de 164% de peso corporal...» (discusión L5-S1 y ángulo)",
+    "difficulty": "hard",
+    "points": 20
+    },
+    {
+    "id": "q13",
+    "type": "quiz",
+    "topic": "Conteo por regiones (emparejar)",
+    "question": "Empareja cada tipo de vértebra con su número típico en el cuerpo humano.",
+    "format": "matching",
+    "leftColumn": [
+    "Cervicales",
+    "Torácicas",
+    "Lumbares",
+    "Sacras",
+    "Coxígeas"
+    ],
+    "rightColumn": [
+    "5 (fusionadas)",
+    "7",
+    "12",
+    "4",
+    "5"
+    ],
+    "correctMatches": [
+    [
+    0,
+    1
+    ],
+    [
+    1,
+    2
+    ],
+    [
+    2,
+    4
+    ],
+    [
+    3,
+    0
+    ],
+    [
+    4,
+    3
+    ]
+    ],
+    "hint": "Recuerda: 7 cervicales, 12 torácicas, 5 lumbares, 5 sacras (fusionadas), 4 coxígeas.",
+    "quickExplanation": "El profesor enumeró 7 cervicales, 12 torácicas, 5 lumbares, 5 sacras fusionadas y ~4 coxígeas remanentes.",
+    "transcriptReference": "«tenemos siete vértebras cervicales, 12 torácicas y 5 lumbares, y luego... 5 sacras y 4 coxijas.» (conteo y fusión sacra/coxis)",
+    "difficulty": "medium",
+    "points": 15
+    },
+    {
+    "id": "q14",
+    "type": "quiz",
+    "topic": "Espondilolistesis (respuesta corta)",
+    "question": "Explique brevemente qué es la espondilolistesis y por qué puede ser un problema según la clase.",
+    "format": "short-answer",
+    "correctAnswer": "Deslizamiento entre vértebras (p. ej. L5 sobre S1) que puede dañar la médula o estrechar el foramen raquídeo, causando pérdida de movimiento o sensibilidad.",
+    "hint": "Se relaciona con el aumento del ángulo y fuerzas de cizalla en L5-S1.",
+    "quickExplanation": "El ponente describió la espondilolistesis como un deslizamiento vertebral potencialmente grave que puede comprometer la médula espinal o el foramen y producir déficits motrices y sensitivos.",
+    "transcriptReference": "«si la decuada estabilización... puede ocurrir una condición llamada espondilolistesis, que es, básicamente, un deslizamiento entre vértebras... puede provocar que se dañe parte de la médula espinal, o puede provocar un estrechamiento del foramen raquídeo.»",
+    "difficulty": "hard",
+    "points": 20
+    },
+    {
+    "id": "q15",
+    "type": "quiz",
+    "topic": "Anatomía de las costillas",
+    "question": "Según la clase, ¿cuáles son partes de la cara posterior de una costilla que articulan con la vértebra?",
+    "format": "multiple-choice",
+    "choices": [
+    "Cabeza, cuello y tubérculo",
+    "Cuerpo, apófisis y lámina",
+    "Esternón, manubrio y proceso xifoides",
+    "Acetábulo, ilion y isquion"
+    ],
+    "correctAnswer": 0,
+    "hint": "Se menciona la parte que conecta con la vértebra y un tubérculo articular.",
+    "quickExplanation": "El profesor describió que cada costilla tiene cabeza, cuello y un tubérculo articular para articular con las vértebras torácicas.",
+    "transcriptReference": "«Hay 12 pares de costillas... se dividen en cabeza, cuello y tubérculo articular...» (anatomía costal posterior)",
+    "difficulty": "medium",
+    "points": 15
+    }
+    ],
+    
+    "explanations": [
+    {
+    "id": "exp1",
+    "concept": "Funciones y movilidad del raquis",
+    "transcriptExplanation": "«¿Cuál es la función del esqueleto axial? Pues bueno, sobre todo la protección y la estabilidad.... en menor medida... cierta movilidad...»",
+    "supplements": {
+    "analogy": "La anécdota del 'atlas' (titán que sostiene el mundo) usada para explicar la C1.",
+    "visual": "Se mencionan dibujos y tablas del libro de Numan que muestran la vista superior del atlas/axis y una diapositiva con grados de movimiento por región (sagital, frontal, transversal).",
+    "example": "Se usa el ejemplo de L5-S1 con 164% de peso corporal para ilustrar cómo la geometría genera fuerzas de cizalla."
+    }
+    }
+    ],
+    
+    "summary": {
+    "keyTakeaways": [
+    "El esqueleto axial (cráneo y raquis) prioriza protección y estabilidad, con movilidad regional limitada en comparación con articulaciones como el hombro.",
+    "La columna mueve en los tres planos: sagital (flexo-extensión), frontal (flexión lateral) y transversal (rotación); la cervical es la más móvil.",
+    "Las vértebras se nombran por región (C, T, L, S) y hay 33 vértebras en total (7C, 12T, 5L, 5S fusionadas, ~4 coxígeas).",
+    "L5-S1 tiene una geometría que puede generar altas fuerzas de cizalla (ej. ~164% del peso corporal) y riesgo de espondilolistesis si falta estabilidad.",
+    "Las costillas y su unión al esternón limitan la movilidad torácica y contribuyen a la protección de órganos intratorácicos."
+    ],
+    "mustKnow": {
+    "facts": [
+    "Hay 7 vértebras cervicales, 12 torácicas y 5 lumbares (33 en total).",
+    "Atlas (C1) y Axis (C2) son vértebras especiales; 'atlas' recibe su nombre por el titán Atlas."
+    ],
+    "formulas": [],
+    "processes": [
+    "Movimientos de columna en planos (flexión/extensión en sagital; flexión lateral en frontal; rotación en transversal).",
+    "Acoplamiento entre movimiento vertebral y movimiento de cadera: flexión/extensión de columna suele acompañarse de flexión/extensión de cadera."
+    ]
+    },
+    "selfTest": [
+    "¿Puedes explicar por qué la región cervical necesita mayor movilidad que la torácica?",
+    "¿Cuál es la diferencia funcional entre el cuerpo vertebral y las apófisis articulares?",
+    "¿Cómo puede el ángulo entre L5 y S1 aumentar el riesgo de espondilolistesis?"
+    ]
+    },
+    
+    "engagement": {
+    "quizMetrics": {
+    "totalQuestions": "15",
+    "questionsByDifficulty": {
+    "easy": "5",
+    "medium": "8",
+    "hard": "2"
+    },
+    "totalPoints": "210",
+    "passingScore": "147",
+    "estimatedCompletionTime": "30 minutes"
+    },
+    "achievements": [
+    {
+    "id": "first_correct",
+    "name": "Good Start!",
+    "condition": "Answer first question correctly"
+    },
+    {
+    "id": "perfect_streak_5",
+    "name": "On Fire!",
+    "condition": "5 correct in a row"
+    },
+    {
+    "id": "quiz_complete",
+    "name": "Quiz Master",
+    "condition": "Complete all questions"
+    },
+    {
+    "id": "perfect_score",
+    "name": "Perfect!",
+    "condition": "100% correct"
+    }
+    ],
+    "progressTracking": {
+    "checkpoints": [
+    "After 5 questions",
+    "After 10 questions",
+    "After completion"
+    ],
+    "feedbackTiming": "immediate"
+    }
+    },
+    
+    "studyMaterials": {
+    "fromLecture": {
+    "mentioned": [
+    "«los dibujos que veis aquí son del libro de Numan, que es Quinesiel y Joseph Musculos Cretal System»",
+    "Referencia a la tabla de grados de movimiento por región (autores/Numan)"
+    ],
+    "recommended": [
+    "Comprar/el libro mencionado (Numan / Quinesiel y Joseph Musculos Cretal System) tal como lo recomienda el docente"
+    ]
+    },
+    "practiceMore": [
+    "Identificar y contar vértebras en un modelo o clínica (localizar C1, C7, T1, L5, S1).",
+    "Ejercicios para determinar movimientos por planos y qué regiones contribuyen más.",
+    "Casos clínicos breves sobre L5-S1 y espondilolistesis (interpretar ángulos y consecuencias).",
+    "Repasar articulaciones costovertebrales y partes de la costilla (cabeza, cuello, tubérculo)."
+    ]
+    }
+    }

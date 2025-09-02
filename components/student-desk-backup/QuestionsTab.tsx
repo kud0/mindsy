@@ -17,13 +17,6 @@ interface QuestionsTabProps {
 export const QuestionsTab: React.FC<QuestionsTabProps> = ({ questions }) => {
   const [expandedAnswers, setExpandedAnswers] = useState<Set<string>>(new Set());
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
-  
-  console.log('🔍 QuestionsTab received questions:', questions);
-  console.log('🔍 Questions length:', questions?.length || 0);
-  console.log('🔍 Questions array check - is array?:', Array.isArray(questions));
-  console.log('🔍 Questions type:', typeof questions);
-  console.log('🔍 First question details:', questions?.[0]);
-  console.log('🔍 Questions full structure:', JSON.stringify(questions, null, 2));
 
   const toggleAnswer = (questionId: string) => {
     setExpandedAnswers(prev => {
@@ -43,7 +36,7 @@ export const QuestionsTab: React.FC<QuestionsTabProps> = ({ questions }) => {
     setExpandedAnswers(prev => new Set(prev).add(questionId));
   };
 
-  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+  if (!questions || questions.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="text-center">

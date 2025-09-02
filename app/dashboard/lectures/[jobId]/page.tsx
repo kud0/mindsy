@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import StructuredStudyDesk from '@/components/notes/StructuredStudyDesk'
+import StudentDesk from '@/components/student-desk-v2/StudentDesk'
 
 interface LectureDetailPageProps {
   params: Promise<{
@@ -19,5 +19,5 @@ export async function generateMetadata({ params }: LectureDetailPageProps): Prom
 export default async function LectureDetailPage({ params }: LectureDetailPageProps) {
   const { jobId } = await params
 
-  return <StructuredStudyDesk jobId={jobId} />
+  return <StudentDesk jobId={jobId} />
 }

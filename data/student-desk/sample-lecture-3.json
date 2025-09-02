@@ -1,0 +1,293 @@
+{
+    "metadata": {
+    "title": "sinatura de biomecánica y anatomía humana aplicada al entrenamiento",
+    "difficulty": "intermediate",
+    "estimatedTime": "30 minutes",
+    "subjectDomain": "anatomía / biomecánica",
+    "examImportance": "medium"
+    },
+    
+    "overview": {
+    "mainTopic": "Descripción del esqueleto axial centrada en cráneo y raki (columna vertebral): anatomía, movimientos, curvas y algunas implicaciones clínicas.",
+    "keyObjectives": [
+    "Identificar las funciones principales del esqueleto axial y sus regiones (cervical, torácica, lumbar, sacra y coxígea).",
+    "Relacionar la morfología vertebral (cuerpo, apófisis, pedículos, láminas, carillas) con sus funciones de carga y movimiento.",
+    "Reconocer movimientos de la columna por planos, las curvas naturales y la importancia clínica de la articulación L5-S1."
+    ],
+    "coreConceptsList": [
+    "Funciones del esqueleto axial: protección y estabilidad",
+    "Regiones y número de vértebras (33: 7C, 12T, 5L, 5S, 4Co)",
+    "Partes generales de una vértebra: cuerpo, elementos posteriores, pedículos, apófisis transversa y espinosa, lámina, foramen raquídeo",
+    "Vértebras especiales: Atlas (C1) y Axis (C2) y su relación con la rotación",
+    "Movimientos de la columna por planos (sagital, frontal, transversal) y su acoplamiento",
+    "Curvas naturales: lordosis (cervical/lumbar) y cifosis (torácica/sacra) y su repercusión en fuerzas de cizalla",
+    "Anatomía torácica: costillas y esternón (manubrio, cuerpo, apófisis xifoides), articulaciones costovertebrales",
+    "Articulación L5-S1: ángulo típico (~40°) y su relación con fuerzas y riesgo de espondilolistesis"
+    ]
+    },
+    
+    "questions": [
+    {
+    "id": "q1",
+    "type": "quiz",
+    "topic": "Funciones del esqueleto axial",
+    "question": "¿Cuáles son las funciones principales del esqueleto axial según la clase?",
+    "format": "multiple-choice",
+    "choices": [
+    "Movilidad extrema",
+    "Protección y estabilidad",
+    "Producción de células sanguíneas",
+    "Regulación hormonal"
+    ],
+    "correctAnswer": 1,
+    "hint": "El ponente enfatiza dos funciones principales repetidamente.",
+    "feedback": "La función principal del esqueleto axial es la protección (por ejemplo del encéfalo y órganos torácicos) y la estabilidad. No está diseñado para movilidad extrema (esa es más propia de articulaciones como el hombro) ni para funciones como producción hormonal.",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q2",
+    "type": "quiz",
+    "topic": "Atlas — anécdota y nombre",
+    "question": "¿Por qué, según el profesor, se llama 'atlas' a la primera vértebra cervical (C1)?",
+    "format": "multiple-choice",
+    "choices": [
+    "Porque tiene forma de libro",
+    "Por el gigante mitológico que sujetaba el mundo llamado Atlas",
+    "Porque fue descubierta por el anatomista Atlas",
+    "Porque sostiene la mandíbula"
+    ],
+    "correctAnswer": 1,
+    "hint": "Es una anécdota mitológica mencionada en la clase",
+    "feedback": "El profesor explica que la C1 se llama atlas por analogía con el gigante mitológico Atlas que soportaba el mundo; la vértebra sostiene la cabeza. No proviene de un anatomista ni tiene forma de libro.",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q3",
+    "type": "quiz",
+    "topic": "Movimientos de la columna",
+    "question": "¿En qué plano se producen las flexiones laterales (inclinaciones laterales) de la columna?",
+    "format": "multiple-choice",
+    "choices": [
+    "Plano sagital",
+    "Plano frontal",
+    "Plano transversal",
+    "Ninguno de los anteriores"
+    ],
+    "correctAnswer": 1,
+    "hint": "El movimiento que desplaza el tronco hacia un lado.",
+    "feedback": "La flexión lateral (inclinación hacia un lado) ocurre en el plano frontal. El plano sagital corresponde a flexo-extensión y el transversal a rotaciones.",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q4",
+    "type": "quiz",
+    "topic": "Anatomía vertebral",
+    "question": "¿Qué parte de la vértebra soporta principalmente la carga (función de carga)?",
+    "format": "multiple-choice",
+    "choices": [
+    "Apófisis articulares",
+    "Cuerpo vertebral",
+    "Apófisis transversa",
+    "Pedículo"
+    ],
+    "correctAnswer": 1,
+    "hint": "Es la parte anterior donde recae gran parte del peso.",
+    "feedback": "El cuerpo vertebral es la región que soporta la mayor parte de la carga. Las apófisis articulares regulan el movimiento (no son para carga) y las apófisis transversas son principalmente puntos de inserción muscular.",
+    "difficulty": "easy",
+    "points": 10
+    },
+    {
+    "id": "q5",
+    "type": "quiz",
+    "topic": "Curvaturas vertebrales",
+    "question": "¿En qué regiones se encuentran las lordosis naturales?",
+    "format": "multiple-choice",
+    "choices": [
+    "Torácica y sacra",
+    "Cervical y lumbar",
+    "Torácica y lumbar",
+    "Cervical y torácica"
+    ],
+    "correctAnswer": 1,
+    "hint": "Se acentúan en extensión y están en extremos de la columna móvil.",
+    "feedback": "Las lordosis naturales están en las regiones cervical y lumbar. Las cifosis son las curvas en la torácica y sacra.",
+    "difficulty": "medium",
+    "points": 10
+    },
+    {
+    "id": "q6",
+    "type": "quiz",
+    "topic": "Mecanismo roll and slide",
+    "question": "El mecanismo 'roll and slide' (rodar y deslizar) ocurre en la articulación atlanto-occipital.",
+    "format": "true-false",
+    "statement": "El mecanismo 'roll and slide' ocurre en la articulación atlanto-occipital.",
+    "correctAnswer": true,
+    "hint": "El profesor mencionó esta articulación como excepción respecto al resto de la columna.",
+    "feedback": "Según la clase, el roll and slide sí se produce en la articulación atlanto-occipital (entre el occipital y el atlas). En el resto de las vértebras, por su limitada movilidad, predomina el deslizamiento más que el rodamiento.",
+    "difficulty": "medium",
+    "points": 5
+    },
+    {
+    "id": "q7",
+    "type": "quiz",
+    "topic": "Vértebras sacras",
+    "question": "Las vértebras sacras (S) están fusionadas y no presentan movimiento significativo.",
+    "format": "true-false",
+    "statement": "Las vértebras sacras están fusionadas y no presentan movimiento significativo.",
+    "correctAnswer": true,
+    "hint": "El profesor afirmó que las sacras forman parte de la pelvis y no se mencionan por movilidad.",
+    "feedback": "Es correcto: las 5 vértebras sacras suelen estar fusionadas formando parte de la pelvis, por lo que no tienen movilidad significativa como otras regiones vertebrales.",
+    "difficulty": "easy",
+    "points": 5
+    },
+    {
+    "id": "q8",
+    "type": "quiz",
+    "topic": "Articulación L5-S1 — ángulo y carga",
+    "question": "El ángulo típico entre L5 y S1 mencionado en clase es de ____ grados.",
+    "format": "fill-number",
+    "template": "El ángulo típico entre L5 y S1 es de ___ grados",
+    "answer": 40,
+    "acceptableRange": [
+    39,
+    41
+    ],
+    "unit": "degrees",
+    "hint": "El profesor citó un ángulo de referencia usado para hablar de fuerzas de cizalla.",
+    "feedback": "En la clase se mencionó un ángulo de alrededor de 40° para la articulación L5-S1; a ese ángulo se asoció una fuerza de aproximadamente el 164% del peso corporal y que aumentar el ángulo (ej. hasta 55°) incrementa notablemente esa carga y el riesgo de espondilolistesis.",
+    "difficulty": "medium",
+    "points": 10
+    }
+    ],
+    
+    "explanations": [
+    {
+    "id": "exp1",
+    "concept": "Funciones del esqueleto axial",
+    "importance": "high",
+    "explanation": "El esqueleto axial agrupa estructuras destinadas principalmente a la protección y a la estabilidad. El profesor recalcó que, aunque existe cierta movilidad necesaria para tareas cotidianas (especialmente en regiones como la cervical), el diseño global se decanta por proteger estructuras internas (cerebro, órganos torácicos) y por ofrecer una base estable para el resto del cuerpo. Para movimientos amplios se sacrificó movilidad en favor de estabilidad; otros segmentos (por ejemplo el hombro) optan por lo contrario.",
+    "keyPoints": [
+    "Protección del encéfalo y órganos torácicos",
+    "Estabilidad para soportar cargas y anclar músculos",
+    "Movilidad presente pero limitada comparada con otras articulaciones"
+    ]
+    },
+    {
+    "id": "exp2",
+    "concept": "Regiones de la columna y recuento vertebral",
+    "importance": "high",
+    "explanation": "En total hay 33 vértebras descritas en la clase: 7 cervicales, 12 torácicas, 5 lumbares, 5 sacras (fusionadas) y aproximadamente 4 coxígeas (cóxis). Cada región presenta adaptaciones morfológicas y funcionales: las cervicales son más móviles y con conductos transversos para la arteria vertebral; las torácicas están asociadas a costillas; las lumbares tienen cuerpos grandes para carga; las sacras están fusionadas formando parte de la pelvis.",
+    "keyPoints": [
+    "Total: 33 vértebras (7C, 12T, 5L, 5S, 4Co)",
+    "Cada región tiene morfología y función adaptada",
+    "Sacro fusionado: parte de la pelvis"
+    ]
+    },
+    {
+    "id": "exp3",
+    "concept": "Estructura general de una vértebra",
+    "importance": "high",
+    "explanation": "Toda vértebra típica tiene un cuerpo (anterior) que soporta carga y una zona posterior compuesta por pedículos, láminas, apófisis transversas y apófisis espinosas. El pedículo conecta el cuerpo con los elementos posteriores; la lámina une las apófisis espinosas; las apófisis transversas son puntos de inserción muscular y las espinosas pueden palparse en piel fina. Además existe el foramen raquídeo (o foramen vertebral) por donde pasa la médula espinal y donde termina en la cola de caballo en niveles inferiores.",
+    "keyPoints": [
+    "Cuerpo vertebral: soporte de carga",
+    "Pedículos y láminas: forman el arco que protege la médula",
+    "Apófisis transversas y espinosas: inserción muscular y palparización",
+    "Foramen raquídeo: paso de la médula espinal"
+    ]
+    },
+    {
+    "id": "exp4",
+    "concept": "Atlas (C1) y Axis (C2) — morfología y función",
+    "importance": "high",
+    "explanation": "El Atlas (C1) y el Axis (C2) son vértebras cervicales particulares: el atlas carece de apófisis espinosa prominente y está diseñado para articular con el occipital, permitiendo movimientos de flexión-extensión y parte del balanceo; el axis tiene la apófisis odontoides que permite la rotación. La clase menciona que entre atlas y axis (complejo atlanto-axial) se consigue gran rotación de la cabeza, y que el nombre 'atlas' proviene de la mitología griega (el gigante que soportaba el mundo).",
+    "keyPoints": [
+    "Atlas (C1): sin apófisis espinosa prominente, articula con el occipital",
+    "Axis (C2): tiene la apófisis odontoides (dens) que permite rotación",
+    "Complejo atlanto-axial y atlanto-occipital permiten gran movilidad cervical"
+    ],
+    "example": "Anécdota: 'atlas' por el gigante mitológico que sostenía el mundo.",
+    "visual": "Diagramas de Numan mostrados en la clase (vista superior del atlas y eje)"
+    },
+    {
+    "id": "exp5",
+    "concept": "Movimientos de la columna y acoplamientos",
+    "importance": "high",
+    "explanation": "Los movimientos se describen por planos: flexo-extensión en sagital, flexión lateral en frontal y rotación en transversal. La clase indicó que los movimientos en la columna suelen ir acompañados por pequeños movimientos en otros planos (por ejemplo, una ligera flexión lateral va acompañada de rotación) y que, por la limitada amplitud vertebral, en muchas zonas predomina el deslizamiento más que el roll-and-slide. En la cervical superior hay excepciones y mayor capacidad rotatoria.",
+    "keyPoints": [
+    "Plano sagital: flexión/extensión",
+    "Plano frontal: flexión lateral/extensión lateral",
+    "Plano transversal: rotación; los movimientos se acoplan entre planos"
+    ]
+    },
+    {
+    "id": "exp6",
+    "concept": "Curvas naturales: lordosis y cifosis y sus implicaciones",
+    "importance": "high",
+    "explanation": "La columna presenta curvaturas normales: lordosis en regiones cervical y lumbar y cifosis en torácica y sacra. Estas curvas permiten repartir cargas y que tejidos conectivos absorban parte del esfuerzo, pero también generan fuerzas de cizalla (por ejemplo en L5-S1 cuando la lordosis lumbar es prominente). El profesor explicó que cambios exagerados en estas curvas (hiperlordosis, hipercifosis) pueden aumentar el riesgo de problemas mecánicos y dolor por alteración de las fuerzas compresivas y de cizalla.",
+    "keyPoints": [
+    "Lordosis: cervical y lumbar; cifosis: torácica y sacra",
+    "Ventaja: disipación de fuerzas en tejidos conectivos",
+    "Desventaja: incremento de fuerzas de cizalla si hay curvaturas excesivas"
+    ]
+    },
+    {
+    "id": "exp7",
+    "concept": "Articulación L5-S1: ángulo, cargas y espondilolistesis",
+    "importance": "high",
+    "explanation": "La clase destacó L5-S1 como una articulación relevante por su inclinación (ejemplo citado: ~40°). A ese ángulo se asoció en la explicación una fuerza de alrededor del 164% del peso corporal que actúa en la articulación; si el ángulo aumenta (p. ej. hasta 55°) la fuerza aumenta aún más (el profesor mencionó un incremento del 82%). Una mala estabilización de esta articulación puede provocar espondilolistesis (deslizamiento entre vértebras) que puede estrechar forámenes y dañar estructuras neurales, afectando sensibilidad y movimiento en miembros inferiores.",
+    "keyPoints": [
+    "Ángulo típico citado: ~40° entre L5 y S1",
+    "A esa inclinación se asocia aumento de fuerzas (≈164% peso corporal en el ejemplo)",
+    "Aumento del ángulo eleva la fuerza y puede predisponer a espondilolistesis y compromiso neural"
+    ]
+    }
+    ],
+    
+    "summary": {
+    "essentialPoints": [
+    "El esqueleto axial prioriza protección y estabilidad por encima de movilidad extrema.",
+    "Hay 33 vértebras: 7 cervicales, 12 torácicas, 5 lumbares, 5 sacras (fusionadas) y ≈4 coxígeas.",
+    "Cada vértebra tiene cuerpo (soporte de carga), elementos posteriores (protección y palanca muscular) y un foramen por donde pasa la médula.",
+    "Curvas naturales: lordosis en cervical/lumbar y cifosis en torácica/sacra; cambios en ellas alteran fuerzas y riesgos clínicos.",
+    "La articulación L5-S1 (ángulo ≈40°) es clínicamente relevante por las fuerzas de cizalla y riesgo de espondilolistesis."
+    ],
+    "examFocus": {
+    "mustKnow": [
+    "Recuento vertebral y denominación por región (C, T, L, S, Co).",
+    "Partes de una vértebra: cuerpo, pedículo, lámina, apófisis transversa/espinosa, foramen raquídeo."
+    ],
+    "likelyQuestions": [
+    "Identificar funciones del esqueleto axial y diferencias entre regiones vertebrales.",
+    "Explicar por qué L5-S1 es susceptible a problemas mecánicos (ángulo, fuerzas, espondilolistesis)."
+    ]
+    }
+    },
+    
+    "engagement": {
+    "quizMetrics": {
+    "totalQuestions": "8",
+    "totalPoints": "70",
+    "passingScore": "49"
+    },
+    "achievements": [
+    {
+    "id": "half_complete",
+    "name": "Halfway There!",
+    "points": 50
+    },
+    {
+    "id": "all_complete",
+    "name": "Complete!",
+    "points": 100
+    },
+    {
+    "id": "perfect",
+    "name": "Perfect Score!",
+    "points": 150
+    }
+    ]
+    }
+    }

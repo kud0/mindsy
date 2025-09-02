@@ -9,18 +9,22 @@ import {
   BookOpen,
   FileText,
   Clock,
-  FolderOpen
+  FolderOpen,
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TabStrip, Tab } from './student-desk/TabStrip';
 import { OverviewTab } from './student-desk/OverviewTab';
-import { QuestionsTab } from './student-desk/QuestionsTab';
+import { MinimalOverviewTab } from './student-desk/MinimalOverviewTab';
+import { InteractiveQuestionsTab } from './student-desk/InteractiveQuestionsTab';
 import { ExplanationsTab } from './student-desk/ExplanationsTab';
+import { MinimalExplanationsTab } from './student-desk/MinimalExplanationsTab';
 import { SummaryTab } from './student-desk/SummaryTab';
+import { MinimalSummaryTab } from './student-desk/MinimalSummaryTab';
 import { StudyTimeTab } from './student-desk/StudyTimeTab';
 import { MaterialsTab } from './student-desk/MaterialsTab';
-import { mapLectureDataToTabs, loadLectureData } from '@/lib/lecture-data-mapper';
-import { LectureData } from '@/types/lecture-data';
+import { mapFlexibleJsonToTabs } from '@/lib/flexible-data-mapper';
 
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview', icon: Eye },
@@ -31,19 +35,20 @@ const TABS: Tab[] = [
   { id: 'materials', label: 'Materials', icon: FolderOpen },
 ];
 
-interface StructuredStudyDeskProps {
-  jobId: string;
+interface FlexibleStudentDeskProps {
+  jsonFile: string;
 }
 
-export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps) {
+export default function FlexibleStudentDesk({ jsonFile }: FlexibleStudentDeskProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
-  const [lectureData, setLectureData] = useState<LectureData | null>(null);
+  const [rawJsonData, setRawJsonData] = useState<any>(null);
   const [tabProps, setTabProps] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [adaptationInfo, setAdaptationInfo] = useState<any>(null);
   
-  console.log('🔍 StructuredStudyDesk refactored - using new JSON structure for jobId:', jobId);
+  console.log('🔍 FlexibleStudentDesk - Loading JSON file:', jsonFile);
   
   // State preservation for each tab
   const tabScrollPositions = useRef<Record<string, number>>({});
@@ -55,82 +60,79 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
   const swipeThreshold = 50;
   const isSwipingHorizontally = useRef(false);
 
-  // Load lecture data using the new structure
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        console.log('🚀 Loading lecture data from new API...');
-        
-        // Fetch from the simplified API endpoint
-        const response = await fetch(`/api/lectures/${jobId}`, {
-          cache: 'no-cache',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch lecture: ${response.status}`);
-        }
-        
-        const apiData = await response.json();
-        console.log('✅ New API response:', apiData);
-        
-        if (apiData.error) {
-          throw new Error(apiData.error);
-        }
-        
-        if (!apiData.data?.lecture?.data) {
-          throw new Error('Invalid API response structure');
-        }
-        
-        const lectureData: LectureData = apiData.data.lecture.data;
-        const actualStats = apiData.data.stats;
-        const actualMaterials = apiData.data.materials;
-        
-        console.log('🎯 Lecture data loaded:', {
-          title: lectureData.metadata.title,
-          questionsCount: lectureData.questions.length,
-          explanationsCount: lectureData.explanations.length,
-          hasStats: !!actualStats,
-          materialsCount: actualMaterials?.length || 0
-        });
-        
-        // Map to tab props using the new mapper
-        const mappedProps = mapLectureDataToTabs(lectureData, {
-          actualStats,
-          actualMaterials
-        });
-        
-        setLectureData(lectureData);
-        setTabProps(mappedProps);
-        
-        console.log('🚀 All tabs mapped successfully:', Object.keys(mappedProps));
-        
-      } catch (err) {
-        console.error('❌ Error loading lecture data:', err);
-        setError(`${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
-        setLoading(false);
+  // Load data from the dynamic endpoint
+  const loadJsonFile = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🚀 Loading flexible JSON data from:', jsonFile);
+      
+      const response = await fetch(`/api/demo/lecture-data/${jsonFile}`, {
+        cache: 'no-cache'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to fetch: ${response.status}`);
       }
-    };
+      
+      const apiData = await response.json();
+      console.log('✅ Flexible API response:', apiData);
+      
+      if (apiData.error) {
+        throw new Error(apiData.error);
+      }
+      
+      if (!apiData.data?.lecture?.data) {
+        throw new Error('Invalid response structure');
+      }
+      
+      const lectureData = apiData.data.lecture.data;
+      const actualStats = apiData.data.stats;
+      const actualMaterials = apiData.data.materials;
+      const meta = apiData.data.meta;
+      
+      console.log('🎯 Flexible data loaded:', {
+        sourceFile: jsonFile,
+        title: lectureData.metadata.title,
+        questionsCount: lectureData.questions.length,
+        explanationsCount: lectureData.explanations.length,
+        adapted: meta?.adaptedStructure
+      });
+      
+      // Map to tab props using the flexible mapper
+      const mappedProps = mapFlexibleJsonToTabs(lectureData, {
+        actualStats,
+        actualMaterials
+      });
+      
+      setRawJsonData(lectureData);
+      setTabProps(mappedProps);
+      setAdaptationInfo(meta);
+      
+      console.log('🚀 All tabs mapped successfully from flexible JSON:', Object.keys(mappedProps));
+      
+    } catch (err) {
+      console.error('❌ Error loading flexible data:', err);
+      setError(`${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [jsonFile]);
 
-    loadData();
-  }, [jobId]);
+  useEffect(() => {
+    loadJsonFile();
+  }, [loadJsonFile]);
 
   // Preserve scroll position when switching tabs
   const handleTabChange = useCallback((newTabId: string) => {
-    // Save current scroll position
     if (mainContentRef.current) {
       tabScrollPositions.current[activeTab] = mainContentRef.current.scrollTop;
     }
     
     setActiveTab(newTabId);
     
-    // Restore scroll position for new tab
     setTimeout(() => {
       if (mainContentRef.current && tabScrollPositions.current[newTabId]) {
         mainContentRef.current.scrollTop = tabScrollPositions.current[newTabId];
@@ -153,7 +155,6 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
     const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
     const deltaY = Math.abs(e.touches[0].clientY - touchStartY.current);
     
-    // Determine if this is a horizontal swipe
     if (deltaX > deltaY && deltaX > 10) {
       isSwipingHorizontally.current = true;
     }
@@ -166,16 +167,13 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
     const touchEndX = e.changedTouches[0].clientX;
     const deltaX = touchEndX - touchStartX.current;
     
-    // Check if swipe is strong enough and horizontal enough
     if (Math.abs(deltaX) > swipeThreshold) {
       const currentIndex = TABS.findIndex(tab => tab.id === activeTab);
       let newIndex;
       
       if (deltaX > 0 && currentIndex > 0) {
-        // Swipe right - go to previous tab
         newIndex = currentIndex - 1;
       } else if (deltaX < 0 && currentIndex < TABS.length - 1) {
-        // Swipe left - go to next tab
         newIndex = currentIndex + 1;
       }
       
@@ -184,7 +182,6 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
       }
     }
     
-    // Reset touch tracking
     touchStartX.current = 0;
     touchStartY.current = 0;
     isSwipingHorizontally.current = false;
@@ -195,20 +192,34 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
       <div className="flex-1 flex items-center justify-center w-full max-w-full overflow-hidden">
         <div className="text-center px-4">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading lecture...</p>
+          <p className="text-gray-600">Adapting JSON structure...</p>
+          <p className="text-sm text-gray-500 mt-1">Loading {jsonFile}</p>
         </div>
       </div>
     );
   }
 
-  if (error || !lectureData || !tabProps) {
+  if (error || !rawJsonData || !tabProps) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Lecture not found'}</p>
-          <Button onClick={() => router.back()} variant="outline">
-            Go Back
-          </Button>
+        <div className="text-center max-w-md">
+          <div className="text-red-500 mb-4">
+            <Settings className="w-12 h-12 mx-auto mb-3" />
+            <p className="text-lg font-semibold">Structure Adaptation Failed</p>
+          </div>
+          <p className="text-red-600 mb-4 text-sm">{error}</p>
+          <div className="space-y-2">
+            <Button onClick={() => loadJsonFile()} variant="outline" className="mr-2">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+            <Button onClick={() => router.back()} variant="outline">
+              Go Back
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-3">
+            File: {jsonFile}
+          </p>
         </div>
       </div>
     );
@@ -217,13 +228,32 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab {...tabProps.overview} />;
+        return jsonFile === 'sample-lecture-3.json' 
+          ? <MinimalOverviewTab 
+              overview={{
+                mainTopic: rawJsonData.overview?.mainTopic || '',
+                keyObjectives: rawJsonData.overview?.keyObjectives || [],
+                coreConceptsList: rawJsonData.overview?.coreConceptsList || []
+              }}
+              metadata={{
+                title: rawJsonData.metadata?.title || '',
+                difficulty: rawJsonData.metadata?.difficulty || '',
+                estimatedTime: rawJsonData.metadata?.estimatedTime || '',
+                subjectDomain: rawJsonData.metadata?.subjectDomain || '',
+                examImportance: rawJsonData.metadata?.examImportance || ''
+              }}
+            />
+          : <OverviewTab {...tabProps.overview} />;
       case 'questions':
-        return <QuestionsTab {...tabProps.questions} />;
+        return <InteractiveQuestionsTab {...tabProps.questions} />;
       case 'explanations':
-        return <ExplanationsTab {...tabProps.explanations} />;
+        return jsonFile === 'sample-lecture-3.json' 
+          ? <MinimalExplanationsTab explanations={rawJsonData.explanations || []} />
+          : <ExplanationsTab {...tabProps.explanations} />;
       case 'summary':
-        return <SummaryTab {...tabProps.summary} />;
+        return jsonFile === 'sample-lecture-3.json' 
+          ? <MinimalSummaryTab summary={rawJsonData.summary} />
+          : <SummaryTab {...tabProps.summary} />;
       case 'study-time':
         return <StudyTimeTab {...tabProps.studyTime} />;
       case 'materials':
@@ -249,9 +279,31 @@ export default function StructuredStudyDesk({ jobId }: StructuredStudyDeskProps)
               <ArrowLeft className="h-5 w-5" />
             </Button>
             
-            <h1 className="text-lg font-semibold truncate min-w-0 flex-1">
-              {tabProps.title}
-            </h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-semibold truncate">
+                {tabProps.title}
+              </h1>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-green-600 font-medium">
+                  🔄 Flexible JSON: {jsonFile}
+                </span>
+                {adaptationInfo?.adaptedStructure && (
+                  <span className="text-blue-600">
+                    ⚡ Structure Adapted
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push('/demo/student-desk')}
+              className="h-8 w-8"
+              title="Switch JSON files"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>

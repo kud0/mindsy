@@ -1,0 +1,539 @@
+{
+    "metadata": {
+    "title": "Esqueleto axial: cráneo y raquis (parte 1) — Biomecánica y anatomía humana aplicada al entrenamiento",
+    "hook": "La columna vertebral equilibra protección y estabilidad a costa de movilidad: entender por qué hay tanta movilidad en las cervicales y casi ninguna en las torácicas explica problemas comunes como la sobrecarga L5-S1 y la espondilolistesis.",
+    "difficulty": "intermedio",
+    "estimatedTime": "50 minutos",
+    "surprisingFact": "En la unión L5–S1 la orientación angular puede imponer fuerzas equivalentes a ~164% del peso corporal; si el ángulo aumenta a 55° la carga puede incrementarse dramáticamente, favoreciendo deslizamientos vertebrales.",
+    "whyThisMatters": {
+    "immediate": "Te ayuda a reconocer estructuras y movimientos que salen en exámenes y a entender por qué ciertos dolores lumbares aparecen durante el entrenamiento.",
+    "future": "Base para prevenir, diagnosticar y planear ejercicios terapéuticos (rehabilitación, programas de fuerza, pautas de movilidad) y entender lesiones como hernias de disco y espondilolistesis.",
+    "intellectual": "Amplía la visión mecánica del cuerpo: curvas, orientaciones articulares y trade-offs estabilidad/movilidad como principios transferibles a otras regiones articulares."
+    },
+    "examRelevance": "fundacional (alto porcentaje en exámenes de anatomía aplicada y biomecánica)",
+    "subjectDomain": "Biología / Biomecánica / Anatomía aplicada al entrenamiento",
+    "learningStyle": "conceptual-práctico (mezcla de comprensión anatómica y aplicación a la práctica física)"
+    },
+    
+    "overview": {
+    "theBigPicture": "El esqueleto axial (cráneo y raquis hasta la pelvis) protege órganos vitales y da estabilidad postural mientras permite movimientos segmentados. La columna es una estructura en curvas (lordosis y cifosis) diseñada para distribuir cargas a tejidos conectivos, pero esa misma geometría puede generar fuerzas de cizalla en puntos concretos (p. ej. L5–S1). Comprender la anatomía segmentaria y la mecánica nos permite diseñar intervenciones de entrenamiento y prevención.",
+    "whyCareMatrix": {
+    "practical": "Detectar y modificar patrones de movimiento que aumentan riesgo lumbar; elegir ejercicios que respeten la mecánica de la columna (p. ej. control de la lordosis durante levantamientos).",
+    "academic": "Conecta con asignaturas de fisiología, patología del aparato locomotor y técnicas de rehabilitación; sirve como base para la siguiente clase sobre discos intervertebrales y hernias.",
+    "personal": "Entender por qué ciertas posturas y ejercicios provocan dolor lumbar y cómo pequeñas adaptaciones pueden reducir riesgo.",
+    "societal": "Prevención de lesiones de espalda en población activa y deportistas, disminución de costes sanitarios y mejora de la calidad de vida."
+    },
+    "learningPath": {
+    "startHere": "Aprende primero la función general del esqueleto axial y la nomenclatura (C, T, L, S, Co) y los movimientos básicos (flexión/extensión, flexión lateral, rotación).",
+    "buildTo": "Estudia la anatomía de una vértebra típica (cuerpo, pedículo, lámina, procesos) y las particularidades de atlas/axis y diferencias regionales (cervical/torácica/lumbar).",
+    "masterThis": "Integra la geometría (curvas lordóticas/cifóticas) con las cargas mecánicas (shear, compresión) y aplica a casos clínicos: L5–S1, espondilolistesis, implicaciones en el entrenamiento.",
+    "connectionsMap": "Funciones generales → movimientos por planos → anatomía vertebral → diferencias regionales → curvas y cargas → lesiones (L5–S1, hernias) → intervención en entrenamiento."
+    },
+    "conceptInventory": {
+    "prerequisites": "Conocer posición anatómica, planos (sagital/frontal/transversal), términos de movimiento (flexión/extensión/rotación/protracción/retracción), nociones básicas de fuerzas (compresión, cizalla).",
+    "coreIdeas": [
+    "Función dual del esqueleto axial: protección y estabilidad con movilidad limitada en zonas concretas.",
+    "Movimientos vertebrales por planos y su variación regional (cervical mucha rotación, torácica limitada por costillas, lumbar más carga/menos rotación).",
+    "Estructura típica de una vértebra: cuerpo, pedículos, láminas, procesos transverso/espinoso, carillas articulares y foramen raquídeo.",
+    "Particularidades: atlas (C1) y axis (C2), y la importancia del foramen transverso para la arteria vertebral en cervicales.",
+    "Curvas normales (lordosis y cifosis) disipando fuerzas pero generando cizalla; ángulos entre L5–S1 críticos para sobrecarga y espondilolistesis."
+    ],
+    "supportingConcepts": [
+    "Clasificación articular: las intervertebrales son anfiartrosis (movilidad limitada).",
+    "Relación entre superficies articulares y control del movimiento (apófisis articulares guían/deslizan).",
+    "Conexión costillas–torácicas y su efecto estabilizador.",
+    "Diferencias en inserciones musculares y tamaños corporales entre regiones vertebrales."
+    ],
+    "extensions": [
+    "Biomecánica cuantitativa de momentos y cargas en diferentes ángulos de inclinación pélvica.",
+    "Evaluación clínica de espondilolistesis y pruebas de imagen.",
+    "Técnicas de entrenamiento y rehabilitación para reducir fuerzas de cizalla."
+    ]
+    },
+    "studyStrategy": "Para esta materia: combina lectura breve de la anatomía (mapa visual) con práctica activa: palpa C7 en una persona, haz movimientos controlados de flexión/rotación para sentir qué región mueve más, y resuelve casos que expliquen por qué aparece dolor lumbar (ejercicios de transferencia). Usa modelos 3D o una columna anatómica si es posible."
+    },
+    
+    "questions": [
+    {
+    "id": "q1",
+    "type": "conceptual",
+    "engagementStyle": "pregunta directa",
+    "cognitiveLevel": "understand",
+    "setup": "Breve repaso de funciones generales del esqueleto axial.",
+    "question": "Resume en una frase las dos funciones principales del esqueleto axial y explica por qué a veces sacrifica movilidad.",
+    "format": "short-answer",
+    "correctAnswer": "Protección y estabilidad; sacrifica movilidad para proteger órganos y repartir cargas, especialmente en regiones conectadas a costillas (torácicas) o estructuras que soportan peso.",
+    "scaffolding": {
+    "beforeHint": "Piensa en qué protege el cráneo y qué protege la caja torácica.",
+    "duringHint": "Relaciona protección con estructuras rígidas y estabilidad con necesidad de soporte de cargas.",
+    "commonMistake": "Responder solo 'protección' o solo 'movilidad' ignorando la dualidad con la estabilidad."
+    },
+    "feedback": {
+    "correct": "Bien. Entender esa dualidad ayuda a ver por qué el tratamiento/ejercicio varía según la región vertebral.",
+    "partialCredit": "Has identificado una función; recuerda mencionar ambas y la razón del sacrificio de movilidad.",
+    "incorrect": "No exactamente. Replantea pensando en qué órganos protege y qué necesita soportar el raquis.",
+    "explanation": "El cráneo protege el encéfalo; la columna protege la médula y da base estable para inserciones musculares y protección torácica. Para aumentar estabilidad (p. ej. zona torácica con costillas) se limita la movilidad."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Conocer dónde están cráneo, caja torácica y pelvis.",
+    "relatedConcepts": "Articulaciones anfiartrodiales, inserciones musculares.",
+    "realWorldApplication": "Diseñar programa de fuerza para un levantador sin provocar sobrecarga lumbar.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "easy",
+    "timeEstimate": "3",
+    "frequency": "común",
+    "skills": "síntesis, comprensión"
+    }
+    },
+    {
+    "id": "q2",
+    "type": "recall",
+    "engagementStyle": "tabla mental",
+    "cognitiveLevel": "remember",
+    "setup": "Cuenta vertebral estándar mencionada en clase.",
+    "question": "¿Cuántas vértebras hay por cada región (cervical, torácica, lumbar, sacra, coxígea) según la clase?",
+    "format": "short-answer",
+    "correctAnswer": "7 cervicales, 12 torácicas, 5 lumbares, 5 sacras (fusionadas), 4 coxígeas.",
+    "scaffolding": {
+    "beforeHint": "Recuerda la nomenclatura C, T, L, S, Co.",
+    "duringHint": "Piensa en las regiones que se mencionan al contar hasta 33 vértebras.",
+    "commonMistake": "Olvidar que las sacras están fusionadas y confundir número de coxígeas."
+    },
+    "feedback": {
+    "correct": "Exacto. Es un dato fundamental para ubicar lesiones y palpar regiones.",
+    "partialCredit": "Casi: revisa si las sacras están fusionadas y cuántas coxígeas se indicaron.",
+    "incorrect": "Revisa la enumeración de la clase: 7-C, 12-T, 5-L, 5-S, 4-Co.",
+    "explanation": "La columna total suma 33 vértebras: 7C+12T+5L+5S+4Co; las sacras están fusionadas formando parte de la pelvis."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Nomenclatura vertebral básica.",
+    "relatedConcepts": "Regiones y movilidad, fusión sacra.",
+    "realWorldApplication": "Localizar niveles vertebrales en examen físico o imagen.",
+    "examRelevance": "garantizado"
+    },
+    "metadata": {
+    "difficulty": "easy",
+    "timeEstimate": "2",
+    "frequency": "garantizado",
+    "skills": "memoria factual"
+    }
+    },
+    {
+    "id": "q3",
+    "type": "analysis",
+    "engagementStyle": "comparación regional",
+    "cognitiveLevel": "analyze",
+    "setup": "Se mostraron los grados de movimiento por región y plano.",
+    "question": "Analiza por qué la región cervical tiene mayor rotación total que la región torácica. Menciona al menos dos razones anatómicas explicadas en la clase.",
+    "format": "short-answer",
+    "correctAnswer": "Porque las superficies articulares cervicales están más horizontales y las vértebras cervicales (especialmente C1–C2) tienen morfología que permite más rotación; además, la torácica está fijada a las costillas y esternón reduciendo movilidad.",
+    "scaffolding": {
+    "beforeHint": "Piensa en orientación de carillas articulares y en estructuras que limitan movimiento.",
+    "duringHint": "Recuerda el papel de atlas/axis y las conexiones costales torácicas.",
+    "commonMistake": "Citar sólo una razón (p. ej. sólo las costillas) sin mencionar la morfología vertebral."
+    },
+    "feedback": {
+    "correct": "Bien razonado. Esas diferencias explican la necesidad de gran movilidad cervical para orientar sensores (ojos, oídos).",
+    "partialCredit": "Buena parte: añade la referencia al atlas-axis para completar.",
+    "incorrect": "Falta relacionar morfología de carillas y conexión costillas–esternón; revisa ambos factores.",
+    "explanation": "C1–C2 tienen adaptaciones (atlas sin cuerpo, axis con diente) que facilitan rotación; las carillas de las cervicales están orientadas para movimiento y las torácicas están limitadas por la caja torácica."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Orientación de planos articulares y relación vertebra-costilla.",
+    "relatedConcepts": "Movimiento atlanto-axial y atlanto-occipital.",
+    "realWorldApplication": "Evaluar riesgos al forzar rotación del cuello en entrenamientos y deportes.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "medium",
+    "timeEstimate": "6",
+    "frequency": "común",
+    "skills": "razonamiento anatómico"
+    }
+    },
+    {
+    "id": "q4",
+    "type": "application",
+    "engagementStyle": "caso clínico breve",
+    "cognitiveLevel": "apply",
+    "setup": "Se explicó que L5–S1 puede estar sometida a fuerzas de ~164% del peso corporal con determinado ángulo.",
+    "question": "Un cliente con hiperlordosis realiza peso muerto sin control lumbo-pélvico. Explica mecánicamente por qué esto aumenta riesgo de espondilolistesis y qué modificación de entrenamiento propondrías para disminuir esa carga.",
+    "format": "essay",
+    "correctAnswer": "La hiperlordosis aumenta el ángulo L5–S1 incrementando la componente de fuerza de cizalla sobre L5; la falta de estabilización aumenta el riesgo de deslizamiento (espondilolistesis). Modificación: reducir extensión lumbar máxima, instruir neutral pélvico, reforzar glúteos/abdominales profundos, usar rango de movimiento controlado y cargas progresivas, y limitar ejercicio que hiperextienda la columna hasta mejorar control.",
+    "scaffolding": {
+    "beforeHint": "Recuerda la relación ángulo–fuerza en L5–S1 y la función de estabilidad del tronco.",
+    "duringHint": "Piensa en ejercicios que aumentan lordosis vs ejercicios que promueven neutral lumbar.",
+    "commonMistake": "Solo aconsejar 'menos peso' sin cambios técnicos ni trabajo de control motor."
+    },
+    "feedback": {
+    "correct": "Respuesta completa: relacionaste mecánica con intervención práctica y fortalecimiento específico.",
+    "partialCredit": "Buena dirección; añade medidas concretas de control motor (p. ej. activación transverso abdominal, progresión de ejercicios).",
+    "incorrect": "Falta conectar el aumento del ángulo con la componente de cizalla y dar soluciones prácticas de entrenamiento.",
+    "explanation": "La geometría aumenta la cizalla en L5–S1; la intervención debe: 1) reducir momento de extensión lumbar, 2) mejorar control pélvico y fuerza de estabilizadores, 3) adaptar ejercicio (ej. usar variaciones con menos extensión)."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Conceptos de fuerza (cizalla), lordosis y papel de estabilizadores.",
+    "relatedConcepts": "Espondilolistesis, rehabilitación y programación de fuerza.",
+    "realWorldApplication": "Planificar sesiones para clientes con hiperlordosis o dolor lumbar.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "hard",
+    "timeEstimate": "12",
+    "frequency": "común",
+    "skills": "aplicación clínica, diseño de intervención"
+    }
+    },
+    {
+    "id": "q5",
+    "type": "analysis",
+    "engagementStyle": "comparación anatómica",
+    "cognitiveLevel": "analyze",
+    "setup": "Se describieron rasgos típicos de cervicales, torácicas y lumbares.",
+    "question": "Enumera tres diferencias morfológicas entre vértebras cervicales y lumbares que expliquen sus funciones distintas.",
+    "format": "short-answer",
+    "choices": [],
+    "correctAnswer": "Cervicales: cuerpos más pequeños, forámenes transversos (paso arteria vertebral), procesos espinosos bífidos y carillas más horizontales para más movilidad. Lumbares: cuerpos mucho más grandes para carga, procesos espinosos robustos orientados hacia atrás/abajo, carillas articulares con orientación que limita rotación y favorece flexo-extensión y estabilidad.",
+    "scaffolding": {
+    "beforeHint": "Piensa en qué pide cada región: carga vs movilidad.",
+    "duringHint": "Recuerda el foramen transverso y el tamaño del cuerpo vertebral.",
+    "commonMistake": "Mencionar solo una diferencia o confundir orientación de carillas."
+    },
+    "feedback": {
+    "correct": "Correcto: esas diferencias son la base funcional de cada región.",
+    "partialCredit": "Faltó una de las tres diferencias; pon énfasis en el tamaño corporal como indicador de carga.",
+    "incorrect": "Revisa la función de cada rasgo (p. ej. foramen transverso es propio de cervicales).",
+    "explanation": "La morfología refleja función: cervical para movilidad y paso vascular; lumbar para soporte de cargas y producción de fuerza muscular."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Estructura de una vértebra típica.",
+    "relatedConcepts": "Inserciones musculares, palpitación de procesos espinosos.",
+    "realWorldApplication": "Elegir ejercicios que no impongan torsiones lumbares innecesarias.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "medium",
+    "timeEstimate": "5",
+    "frequency": "común",
+    "skills": "comparación, anatomía"
+    }
+    },
+    {
+    "id": "q6",
+    "type": "clinical",
+    "engagementStyle": "caso breve",
+    "cognitiveLevel": "evaluate",
+    "setup": "Se introdujo la espondilolistesis como deslizamiento vertebral y sus riesgos.",
+    "question": "¿Cuáles son dos signos o consecuencias neurológicas posibles si una espondilolistesis compromete la médula o el foramen raquídeo?",
+    "format": "short-answer",
+    "correctAnswer": "Pérdida de sensibilidad en dermatomas inferiores, pérdida de fuerza/marcha alterada, o déficit neurológico en extremidades inferiores; posibilidad de compresión radicular con dolor irradiado y alteración de reflejos.",
+    "scaffolding": {
+    "beforeHint": "Piensa qué ocurre si los nervios raquídeos se estrechan o se dañan.",
+    "duringHint": "Conecta con función motora y sensitiva de la médula y raíces.",
+    "commonMistake": "Nombrar sólo dolor local sin mencionar déficits sensitivo-motores."
+    },
+    "feedback": {
+    "correct": "Buena respuesta: esas son las consecuencias clínicas importantes que justifican intervención.",
+    "partialCredit": "Mencionaste dolor pero no déficits neurológicos; añade cambios sensitivos/motores.",
+    "incorrect": "Necesitas incluir consecuencias neurológicas (sensitivas o motoras) asociadas al estrechamiento del canal.",
+    "explanation": "El deslizamiento puede estrechar el canal raquídeo o forámenes de salida de las raíces provocando radiculopatía con dolor irradiado, pérdida de sensibilidad y fuerza."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Anatomía de la médula y nervios raquídeos.",
+    "relatedConcepts": "Foramen raquídeo, síndrome de la cola de caballo.",
+    "realWorldApplication": "Identificar señales que requieren derivación médica urgente.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "medium",
+    "timeEstimate": "4",
+    "frequency": "común",
+    "skills": "diagnóstico diferencial, evaluación clínica"
+    }
+    },
+    {
+    "id": "q7",
+    "type": "conceptual",
+    "engagementStyle": "explicación breve",
+    "cognitiveLevel": "understand",
+    "setup": "Se habló de lordosis y cifosis y su papel en la distribución de fuerzas.",
+    "question": "¿Por qué las curvas (lordosis y cifosis) son útiles biomecánicamente y cuál es un efecto adverso asociado a su acentuación?",
+    "format": "short-answer",
+    "correctAnswer": "Son útiles porque dispersan y transmiten fuerzas a tejidos conectivos resistentes reduciendo carga directa sobre estructuras frágiles; efecto adverso: acentuación genera fuerzas de cizalla que pueden dañar estructuras (p. ej. mayor cizalla en L5–S1).",
+    "scaffolding": {
+    "beforeHint": "Piensa cómo una curva desvía fuerza hacia ligamentos y aponeurosis.",
+    "duringHint": "Conecta la idea de disipación con la generación de fuerzas de cizalla.",
+    "commonMistake": "Decir sólo 'amortiguación' sin describir la consecuencia negativa."
+    },
+    "feedback": {
+    "correct": "Perfecto: captaste la ventaja y la posible desventaja mecánica.",
+    "partialCredit": "Bien, pero añade un ejemplo concreto (L5–S1) para mayor claridad.",
+    "incorrect": "Revisa cómo una curva puede tanto proteger como crear condiciones de cizalla."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Conceptos de fuerzas y anatomía de curvas espinales.",
+    "relatedConcepts": "Errores posturales y compensaciones entre curvas.",
+    "realWorldApplication": "Ajustes posturales y de entrenamiento para evitar sobrecarga.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "easy",
+    "timeEstimate": "3",
+    "frequency": "común",
+    "skills": "conceptualización biomecánica"
+    }
+    },
+    {
+    "id": "q8",
+    "type": "procedural",
+    "engagementStyle": "actividad práctica",
+    "cognitiveLevel": "apply",
+    "setup": "La prominencia de C7 se mencionó como punto palpable.",
+    "question": "Describe paso a paso cómo localizar la vértebra C7 en un compañero y qué información práctica aporta su palpación en valoración postural.",
+    "format": "short-answer",
+    "correctAnswer": "Pedir al compañero flexionar y extender ligeramente el cuello; palpar la línea media posterior del cuello y localizar la apófisis espinosa más prominente que se mueve menos al flexionar: esa es C7 (prominens). Aporta referencia para contar niveles cervicales y evaluar hiperlordosis/hipercifosis cervical y asimetrías de alineación.",
+    "scaffolding": {
+    "beforeHint": "Piensa en el gesto de mirar abajo/arriba y qué proceso se destaca al moverse.",
+    "duringHint": "Busca la apófisis que sobresale más y es fácilmente palpable.",
+    "commonMistake": "Confundir C7 con T1 u otras protuberancias si no se observa el movimiento al flexionar."
+    },
+    "feedback": {
+    "correct": "Muy bien. Palpar C7 es una habilidad práctica útil en valoración postural y para localizar niveles para pruebas clínicas.",
+    "partialCredit": "Paso correcto pero no dijiste qué información aporta; añade la utilidad en conteo de niveles y detección de deformidades.",
+    "incorrect": "Practica palpación observando el movimiento durante flexión/extension; C7 suele ser la más prominente."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Anatomía superficial del cuello y términos de movimiento.",
+    "relatedConcepts": "Conteo de niveles vertebrales, localización para pruebas y movilizaciones.",
+    "realWorldApplication": "Evaluación inicial en consulta o gimnasio para establecer puntos de referencia.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "medium",
+    "timeEstimate": "5",
+    "frequency": "común",
+    "skills": "palpación, valoración postural"
+    }
+    },
+    {
+    "id": "q9",
+    "type": "synthesis",
+    "engagementStyle": "diseño práctico",
+    "cognitiveLevel": "create",
+    "setup": "Integra conocimiento sobre movilidad regional, cargas en L5–S1 y estabilidad.",
+    "question": "Diseña una progresión de 3 pasos para introducir el peso muerto en un cliente con ligera hiperlordosis, priorizando la seguridad lumbar.",
+    "format": "short-answer",
+    "correctAnswer": "1) Control motor: ejercicios de activación transverso abdominal y glúteo (puente con control pélvico) y patrones de respiración; 2) Técnica con menos carga y ROM reducido: peso muerto rumano desde caja o con kettlebell, neutral lumbar y 3–4 series a baja RPE para reaprender patrón; 3) Progresión de carga y rango: incrementar carga y volver a peso muerto convencional solo cuando neutral lumbar y control durante excentric y concéntrico están consolidados; incluir trabajo auxiliar (hip hinge con banda, fortalecimiento glúteo) y vigilancia de dolor/neurología.",
+    "scaffolding": {
+    "beforeHint": "Piensa primero en control antes que en carga.",
+    "duringHint": "Relaciona activación del core con limitación de la lordosis durante la fase de extensión.",
+    "commonMistake": "Subir cargas demasiado rápido sin controlar patrón respiratorio y pélvico."
+    },
+    "feedback": {
+    "correct": "Excelente: priorizas control motor, adaptación de ROM y progresión gradual.",
+    "partialCredit": "Buena propuesta; añade criterios objetivos para progresar (p. ej. control sin aumento de dolor, técnica evaluada).",
+    "incorrect": "Evita sugerir cargas máximas o hipere extensión temprana; primero controlar postura y musculatura."
+    },
+    "connections": {
+    "prerequisiteKnowledge": "Control motor, función de estabilizadores y mecánica L5–S1.",
+    "relatedConcepts": "Programación de fuerza, rehabilitación de espalda.",
+    "realWorldApplication": "Planificación segura de entrenamiento en clientes con hiperlordosis.",
+    "examRelevance": "común"
+    },
+    "metadata": {
+    "difficulty": "hard",
+    "timeEstimate": "10",
+    "frequency": "común",
+    "skills": "diseño de progresión, integración práctica"
+    }
+    }
+    ],
+    
+    "explanations": [
+    {
+    "id": "exp1",
+    "concept": "Funciones del esqueleto axial",
+    "importance": "Es la base para proteger órganos vitales y servir de anclaje estable para movimientos y para la transmisión de fuerzas durante la actividad física.",
+    "multiModalExplanation": {
+    "verbal": "El esqueleto axial protege el encéfalo y la médula, y ofrece estabilidad estructural al cuerpo, al tiempo que permite movimientos segmentarios necesarios para la orientación sensorial y actividades motoras.",
+    "visual": "Imagina la columna como una columna vertebral rellena de amortiguadores (discos) y con una 'jaula' (costillas + esternón) que limita movimiento en la región torácica.",
+    "mathematical": "No aplica fórmula simple aquí; conceptualmente vinculado a la relación entre ángulo L5–S1 y fuerzas de cizalla (porcentaje de peso corporal referido en la clase: ~164%).",
+    "analogical": "Piensa en una columna doble: una viga rígida (torácica) que protege una caja y una bisagra flexible (cervical) que orienta una cámara (ojos).",
+    "procedural": "Para valorar función: palpar alineación, pedir movimientos (flexión/extensión/rotación) y observar compensaciones globales.",
+    "example": "La costilla unida a la torácica reduce su movilidad, lo que explica por qué la torácica participa poco en grandes rangos de flexo-extensión."
+    },
+    "depthLevels": {
+    "surface": "Protección y estabilidad con movilidad segmentaria limitada.",
+    "working": "Conocer cómo las costillas y la pelvis disminuyen movilidad en regiones específicas y cómo eso afecta ejercicios y valoración.",
+    "deep": "Analizar cómo curvas y orientaciones articulares redistribuyen cargas a ligamentos y tejido conectivo y cómo cambios en estas curvas generan cizalla y riesgo de patología."
+    },
+    "commonConfusions": [
+    {
+    "confusion": "Creer que la columna solo sirve para movimiento.",
+    "clarification": "Su principal rol es protección y soporte; el movimiento es el resultado de adaptaciones segmentarias localizadas."
+    }
+    ],
+    "expertPerspective": "Profesionales ven la columna como un sistema de elementos con roles diferenciados: protección (torácico), movilidad sensorial (cervical) y carga/transferencia (lumbar).",
+    "studyTips": "Estudia con modelos 3D o columna física, palpa las regiones en personas y asocia la forma vertebral con la función regional."
+    },
+    {
+    "id": "exp2",
+    "concept": "Anatomía de una vértebra típica",
+    "importance": "Entender sus partes permite localizar puntos de dolor, explicar la función de carga y comprender inserciones musculares y rutas nerviosas.",
+    "multiModalExplanation": {
+    "verbal": "Cada vértebra tiene un cuerpo (soporte de carga), elementos posteriores (apófisis transversas, espinosas), pedículos (conectan cuerpo con arco posterior) y un foramen por donde pasa la médula.",
+    "visual": "Dibuja un cilindro (cuerpo), detrás un aro (arco vertebral) con dos salientes hacia los lados (transversos) y uno hacia atrás (espinoso); el agujero central es el foramen vertebral.",
+    "mathematical": "La carga se transmite mayoritariamente por el cuerpo vertebral; las apófisis guían movimiento con palancas musculares variables.",
+    "analogical": "El cuerpo es la 'columna de soporte', las apófisis son 'mangos' para músculos y palancas.",
+    "procedural": "Para identificar: palpar la apófisis espinosa, seguir lateralmente para localizar transversas y estimar posición del foramen por el eje central.",
+    "example": "El foramen transverso en cervicales permite el paso de la arteria vertebral; en torácicas ese foramen no existe."
+    },
+    "depthLevels": {
+    "surface": "Cuerpo, arco, procesos y foramen.",
+    "working": "Relación cuerpo→carga; procesos→inserciones; pedículos/láminas→protección medular.",
+    "deep": "Cómo la orientación de las carillas articulares determina ejes de movimiento y cómo la morfología varía para soportar fuerzas específicas."
+    },
+    "commonConfusions": [
+    {
+    "confusion": "Pensar que solo los cuerpos vertebrales articulan entre sí.",
+    "clarification": "Las apófisis articulares forman articulaciones facetarias que controlan y limitan el movimiento regional."
+    }
+    ],
+    "expertPerspective": "Vértebras son elementos combinados: soporte axil + palancas para el sistema muscular; su morfología responde a demandas biomecánicas locales.",
+    "studyTips": "Dibuja varias vértebras en corte transversal y lateral; identifica pedículo, lámina, procesos y carillas; compara tamaño de cuerpos entre regiones."
+    },
+    {
+    "id": "exp3",
+    "concept": "Movimientos de la columna por planos",
+    "importance": "Permite relacionar ejercicios y evaluaciones con las regiones que realmente contribuyen y con los límites anatómicos.",
+    "multiModalExplanation": {
+    "verbal": "Plano sagital: flexo-extensión; frontal: flexión lateral; transversal: rotación. La amplitud depende de la región: cervical alta rotación elevada (C1–C2), torácica limitada por costillas, lumbar diseñada para flexo-extensión con poca rotación.",
+    "visual": "Imagina la columna desde arriba: en cervicales la cabeza puede girar mucho; desde el lado, observa la lordosis lumbar que permite grandes extensiones.",
+    "mathematical": "Valores indicativos: cervical rotación total hasta ~80° en específico por región alta, cervical sagital hasta ~20°, frontal escaso (~7°) en algunas regiones (datos referidos en clase).",
+    "analogical": "Cervical = periscopio móvil; torácica = caja rígida; lumbar = vigas de soporte con bisagra limitada para rotación.",
+    "procedural": "Valorar movimientos clínicamente pidiendo al sujeto que realice flexión/extensión, rotación y flexión lateral y observando rango y compensaciones.",
+    "example": "Durante una flexión global se observa combinación de movimiento de cadera y columna lumbar para obtener mayor rango."
+    },
+    "depthLevels": {
+    "surface": "Identificar los tres planos y movimientos básicos.",
+    "working": "Relacionar cada plano con la región que más contribuye y las restricciones anatómicas (costillas, carillas).",
+    "deep": "Integrar compensaciones intersegmentarias: pequeñas rotaciones acompañadas de deslizamiento, y cómo la ausencia de rol-and-slide en la mayoría de las vértebras afecta a la elongación muscular."
+    },
+    "commonConfusions": [
+    {
+    "confusion": "Creer que cada vértebra realiza un gran rol-and-slide como la rodilla.",
+    "clarification": "La mayoría de articulaciones vertebrales producen principalmente deslizamiento; el mecanismo rol-and-slide es limitado, salvo en complejos atlanto-axiales en menor medida."
+    }
+    ],
+    "expertPerspective": "Los expertos observan la columna como múltiples pequeñas articulaciones sumadas; el patrón de movimiento global emerge de la suma de pequeñas amplitudes en cada nivel vertebral.",
+    "studyTips": "Practica movimientos segmentados y observa dónde aparece el movimiento principal; usa vídeo lento para distinguir contribución lumbar vs cadera."
+    },
+    {
+    "id": "exp4",
+    "concept": "L5–S1: ángulo, cargas y riesgo de espondilolistesis",
+    "importance": "Es una unión crítica donde convergen carga, inclinación pélvica y fuerzas de cizalla; su entendimiento es esencial para prevenir y tratar dolor lumbar en actividad física.",
+    "multiModalExplanation": {
+    "verbal": "El ángulo entre L5 y S1 condiciona la componente de cizalla en esa unión: a mayor inclinación, mayor componente de fuerza que tiende a deslizar L5 sobre S1. Con mala estabilización esto puede progresar a espondilolistesis.",
+    "visual": "Visualiza S1 inclinado hacia delante; una vértebra L5 encima tiende a deslizarse por la rampa que forma S1 cuando el ángulo es grande.",
+    "mathematical": "En la clase se indicó un ejemplo: con el ángulo fisiológico la fuerza en L5–S1 puede equivaler a ~164% del peso corporal; si el ángulo aumenta la carga porcentual sube significativamente (p. ej. +82% al aumentar a 55° en el ejemplo dado).",
+    "analogical": "Como un camión en una cuesta: cuanto más inclinada la rampa, más fácil es que el camión deslice si no hay freno (estabilizadores).",
+    "procedural": "Valorar inclinación pélvica y lordosis en historial y observación; cuando hay hiperlordosis reducir ejercicios que aumenten extensión lumbar hasta trabajar control motor.",
+    "example": "Cliente con hiperlordosis que hiperextiende en peso muerto crea mayor cizalla en L5–S1 y riesgo de deslizamiento vertebral."
+    },
+    "depthLevels": {
+    "surface": "L5–S1 es vulnerable por su ángulo y carga.",
+    "working": "Reconocer signos de riesgo (hiperlordosis, dolor irradiado) y abordar con control motor y técnica de entrenamiento.",
+    "deep": "Cuantificar fuerzas en función de ángulos pélvicos y diseñar estrategias de reentrenamiento que reduzcan la componente de cizalla mediante modificación gestual y fortalecimiento específico."
+    },
+    "commonConfusions": [
+    {
+    "confusion": "Pensar que solamente las cargas grandes ocasionan espondilolistesis.",
+    "clarification": "Factores posturales (ángulos) y falta de control muscular pueden generar fuerzas peligrosas aunque las cargas externas no sean máximas."
+    }
+    ],
+    "expertPerspective": "Clínicos y entrenadores evalúan la relación entre alineación pélvica, control motor y carga como triada para prevenir deslizamientos; no se trata solo de cuánto peso, sino de cómo se transmite la fuerza."
+    }
+    ],
+    
+    "summary": {
+    "synthesis": {
+    "coreMessage": "La columna vertebral es un sistema segmentado que prioriza protección y estabilidad; la variación regional en morfología y en conexiones (costillas, pelvis) explica tanto la distribución de la movilidad como las zonas de riesgo (ej. L5–S1).",
+    "keyTakeaways": [
+    "Función dual: protección y estabilidad; movilidad es segmentaria y variable por región.",
+    "Las vértebras difieren morfológicamente según la región para cumplir funciones distintas (cervical: movilidad; torácica: protección; lumbar: carga).",
+    "Las curvas espinales (lordosis/cifosis) dispersan fuerzas pero pueden generar cizalla en puntos críticos, sobre todo en L5–S1.",
+    "El ángulo entre L5 y S1 es crítico biomecánicamente y se relaciona con cargas que pueden favorecer espondilolistesis si falta control.",
+    "Evaluación práctica (palpación de C7, movimientos segmentados) y control motor son pasos clave antes de progresar cargas en entrenamiento."
+    ],
+    "conceptualFramework": "Mapa mental: estructura (vértebra) → región (C/T/L) → movimiento por planos → curvas (lordosis/cifosis) → cargas (compresión/cizalla) → consecuencias clínicas (hernia, espondilolistesis) → intervención (control, técnica, fortalecimiento).",
+    "bigPictureConnection": "Esta base anatómica y biomecánica conecta con la próxima clase sobre discos intervertebrales y hernias, y con la práctica en programación de ejercicio y rehabilitación."
+    },
+    "retention": {
+    "memoryStrategy": "Usa mnemotecnias visuales: 'C7 prominente' para localizar cervicales; en movimiento, recuerda 'cervical = girar, torácica = caja, lumbar = carga'. Dibuja la columna con las curvas y anota dónde limitan las costillas.",
+    "essentialFormulas": "No aplica fórmulas obligatorias; retener la idea de relación ángulo→fuerza en L5–S1 y el ejemplo numérico dado (~164% del peso corporal con cierto ángulo).",
+    "mustKnowFacts": [
+    "7C, 12T, 5L, 5S (fusionadas), 4Co.",
+    "C1 = atlas (nombre mitológico), C2 = axis; complejos atlanto-occipital y atlanto-axial con roles de rotación y flexo-extensión.",
+    "Las vértebras torácicas se limitan por la unión con las costillas y el esternón.",
+    "L5–S1 es una zona de riesgo por la componente de cizalla asociada al ángulo pélvico."
+    ],
+    "understandingCheckpoints": [
+    "¿Puedes localizar C7 en una persona?",
+    "¿Explicas por qué la torácica tiene menos movilidad que la cervical?",
+    "¿Diseñas una modificación de un ejercicio que reduce carga en L5–S1?"
+    ]
+    },
+    "application": {
+    "immediateUse": "Palpa C7, observa curvas (lordosis/cifosis) y evalúa control motor del core antes de progresar cargas en ejercicios de cadena posterior.",
+    "upcomingRelevance": "Base para la próxima clase sobre discos intervertebrales, hernias y manejo práctico de estas lesiones.",
+    "examPreparation": "Memoriza conteo vertebral, funciones por región, características de atlas/axis y el ejemplo L5–S1; practica preguntas de caso.",
+    "realWorldTransfer": "Aplicar evaluaciones y adaptaciones de entrenamiento para reducir riesgos lumbares en clientes y deportistas."
+    },
+    "studyPlan": {
+    "now": "Repasar esquemas: dibuja la columna y marca cervical/torácica/lumbar con sus funciones (10–15 min).",
+    "tonight": "Palpar C7 en alguien y practicar movimientos (flexión/rotación) observando contribución regional (20–30 min).",
+    "thisWeek": "Resolver 3 casos prácticos sobre dolor lumbar y proponer progresiones de ejercicio; repasar diferencias vertebrales (2 sesiones de 30 min).",
+    "beforeExam": "Crear tarjetas de memoria con 10 preguntas clave (conteo vertebral, L5–S1, atlas/axis, funciones por región) y hacer simulacros de preguntas (1–2 horas).",
+    "longTerm": "Integrar esta base con la siguiente clase sobre discos, aplicar conocimientos en prácticas con clientes y revisar casos reales periódicamente."
+    },
+    "resources": {
+    "essential": "Apuntes de la clase y los dibujos citados del libro recomendado por el profesor (referido como 'Numan' en la clase: colección de ilustraciones del sistema músculo-esquelético).",
+    "practice": "Modelos de columna 3D o manipulative, ejercicios de palpación en compañeros, casos clínicos sobre L5–S1 y espondilolistesis.",
+    "deeper": "Lecturas avanzadas sobre biomecánica lumbar, artículos sobre fuerzas de cizalla en L5–S1 y monografías sobre hernias discales (se cubrirá en la siguiente clase).",
+    "alternative": "Vídeos didácticos de movimientos segmentados del raquis y recursos visuales interactivos para explorar orientación de carillas articulares."
+    }
+    },
+    
+    "adaptiveFeatures": {
+    "difficultyAdjustment": {
+    "indicators": "Se tarda mucho en responder preguntas de aplicación, errores repetidos al identificar C7 o incapacidad para proponer modificaciones técnicas.",
+    "adaptations": "Si es demasiado difícil: desglosar en pasos más simples (palpación guiada, preguntas de recuerdo). Si es demasiado fácil: añadir casos clínicos con datos numéricos y discusión de lectura crítica.",
+    "scaffoldingOptions": "Guías paso a paso para palpación, checklist para evaluación postural, vídeos demostrativos, y ejemplos resueltos de progresiones de entrenamiento."
+    },
+    "learningStyleOptions": {
+    "visual": "Dibujos de la columna por regiones, esquemas de curvas, mapas de movimiento, modelos 3D interactivos.",
+    "auditory": "Explicaciones en audio de la mecánica lumbar y discusión guiada sobre casos de entrenamiento.",
+    "kinesthetic": "Palpación de C7, práctica de movimientos controlados y progresiones de ejercicios con feedback.",
+    "reading": "Resúmenes escritos, fichas con diferencias vertebrales y tablas de movimientos por región."
+    },
+    "engagementTracking": {
+    "progressIndicators": "Capacidad para localizar C7, respuestas correctas a preguntas de caso, mejoras en control motor durante ejercicios.",
+    "strugglePoints": "Comprender la relación ángulo→fuerza en L5–S1, y distinguir orientaciones de carillas articulares entre regiones.",
+    "masteryMarkers": "Diseñar y justificar una progresión segura para ejercicios de cadena posterior en clientes con hiperlordosis y explicar los mecanismos biomecánicos implicados."
+    },
+    "personalization": {
+    "interestHooks": "Anecdota sobre por qué C1 se llama 'atlas' (mitología) para estudiantes curiosos; ejemplos aplicados a deportes que exigen rotación cervical (tenis, natación).",
+    "careerConnections": "Fisioterapeutas, entrenadores personales, profesionales de rehabilitación y médicos deportivos se beneficiarán directamente del contenido.",
+    "culturalRelevance": "Explicar términos con ejemplos cotidianos y referencias culturales (mencionar la anécdota mitológica del atlas) para facilitar memorización."
+    }
+    },
+    
+    "assessmentAlignment": {
+    "typicalExamFormats": "Preguntas de identificación anatómica, preguntas de definición, casos clínicos cortos para proponer intervenciones y preguntas de relación causa–efecto (biomecánica).",
+    "questionPatterns": "Recuerdo factual (conteo, nombres), comparación (diferencias regionales), análisis de caso (L5–S1 y programas de ejercicio), y diseño de progresión (aplicación).",
+    "gradingRubrics": "Buscar claridad anatómica, justificación biomecánica y propuestas prácticas. En casos, valorar precisión en diagnóstico (riesgos neurológicos) y coherencia en intervenciones propuestas.",
+    "preparationPriority": "Alta prioridad: conteo vertebral, diferencias morfológicas por región, movimientos por planos y concepto L5–S1 (ángulo y cizalla). Media: detalles de costillas y esternón para la torácica. Baja: anécdotas no examinables."
+    }
+    }

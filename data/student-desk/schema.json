@@ -1,0 +1,21 @@
+{
+  "description": "TypeScript interfaces generated from sample-lecture.json",
+  "generated": "2025-01-31",
+  "interfaces": {
+    "LectureData": "Main lecture data structure with all tabs",
+    "LectureMetadata": "Basic lecture information and difficulty",
+    "Overview": "Overview tab data with learning paths and concepts",
+    "Question": "Study question with answers and feedback",
+    "Explanation": "Detailed explanations for concepts",
+    "Summary": "Summary tab data with key takeaways",
+    "AdaptiveFeatures": "Features for personalized learning"
+  },
+  "mappingNotes": {
+    "overview": "Maps to Overview tab - theBigPicture, learningPath, conceptInventory",
+    "questions": "Maps to Questions tab - array of interactive questions",
+    "explanations": "Maps to Explanations tab - detailed concept explanations",
+    "summary": "Maps to Summary tab - synthesis, retention, application",
+    "studyTime": "Derived from estimatedTime and studyPlan",
+    "materials": "Can be derived from resources section"
+  }
+}
