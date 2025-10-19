@@ -9,9 +9,9 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'overview', label: 'Overview', icon: Eye },
-  { id: 'questions', label: 'Questions', icon: HelpCircle },
   { id: 'explanations', label: 'Explanations', icon: BookOpen },
   { id: 'summary', label: 'Summary', icon: FileText },
+  { id: 'questions', label: 'Questions', icon: HelpCircle },
   { id: 'study-time', label: 'Study Time', icon: Clock },
   { id: 'materials', label: 'Materials', icon: FolderOpen },
 ];

@@ -1,0 +1,626 @@
+/**
+ * DEPRECATED: This component is no longer used in the application.
+ *
+ * Reason: The study_nodes system has been completely replaced by the user_folders (course folders) system.
+ * This component was part of the old folder management UI that has been removed.
+ *
+ * Database operations in this file still reference the old 'study_nodes' table which is being phased out.
+ * All folder references now use 'user_folders' instead.
+ *
+ * File kept for reference only. Safe to delete after confirming no dependencies exist.
+ * Last used: Before migration to course-based folder system
+ * Deprecated: 2025-10-19
+ */
+
+"use client";
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Card } from '@/components/ui/card';
+import { 
+  FolderPlus, 
+  ChevronRight, 
+  ChevronDown, 
+  MoreVertical,
+  Edit,
+  Trash,
+  BookOpen,
+  Calendar,
+  GraduationCap,
+  FolderOpen,
+  Plus
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { Note, StudyNode as DatabaseStudyNode } from '@/types/database';
+
+type HierarchyType = 'course' | 'year' | 'subject' | 'semester' | 'custom';
+
+interface StudyNode {
+  id: string;
+  user_id: string;
+  parent_id: string | null;
+  name: string;
+  type: HierarchyType;
+  description: string | null;
+  color: string | null;
+  icon: string | null;
+  sort_order: number;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  children?: StudyNode[];
+  note_count?: number;
+}
+
+const typeIcons: Record<HierarchyType, React.ComponentType<{ className?: string }>> = {
+  course: GraduationCap,
+  year: Calendar,
+  subject: BookOpen,
+  semester: FolderOpen,
+  custom: FolderPlus,
+};
+
+const typeColors: Record<HierarchyType, string> = {
+  course: 'text-primary',
+  year: 'text-secondary-foreground',
+  subject: 'text-primary',
+  semester: 'text-primary',
+  custom: 'text-muted-foreground',
+};
+
+// Pastel color palette for folders
+const folderColorOptions = [
+  { name: 'Primary', value: 'primary', class: 'bg-primary/90', border: 'border-l-primary' },
+  { name: 'Secondary', value: 'secondary', class: 'bg-secondary', border: 'border-l-secondary-foreground' },
+  { name: 'Accent', value: 'accent', class: 'bg-accent', border: 'border-l-accent-foreground' },
+  { name: 'Muted', value: 'muted', class: 'bg-muted', border: 'border-l-muted-foreground' },
+  { name: 'Primary Dark', value: 'primary-dark', class: 'bg-primary/900', border: 'border-l-primary' },
+  { name: 'Secondary Dark', value: 'secondary-dark', class: 'bg-secondary/70', border: 'border-l-secondary-foreground' },
+];
+
+interface StudiesManagerProps {
+  onNodeSelect?: (nodeId: string | null) => void;
+  selectedNodeId?: string | null;
+  draggedLecture?: Note | null;
+  draggedSelectedLectures?: string[];
+  onLectureDrop?: (lectureId: string, targetNodeId: string) => void;
+  onBulkLectureDrop?: (lectureIds: string[], targetNodeId: string) => void;
+  onDragEnd?: () => void;
+  onNodesLoaded?: (nodes: DatabaseStudyNode[]) => void;
+  draggedFolder?: StudyNode | null;
+  onFolderDrop?: (folderId: string, targetParentId: string | null, position?: number) => void;
+  onFolderDragEnd?: () => void;
+  refreshTrigger?: number;
+}
+
+export default function StudiesManager({
+  onNodeSelect,
+  selectedNodeId,
+  draggedLecture,
+  draggedSelectedLectures,
+  onLectureDrop,
+  onBulkLectureDrop,
+  onDragEnd,
+  onNodesLoaded,
+  draggedFolder,
+  onFolderDrop,
+  onFolderDragEnd,
+  refreshTrigger
+}: StudiesManagerProps) {
+  const router = useRouter();
+  const [nodes, setNodes] = useState<StudyNode[]>([]);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<StudyNode | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    type: 'course' as HierarchyType,
+    description: '',
+    parent_id: null as string | null,
+    color: 'blue',
+  });
+  const [dragHoverNode, setDragHoverNode] = useState<string | null>(null);
+  const [dragHoverPosition, setDragHoverPosition] = useState<string | null>(null); // Format: "parentId:position" or "root:position"
+
+  useEffect(() => {
+    fetchNodes();
+  }, []);
+
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchNodes();
+    }
+  }, [refreshTrigger]);
+
+  const fetchNodes = async () => {
+    try {
+      setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const { data: studyNodes, error } = await supabase
+        .from('study_nodes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+
+      const hierarchicalNodes = buildHierarchy(studyNodes || []);
+      setNodes(hierarchicalNodes);
+      
+      if (onNodesLoaded) {
+        onNodesLoaded((studyNodes || []).map(node => ({
+          id: node.id,
+          name: node.name,
+          type: node.type,
+          parent_id: node.parent_id,
+          color: node.color || undefined,
+          children: []
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching study nodes:', error);
+      toast.error('Failed to load study folders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buildHierarchy = (flatNodes: StudyNode[]): StudyNode[] => {
+    const nodeMap = new Map<string, StudyNode>();
+    const rootNodes: StudyNode[] = [];
+
+    // Create a map of all nodes
+    flatNodes.forEach(node => {
+      nodeMap.set(node.id, { ...node, children: [] });
+    });
+
+    // Build the hierarchy
+    flatNodes.forEach(node => {
+      const nodeWithChildren = nodeMap.get(node.id)!;
+      if (node.parent_id) {
+        const parent = nodeMap.get(node.parent_id);
+        if (parent) {
+          parent.children!.push(nodeWithChildren);
+        }
+      } else {
+        rootNodes.push(nodeWithChildren);
+      }
+    });
+
+    // Sort children by sort_order for each parent
+    const sortChildren = (nodes: StudyNode[]) => {
+      nodes.forEach(node => {
+        if (node.children && node.children.length > 0) {
+          node.children.sort((a, b) => a.sort_order - b.sort_order);
+          sortChildren(node.children);
+        }
+      });
+    };
+
+    // Sort root nodes and all children
+    rootNodes.sort((a, b) => a.sort_order - b.sort_order);
+    sortChildren(rootNodes);
+
+    return rootNodes;
+  };
+
+  const handleNodeClick = (nodeId: string) => {
+    if (onNodeSelect) {
+      onNodeSelect(nodeId === selectedNodeId ? null : nodeId);
+    }
+  };
+
+  const toggleExpanded = (nodeId: string) => {
+    setExpandedNodes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleCreateNode = () => {
+    setIsCreateDialogOpen(true);
+    setFormData({
+      name: '',
+      type: 'course',
+      description: '',
+      parent_id: selectedNodeId || null,
+      color: 'blue',
+    });
+  };
+
+  const handleCreate = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase.from('study_nodes').insert({
+        user_id: user.id,
+        name: formData.name,
+        type: formData.type,
+        description: formData.description || null,
+        parent_id: formData.parent_id,
+        color: formData.color,
+        sort_order: 0,
+      });
+
+      if (error) throw error;
+
+      toast.success('Study folder created successfully');
+      setIsCreateDialogOpen(false);
+      setFormData({
+        name: '',
+        type: 'course',
+        description: '',
+        parent_id: null,
+        color: 'blue',
+      });
+      fetchNodes();
+    } catch (error) {
+      console.error('Error creating node:', error);
+      toast.error('Failed to create study folder');
+    }
+  };
+
+  const handleFolderDragStart = (node: StudyNode) => {
+    // Don't allow dragging if it would create a cycle (can't drag parent into its own child)
+    if (draggedFolder && isDescendant(draggedFolder.id, node.id)) {
+      return;
+    }
+  };
+
+  const isDescendant = (ancestorId: string, nodeId: string): boolean => {
+    const findNode = (nodes: StudyNode[], id: string): StudyNode | null => {
+      for (const n of nodes) {
+        if (n.id === id) return n;
+        if (n.children) {
+          const found = findNode(n.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const checkDescendants = (node: StudyNode): boolean => {
+      if (node.children) {
+        for (const child of node.children) {
+          if (child.id === nodeId || checkDescendants(child)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    const ancestor = findNode(nodes, ancestorId);
+    return ancestor ? checkDescendants(ancestor) : false;
+  };
+
+  // Render a drop zone between folders for reordering
+  const renderDropZone = (parentId: string | null, position: number, depth: number = 0) => {
+    const dropZoneId = `${parentId || 'root'}:${position}`;
+    const isHovered = dragHoverPosition === dropZoneId;
+    
+    return (
+      <div
+        key={`dropzone-${dropZoneId}`}
+        className={cn(
+          "h-2 transition-all duration-200",
+          isHovered ? "h-8" : "h-2"
+        )}
+        style={{ marginLeft: `${depth * 16}px` }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'move';
+          setDragHoverPosition(dropZoneId);
+          setDragHoverNode(null);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragHoverPosition(null);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragHoverPosition(null);
+          
+          const draggedData = e.dataTransfer.getData('text/plain');
+          
+          if (draggedData.startsWith('folder:')) {
+            const draggedFolderId = draggedData.replace('folder:', '');
+            onFolderDrop?.(draggedFolderId, parentId, position);
+            onFolderDragEnd?.();
+          }
+        }}
+      >
+        {isHovered && (
+          <div 
+            className="h-1 bg-primary rounded-full mx-3 relative"
+            style={{ marginLeft: `${depth * 16 + 12}px` }}
+          >
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-primary rounded-full"></div>
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1 w-2 h-2 bg-primary rounded-full"></div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render nodes with drop zones for reordering
+  const renderNodesWithDropZones = (nodeList: StudyNode[], parentId: string | null = null, depth: number = 0) => {
+    const elements: React.ReactNode[] = [];
+    
+    // Add drop zone before first node
+    elements.push(renderDropZone(parentId, 0, depth));
+    
+    nodeList.forEach((node, index) => {
+      // Add the node
+      elements.push(renderNode(node, depth));
+      
+      // Add drop zone after each node
+      elements.push(renderDropZone(parentId, index + 1, depth));
+    });
+    
+    return elements;
+  };
+
+  const renderNode = (node: StudyNode, depth: number = 0) => {
+    const hasChildren = node.children && node.children.length > 0;
+    const isExpanded = expandedNodes.has(node.id);
+    const isSelected = selectedNodeId === node.id;
+    const Icon = typeIcons[node.type] || FolderOpen;
+    const isDragHover = dragHoverNode === node.id;
+    const isDraggedFolder = draggedFolder?.id === node.id;
+
+    return (
+      <div key={node.id}>
+        <div
+          draggable
+          className={cn(
+            "group flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
+            isSelected && "bg-accent border border-border",
+            isDragHover && "bg-accent/70 border-2 border-primary/50",
+            isDraggedFolder && "opacity-50",
+            `ml-${depth * 4}`
+          )}
+          style={{ marginLeft: `${depth * 16}px` }}
+          onClick={() => handleNodeClick(node.id)}
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', `folder:${node.id}`);
+            handleFolderDragStart(node);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            setDragHoverNode(node.id);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragHoverNode(null);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragHoverNode(null);
+            
+            const draggedData = e.dataTransfer.getData('text/plain');
+            
+            if (draggedData.startsWith('folder:')) {
+              // Handle folder drop
+              const draggedFolderId = draggedData.replace('folder:', '');
+              if (draggedFolderId !== node.id) {
+                onFolderDrop?.(draggedFolderId, node.id);
+              }
+              onFolderDragEnd?.();
+            } else if (draggedSelectedLectures && draggedSelectedLectures.length > 0) {
+              // Handle bulk lecture drop
+              onBulkLectureDrop?.(draggedSelectedLectures, node.id);
+              onDragEnd?.();
+            } else if (draggedLecture) {
+              // Handle single lecture drop
+              onLectureDrop?.(draggedLecture.job_id, node.id);
+              onDragEnd?.();
+            }
+          }}
+        >
+          {hasChildren && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 h-4 w-4 hover:bg-transparent"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpanded(node.id);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+            </Button>
+          )}
+          
+          {!hasChildren && <div className="w-4" />}
+          
+          <Icon className={cn("h-4 w-4 flex-shrink-0", typeColors[node.type])} />
+          
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-medium truncate block">
+              {node.name}
+            </span>
+            {node.description && (
+              <span className="text-xs text-muted-foreground truncate block">
+                {node.description}
+              </span>
+            )}
+          </div>
+          
+          {node.note_count !== undefined && (
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+              {node.note_count}
+            </span>
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setSelectedNode(node)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                <Trash className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        {hasChildren && isExpanded && (
+          <div>
+            {renderNodesWithDropZones(node.children!, node.id, depth + 1)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4">
+        <div className="animate-pulse space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-8 bg-muted rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Create Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Study Folder</DialogTitle>
+            <DialogDescription>
+              Organize your lectures by creating folders for courses, years, or subjects.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Input
+                placeholder="Folder name (e.g., Computer Science, Year 3)"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            
+            <div>
+              <Select value={formData.type} onValueChange={(value: HierarchyType) => setFormData(prev => ({ ...prev, type: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="course">Course</SelectItem>
+                  <SelectItem value="year">Year</SelectItem>
+                  <SelectItem value="subject">Subject</SelectItem>
+                  <SelectItem value="semester">Semester</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Input
+                placeholder="Description (optional)"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+            
+            <div>
+              <Select value={formData.color} onValueChange={(value) => setFormData(prev => ({ ...prev, color: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {folderColorOptions.map(color => (
+                    <SelectItem key={color.value} value={color.value}>
+                      <div className="flex items-center gap-2">
+                        <div className={cn("w-4 h-4 rounded", color.class)}></div>
+                        {color.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} disabled={!formData.name.trim()}>
+              Create Folder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

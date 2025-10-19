@@ -1,17 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { BookText, Star, AlertTriangle } from 'lucide-react';
+import { PersonalNoteCard } from '../PersonalNoteCard';
 
 interface SummaryTabProps {
   summary: {
-    essentialPoints: string[];
-    examFocus: {
+    // NEW SCHEMA (from Grok generateStudentDeskContent)
+    sections?: Array<{
+      heading: string;
+      content: string;
+      keyPoints?: string[];
+    }>;
+    mustKnow?: Array<{
+      concept: string;
+      explanation: string;
+    }>;
+    commonPitfalls?: Array<{
+      pitfall: string;
+      explanation: string;
+      howToAvoid?: string;
+    }>;
+    // OLD SCHEMA (legacy support)
+    essentialPoints?: string[];
+    examFocus?: {
       mustKnow: string[];
       likelyQuestions: string[];
     };
   };
+  jobId?: string;
+  onTutorExplain?: (selectedText: string, tabName: string, sectionContext: string) => void;
 }
 
-export function SummaryTab({ summary }: SummaryTabProps) {
-  if (!summary) {
+export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) {
+  const [userNote, setUserNote] = useState<string>('');
+
+  // Fetch user note on mount
+  useEffect(() => {
+    if (!jobId) return;
+
+    const fetchNote = async () => {
+      try {
+        const response = await fetch(`/api/lectures/${jobId}/notes`);
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const note = data.notes?.find((n: any) =>
+          n.content_type === 'summary' && n.content_id === 'overall'
+        );
+
+        if (note) {
+          setUserNote(note.note_content);
+        }
+      } catch (error) {
+        console.error('Failed to fetch note:', error);
+      }
+    };
+
+    fetchNote();
+  }, [jobId]);
+
+  // Check if we have either NEW format or OLD format data
+  const hasNewFormat = summary?.sections && summary.sections.length > 0;
+  const hasOldFormat = summary?.essentialPoints && summary.essentialPoints.length > 0;
+
+  if (!summary || (!hasNewFormat && !hasOldFormat)) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
@@ -21,6 +72,20 @@ export function SummaryTab({ summary }: SummaryTabProps) {
     );
   }
 
+  // If OLD format, convert to NEW format structure for display
+  const displaySummary = hasNewFormat ? summary : {
+    sections: summary.essentialPoints?.map((point: string, index: number) => ({
+      heading: `Key Point ${index + 1}`,
+      content: point,
+      keyPoints: []
+    })) || [],
+    mustKnow: summary.examFocus?.mustKnow?.map((concept: string) => ({
+      concept: concept,
+      explanation: 'Essential concept for exam preparation'
+    })) || [],
+    commonPitfalls: []
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {/* Header */}
@@ -29,92 +94,85 @@ export function SummaryTab({ summary }: SummaryTabProps) {
         <p className="text-gray-500">Key takeaways and exam preparation</p>
       </div>
 
-      {/* Essential Points */}
-      {summary.essentialPoints && summary.essentialPoints.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-xl font-medium text-gray-900">Essential Points</h3>
-          <div className="space-y-3">
-            {summary.essentialPoints.map((point, index) => (
-              <div key={index} className="flex items-start gap-3 p-4 border border-gray-200">
-                <span className="flex-shrink-0 w-6 h-6 bg-gray-900 text-white text-sm font-medium flex items-center justify-center">
-                  {index + 1}
-                </span>
-                <p className="text-gray-700 leading-relaxed">{point}</p>
+      {/* Summary Sections */}
+      {displaySummary.sections && displaySummary.sections.length > 0 && (
+        <div className="space-y-6">
+          {displaySummary.sections.map((section, index) => (
+            <div key={index} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <BookText className="w-5 h-5 text-gray-700" />
+                <h3 className="text-lg font-semibold text-gray-900">{section.heading}</h3>
+              </div>
+              <p className="text-gray-700 leading-relaxed pl-7">{section.content}</p>
+              {section.keyPoints && section.keyPoints.length > 0 && (
+                <ul className="space-y-2 pl-7">
+                  {section.keyPoints.map((point, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-gray-700">
+                      <span className="flex-shrink-0 w-1.5 h-1.5 bg-gray-700 rounded-full mt-2"></span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Must-Know Concepts */}
+      {displaySummary.mustKnow && displaySummary.mustKnow.length > 0 && (
+        <div className="space-y-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <Star className="w-5 h-5 text-amber-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Must-Know Concepts</h3>
+          </div>
+          <div className="space-y-4 pl-7">
+            {displaySummary.mustKnow.map((item, index) => (
+              <div key={index} className="space-y-1">
+                <h4 className="font-medium text-gray-900">{item.concept}</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">{item.explanation}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Exam Focus */}
-      {summary.examFocus && (
-        <div className="space-y-6">
-          <h3 className="text-xl font-medium text-gray-900">Exam Focus</h3>
-          
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Must Know */}
-            {summary.examFocus.mustKnow && summary.examFocus.mustKnow.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Must Know</h4>
-                <div className="border border-gray-200 p-4">
-                  <ul className="space-y-2">
-                    {summary.examFocus.mustKnow.map((item, index) => (
-                      <li key={index} className="flex items-start gap-2 text-gray-700 text-sm">
-                        <span className="w-1.5 h-1.5 bg-gray-700 flex-shrink-0 mt-1.5"></span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+      {/* Common Pitfalls */}
+      {displaySummary.commonPitfalls && displaySummary.commonPitfalls.length > 0 && (
+        <div className="space-y-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Common Pitfalls</h3>
+          </div>
+          <div className="space-y-4 pl-7">
+            {displaySummary.commonPitfalls.map((item, index) => (
+              <div key={index} className="space-y-2 bg-orange-50 border-l-4 border-orange-400 p-4">
+                <h4 className="font-medium text-gray-900">{item.pitfall}</h4>
+                <p className="text-sm text-gray-700 leading-relaxed">{item.explanation}</p>
+                {item.howToAvoid && (
+                  <p className="text-sm text-gray-600 leading-relaxed mt-2">
+                    <span className="font-medium text-gray-900">How to avoid:</span> {item.howToAvoid}
+                  </p>
+                )}
               </div>
-            )}
-
-            {/* Likely Questions */}
-            {summary.examFocus.likelyQuestions && summary.examFocus.likelyQuestions.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Likely Questions</h4>
-                <div className="border border-gray-200 p-4">
-                  <ul className="space-y-2">
-                    {summary.examFocus.likelyQuestions.map((question, index) => (
-                      <li key={index} className="flex items-start gap-2 text-gray-700 text-sm">
-                        <span className="text-gray-500 text-xs mt-0.5">?</span>
-                        {question}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       )}
 
-      {/* Study Recommendations */}
-      <div className="border-t border-gray-200 pt-6">
-        <div className="p-4 border border-gray-200">
-          <h4 className="font-medium text-gray-900 mb-2 text-sm">Study Recommendations</h4>
-          <ul className="space-y-1 text-sm text-gray-700">
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 bg-gray-700 flex-shrink-0 mt-1.5"></span>
-              Review essential points multiple times for retention
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 bg-gray-700 flex-shrink-0 mt-1.5"></span>
-              Practice answering the likely exam questions
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 bg-gray-700 flex-shrink-0 mt-1.5"></span>
-              Focus extra time on "must know" concepts
-            </li>
-            {summary.examFocus?.mustKnow && summary.examFocus.mustKnow.length > 0 && (
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 bg-gray-700 flex-shrink-0 mt-1.5"></span>
-                Create flashcards for key terminology and concepts
-              </li>
-            )}
-          </ul>
+      {/* Personal Summary Note */}
+      {jobId && (
+        <div className="pt-6 border-t border-gray-200">
+          <PersonalNoteCard
+            jobId={jobId}
+            contentType="summary"
+            contentId="overall"
+            initialNote={userNote}
+            placeholder="Add your own summary, key takeaways, or exam prep notes..."
+            onSave={(note) => setUserNote(note)}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 }

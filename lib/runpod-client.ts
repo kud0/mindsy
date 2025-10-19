@@ -153,10 +153,21 @@ export type RunPodResponse =
   | RunPodResponseV5;
 
 /**
- * Transcription result with language information
+ * Transcript segment with timestamp
+ */
+export interface TranscriptSegment {
+  id: number;
+  start: number;  // Start time in seconds
+  end: number;    // End time in seconds
+  text: string;   // Segment text
+}
+
+/**
+ * Transcription result with language information and segments
  */
 export interface TranscriptionResult {
   text: string;
+  segments?: TranscriptSegment[];  // Timestamped segments for clickable transcript
   detectedLanguage?: string;
   languageConfidence?: number;
 }
@@ -322,6 +333,94 @@ export class RunPodClient {
     return RunPodErrorType.UNKNOWN;
   }
   
+  /**
+   * Extract segments from response
+   * Groups small segments into paragraph-sized chunks (like Mindgrasp)
+   * @param response - The raw response data from RunPod API
+   * @returns Array of transcript segments with timestamps
+   */
+  private extractSegments(response: RunPodResponseAny): TranscriptSegment[] {
+    // Try to find segments in various response structures
+    const rawSegments = response.output?.segments ||
+                        response.output?.result?.segments ||
+                        response.output?.data?.segments ||
+                        [];
+
+    if (!Array.isArray(rawSegments)) {
+      this.logger.info('No segments found in response');
+      return [];
+    }
+
+    // Map raw segments to our format
+    const mappedSegments = rawSegments.map((seg: any, index: number) => ({
+      id: seg.id ?? index,
+      start: typeof seg.start === 'number' ? seg.start : 0,
+      end: typeof seg.end === 'number' ? seg.end : 0,
+      text: (seg.text || '').trim()
+    })).filter((seg: TranscriptSegment) => seg.text.length > 0);
+
+    this.logger.info(`Processing ${mappedSegments.length} raw segments into paragraphs`);
+
+    // Merge into paragraph-sized chunks
+    const mergedSegments = this.mergeSegmentsIntoParagraphs(mappedSegments);
+
+    this.logger.info(`Created ${mergedSegments.length} paragraph segments from ${mappedSegments.length} raw segments`);
+    return mergedSegments;
+  }
+
+  /**
+   * Merge small segments into larger paragraph-sized chunks
+   * Similar to Mindgrasp's approach: 20-60 second chunks with natural pauses
+   */
+  private mergeSegmentsIntoParagraphs(segments: TranscriptSegment[]): TranscriptSegment[] {
+    if (segments.length === 0) return [];
+
+    const merged: TranscriptSegment[] = [];
+    let currentChunk: TranscriptSegment | null = null;
+    const MIN_CHUNK_DURATION = 20; // Minimum 20 seconds per chunk
+    const MAX_CHUNK_DURATION = 60; // Maximum 60 seconds per chunk
+    const PAUSE_THRESHOLD = 2.0;   // Consider pauses > 2 seconds as paragraph breaks
+
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      const nextSegment = segments[i + 1];
+
+      if (!currentChunk) {
+        // Start a new chunk
+        currentChunk = { ...segment };
+        continue;
+      }
+
+      const chunkDuration = segment.end - currentChunk.start;
+      const pauseToNext = nextSegment ? nextSegment.start - segment.end : 0;
+
+      // Decide whether to merge or split
+      const shouldSplit =
+        chunkDuration >= MAX_CHUNK_DURATION || // Chunk is too long
+        (chunkDuration >= MIN_CHUNK_DURATION && pauseToNext > PAUSE_THRESHOLD) || // Natural pause
+        !nextSegment; // Last segment
+
+      if (shouldSplit) {
+        // Finalize current chunk
+        currentChunk.text += ' ' + segment.text;
+        currentChunk.end = segment.end;
+        merged.push({ ...currentChunk, id: merged.length });
+        currentChunk = null;
+      } else {
+        // Continue building current chunk
+        currentChunk.text += ' ' + segment.text;
+        currentChunk.end = segment.end;
+      }
+    }
+
+    // Add any remaining chunk
+    if (currentChunk) {
+      merged.push({ ...currentChunk, id: merged.length });
+    }
+
+    return merged;
+  }
+
   /**
    * Extract transcription text from various response formats
    * @param response - The raw response data from RunPod API
@@ -645,9 +744,11 @@ export class RunPodClient {
         if (statusData.status === 'COMPLETED' && statusData.output) {
           // Process the completed result
           const text = this.extractTranscriptionText(statusData);
-          
+          const segments = this.extractSegments(statusData);
+
           const result: TranscriptionResult = {
             text,
+            segments,  // Include timestamped segments
             detectedLanguage: statusData.output?.detected_language || statusData.output?.language,
             languageConfidence: statusData.output?.language_probability
           };
@@ -655,6 +756,7 @@ export class RunPodClient {
           this.logger.info('Async transcription completed successfully', {
             jobId,
             textLength: text.length,
+            segmentsCount: segments.length,
             detectedLanguage: result.detectedLanguage,
             totalTime: `${elapsedTime}s`,
             totalAttempts: attempts + 1

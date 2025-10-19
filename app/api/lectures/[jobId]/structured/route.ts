@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth/require-auth'
 
 interface RouteParams {
@@ -25,10 +25,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient()
 
-    // Get job data
+    // Get job data including OpenAI content
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('*')
+      .select(`
+        *,
+        openai_content,
+        output_pdf_path,
+        json_file_path
+      `)
       .eq('job_id', jobId)
       .eq('user_id', user.id)
       .single()
@@ -41,7 +46,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Get notes data - try multiple possible table structures
     console.log('🔍 Looking for notes with job_id:', jobId)
     console.log('🔍 Job details:', { title: job.lecture_title, status: job.status, created_at: job.created_at })
-    
+
     // Try the notes table first
     const { data: notes, error: notesError } = await supabase
       .from('notes')
@@ -50,16 +55,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .limit(1)
 
     console.log('🔍 Notes query result:', { notes, notesError, hasNotes: notes?.length > 0 })
-    
-    // If no notes found, check if job might be processing or failed
-    if (!notes || notes.length === 0) {
-      console.log('⚠️ No notes found - checking job status:', job.status)
-      
-      // Try to find data in other possible tables or formats
-      if (job.status !== 'completed') {
-        console.log('⚠️ Job is not completed, status:', job.status)
-      }
-    }
 
     let lectureContent = {
       toc: [],
@@ -70,7 +65,70 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       summaryHtml: '<p>Summary not available</p>'
     }
 
-    if (notes && notes.length > 0) {
+    let openaiData: any = null
+
+    // Check if we have OpenAI JSON content stored in the job
+    if (job.openai_content) {
+      console.log('📊 Found OpenAI JSON content in job column')
+      try {
+        openaiData = JSON.parse(job.openai_content)
+        console.log('✅ Successfully parsed OpenAI JSON:', Object.keys(openaiData))
+      } catch (parseError) {
+        console.error('❌ Failed to parse OpenAI JSON content:', parseError)
+      }
+    }
+
+    // If no content in column, try loading from storage file
+    if (!openaiData && job.json_file_path) {
+      console.log('📁 Trying to load from storage file:', job.json_file_path)
+      try {
+        // Use service role client to bypass RLS for storage access
+        const serviceClient = createServiceRoleClient()
+
+        const { data: fileData, error: storageError } = await serviceClient.storage
+          .from('generated-notes')
+          .download(job.json_file_path)
+
+        if (storageError) {
+          console.error('❌ Storage download error:', storageError)
+        } else if (fileData) {
+          const fileText = await fileData.text()
+          openaiData = JSON.parse(fileText)
+          console.log('✅ Successfully loaded JSON from storage:', Object.keys(openaiData))
+        }
+      } catch (storageError) {
+        console.error('❌ Failed to load from storage:', storageError)
+      }
+    }
+
+    // Transform the loaded data
+    if (openaiData) {
+      console.log('🔄 Transforming OpenAI data to lecture content')
+      lectureContent = {
+        toc: openaiData.tableOfContents?.items?.map((item: any, index: number) => ({
+          label: item.title || item.description || `Section ${index + 1}`,
+          ts: index * 120
+        })) || [],
+        overviewHtml: `<div>${openaiData.summary?.overview || 'No overview available'}</div>`,
+        keyPoints: openaiData.explanations?.map((exp: any) => ({
+          title: exp.title || 'Key Point',
+          bodyHtml: `<p>${exp.content || ''}</p>`
+        })) || [],
+        questions: openaiData.questions?.map((q: any) => ({
+          id: q.id || `q${Math.random()}`,
+          promptHtml: `<p>${q.question || q.statement || ''}</p>`,
+          answerHtml: `<p>${q.answer || q.feedback || ''}</p>`
+        })) || [],
+        explanationsHtml: `<div>${openaiData.explanations?.map((exp: any) =>
+          `<h3>${exp.title}</h3><p>${exp.content}</p>`
+        ).join('') || 'Content not available'}</div>`,
+        summaryHtml: `<div>${openaiData.summary?.overview || 'Summary not available'}</div>`
+      }
+    }
+    
+    // Fallback: try to find content in notes table if no OpenAI data loaded
+    if (!openaiData && notes && notes.length > 0) {
+      console.log('📝 Falling back to notes table content')
       const note = notes[0]
       console.log('🔍 Found note data:', Object.keys(note))
       
@@ -193,3 +251,4 @@ function generateTOC(text: string) {
     ts: index * 120 // 2-minute intervals
   }))
 }
+

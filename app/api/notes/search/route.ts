@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    // Search in jobs table with notes and study nodes
+    // Search in jobs table with notes and user folders
     const { data: jobs, error } = await supabase
       .from('jobs')
       .select(`
@@ -29,11 +29,10 @@ export async function GET(request: NextRequest) {
         course_subject,
         created_at,
         status,
-        study_node_id,
-        study_nodes!inner (
+        user_folder_id,
+        user_folders!inner (
           id,
-          name,
-          type
+          name
         )
       `)
       .eq('user_id', user.id)
@@ -47,22 +46,22 @@ export async function GET(request: NextRequest) {
       return createErrorResponse('Failed to search notes', 500)
     }
 
-    // Also search in study nodes
-    const { data: studyNodes, error: nodesError } = await supabase
-      .from('study_nodes')
-      .select('id, name, type, parent_id')
+    // Also search in user folders
+    const { data: userFolders, error: foldersError } = await supabase
+      .from('user_folders')
+      .select('id, name, parent_id')
       .eq('user_id', user.id)
       .ilike('name', `%${query}%`)
       .limit(10)
 
-    if (nodesError) {
-      console.error('Study nodes search error:', nodesError)
+    if (foldersError) {
+      console.error('User folders search error:', foldersError)
     }
 
     const results = {
       notes: jobs || [],
-      folders: studyNodes || [],
-      total: (jobs?.length || 0) + (studyNodes?.length || 0)
+      folders: userFolders || [],
+      total: (jobs?.length || 0) + (userFolders?.length || 0)
     }
 
     return createSuccessResponse({ results })

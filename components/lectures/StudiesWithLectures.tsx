@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import StudiesManager from './StudiesManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,10 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  FileText, 
-  Download, 
-  Eye, 
+import {
+  FileText,
+  Download,
+  Eye,
   Search,
   Calendar,
   Clock,
@@ -44,40 +43,28 @@ import {
   ArrowUpDown,
   Grid3X3,
   List,
-  ChevronRight,
   Edit,
   Trash2,
   RotateCw,
-  Menu,
-  X,
-  Folder,
   Paperclip,
-  BookOpen,
-  Star,
   Timer
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Note, StudyNode } from '@/types/database';
+import { Note } from '@/types/database';
 import UploadWidget from '@/components/upload/UploadWidget';
 import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
+import FolderSelector from '@/components/lectures/FolderSelector';
 
 export default function StudiesWithLectures() {
   const router = useRouter();
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [selectedNode, setSelectedNode] = useState<StudyNode | null>(null);
   const [allLectures, setAllLectures] = useState<Note[]>([]);
   const [lecturesLoading, setLecturesLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'status'>('date-desc');
   const [viewMode, setViewMode] = useState<'grid' | 'row'>('row'); // Default to list view
   const [draggedLecture, setDraggedLecture] = useState<Note | null>(null);
-  const [draggedSelectedLectures, setDraggedSelectedLectures] = useState<string[]>([]);
-  const [draggedFolder, setDraggedFolder] = useState<StudyNode | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
-  const [nodePath, setNodePath] = useState<StudyNode[]>([]);
-  const [allStudyNodes, setAllStudyNodes] = useState<StudyNode[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [studyHistory, setStudyHistory] = useState<Record<string, {
     totalMinutes: number;
@@ -85,37 +72,30 @@ export default function StudiesWithLectures() {
     lastStudied: string | null;
     firstStudied: string | null;
   }>>({});
-  
+
   // Context menu states
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedLecture, setSelectedLecture] = useState<Note | null>(null);
   const [newLectureTitle, setNewLectureTitle] = useState('');
-  
-  // Resizable panel states
-  const [sidebarWidth, setSidebarWidth] = useState(350);
-  const [isResizing, setIsResizing] = useState(false);
-  
-  // Mobile menu state
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Hydration-safe sidebar width
   const [isClient, setIsClient] = useState(false);
 
   // Set client flag after hydration and handle mobile view mode
   useEffect(() => {
     setIsClient(true);
-    
+
     // Force list view on mobile
     const checkMobile = () => {
       if (window.innerWidth < 768) { // md breakpoint
         setViewMode('row');
       }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -185,28 +165,26 @@ export default function StudiesWithLectures() {
     onJobInsert: (job) => {
       console.log('🆕 New job received:', job);
       const newLecture: Note = {
-        id: '', // Will be filled by database
         job_id: job.job_id,
         lecture_title: job.lecture_title,
         course_subject: job.course_subject,
         created_at: job.created_at,
         status: job.status,
-        study_node_id: job.study_node_id,
-        user_id: job.user_id
+        user_folder_id: job.user_folder_id
       };
       setAllLectures(prev => [newLecture, ...prev]);
       toast.success(`New lecture "${job.lecture_title}" is being processed`);
     },
     onJobUpdate: (job) => {
       console.log('📝 Job updated:', job);
-      setAllLectures(prev => prev.map(lecture => 
-        lecture.job_id === job.job_id 
-          ? { 
-              ...lecture, 
+      setAllLectures(prev => prev.map(lecture =>
+        lecture.job_id === job.job_id
+          ? {
+              ...lecture,
               status: job.status,
               lecture_title: job.lecture_title,
               course_subject: job.course_subject,
-              study_node_id: job.study_node_id
+              user_folder_id: job.user_folder_id
             }
           : lecture
       ));
@@ -230,103 +208,8 @@ export default function StudiesWithLectures() {
       console.log('🗑️ Job deleted:', jobId);
       setAllLectures(prev => prev.filter(lecture => lecture.job_id !== jobId));
       toast.success('Lecture deleted');
-    },
-    onStudyNodeInsert: (node) => {
-      setAllStudyNodes(prev => [...prev, node]);
-    },
-    onStudyNodeUpdate: (node) => {
-      setAllStudyNodes(prev => prev.map(n => n.id === node.id ? node : n));
-    },
-    onStudyNodeDelete: (nodeId) => {
-      setAllStudyNodes(prev => prev.filter(n => n.id !== nodeId));
     }
   });
-
-  // Fetch node details when selected node changes
-  useEffect(() => {
-    if (selectedNodeId) {
-      fetchNodeDetails(selectedNodeId);
-    } else {
-      setSelectedNode(null);
-      setNodePath([]);
-    }
-  }, [selectedNodeId]);
-
-  // Handle mouse resize
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Calculate new width based on mouse position
-      const newWidth = Math.min(Math.max(e.clientX, 280), 500); // Min 280px, Max 500px
-      setSidebarWidth(newWidth);
-    };
-
-    const handleMouseUp = (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isResizing]);
-
-  const fetchNodeDetails = async (nodeId: string) => {
-    try {
-      const { data: node, error } = await supabase
-        .from('study_nodes')
-        .select('*')
-        .eq('id', nodeId)
-        .single();
-
-      if (error) throw error;
-      setSelectedNode(node);
-
-      // Fetch path
-      const path: StudyNode[] = [node];
-      let currentNode = node;
-      
-      while (currentNode.parent_id) {
-        const { data: parent } = await supabase
-          .from('study_nodes')
-          .select('*')
-          .eq('id', currentNode.parent_id)
-          .single();
-        
-        if (parent) {
-          path.unshift(parent);
-          currentNode = parent;
-        } else {
-          break;
-        }
-      }
-      
-      setNodePath(path);
-    } catch (error) {
-      console.error('Error fetching node details:', error);
-    }
-  };
 
   const fetchAllLectures = async () => {
     try {
@@ -342,19 +225,16 @@ export default function StudiesWithLectures() {
       setCurrentUserId(user.id);
 
       // Fetch all lectures for the user
-      // Fetch lectures with folder information
+      // Fetch all lectures
       const { data: lectures, error: lecturesError } = await supabase
         .from('jobs')
         .select(`
-          job_id, 
-          lecture_title, 
-          course_subject, 
-          created_at, 
-          status, 
-          study_node_id,
-          study_nodes (
-            name
-          )
+          job_id,
+          lecture_title,
+          course_subject,
+          created_at,
+          status,
+          user_folder_id
         `)
         .eq('user_id', user.id)
         .in('status', ['processing', 'completed', 'failed'])
@@ -456,121 +336,6 @@ export default function StudiesWithLectures() {
     }
   };
 
-  // Handle moving lectures to folders via drag & drop
-  const handleLectureDrop = async (lectureId: string, targetNodeId: string) => {
-    try {
-      const nodeId = targetNodeId === "" ? null : targetNodeId;
-      
-      const { error } = await supabase
-        .from('jobs')
-        .update({ study_node_id: nodeId })
-        .eq('job_id', lectureId);
-
-      if (error) throw error;
-
-      setAllLectures(prev => prev.map(lecture => 
-        lecture.job_id === lectureId 
-          ? { ...lecture, study_node_id: nodeId }
-          : lecture
-      ));
-
-      toast.success('Lecture moved successfully');
-    } catch (error) {
-      console.error('Error moving lecture:', error);
-      toast.error('Failed to move lecture');
-    }
-  };
-
-  // Handle bulk move of selected lectures to folder
-  const handleBulkLectureDrop = async (lectureIds: string[], targetNodeId: string) => {
-    try {
-      const nodeId = targetNodeId === "" ? null : targetNodeId;
-      
-      const { error } = await supabase
-        .from('jobs')
-        .update({ study_node_id: nodeId })
-        .in('job_id', lectureIds);
-
-      if (error) throw error;
-
-      setAllLectures(prev => prev.map(lecture => 
-        lectureIds.includes(lecture.job_id)
-          ? { ...lecture, study_node_id: nodeId }
-          : lecture
-      ));
-
-      setDraggedSelectedLectures([]);
-
-      const message = lectureIds.length === 1 
-        ? 'Lecture moved successfully' 
-        : `${lectureIds.length} lectures moved successfully`;
-      toast.success(message);
-    } catch (error) {
-      console.error('Error moving lectures:', error);
-      toast.error('Failed to move lectures');
-    }
-  };
-
-  // Handle moving folders to different parents via drag & drop
-  const handleFolderDrop = async (folderId: string, targetParentId: string | null, position?: number) => {
-    try {
-      if (position !== undefined) {
-        // Handle reordering within same parent - update sort_order
-        // First, get all sibling nodes to reorder them
-        const { data: siblings, error: fetchError } = await supabase
-          .from('study_nodes')
-          .select('id, sort_order')
-          .eq('parent_id', targetParentId)
-          .order('sort_order');
-
-        if (fetchError) throw fetchError;
-
-        // Remove the dragged folder from siblings list
-        const otherSiblings = siblings?.filter(s => s.id !== folderId) || [];
-
-        // Insert the dragged folder at the new position
-        const updates = [];
-        otherSiblings.splice(position, 0, { id: folderId, sort_order: 0 }); // Temporary sort_order
-
-        // Update all sort_orders
-        for (let i = 0; i < otherSiblings.length; i++) {
-          updates.push({
-            id: otherSiblings[i].id,
-            parent_id: targetParentId,
-            sort_order: i
-          });
-        }
-
-        // Execute all updates
-        for (const update of updates) {
-          const { error } = await supabase
-            .from('study_nodes')
-            .update({ parent_id: update.parent_id, sort_order: update.sort_order })
-            .eq('id', update.id);
-          
-          if (error) throw error;
-        }
-        
-        toast.success('Folder position updated successfully');
-      } else {
-        // Handle parent change only
-        const { error } = await supabase
-          .from('study_nodes')
-          .update({ parent_id: targetParentId })
-          .eq('id', folderId);
-          
-        if (error) throw error;
-        toast.success('Folder moved successfully');
-      }
-
-      // Trigger a refresh of the StudiesManager component
-      setRefreshTrigger(prev => prev + 1);
-      
-    } catch (error) {
-      console.error('Error moving folder:', error);
-      toast.error('Failed to move folder');
-    }
-  };
 
   const handleLectureView = (lecture: Note) => {
     // Navigate to lecture detail view
@@ -662,39 +427,9 @@ export default function StudiesWithLectures() {
     setDraggedLecture(lecture);
   };
 
-  // Get all descendant node IDs for a given parent node
-  const getAllDescendantIds = (parentId: string, allNodes: StudyNode[]): string[] => {
-    const descendants = [parentId];
-    
-    const findChildren = (nodeId: string) => {
-      const children = allNodes.filter(node => node.parent_id === nodeId);
-      children.forEach(child => {
-        descendants.push(child.id);
-        findChildren(child.id);
-      });
-    };
-    
-    findChildren(parentId);
-    return descendants;
-  };
-
   // Filter and sort lectures
   const filteredLectures = allLectures.filter(lecture => {
-    // First filter by selected folder (including all descendant folders)
-    if (selectedNodeId) {
-      if (!lecture.study_node_id) {
-        return false; // No folder assigned
-      }
-      
-      // Get all descendant folder IDs for the selected folder
-      const allowedFolderIds = getAllDescendantIds(selectedNodeId, allStudyNodes);
-      
-      if (!allowedFolderIds.includes(lecture.study_node_id)) {
-        return false;
-      }
-    }
-    
-    // Then filter by search query
+    // Filter by search query
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -784,98 +519,6 @@ export default function StudiesWithLectures() {
 
   return (
     <div className="relative flex h-full min-h-screen bg-background">
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-      
-      {/* Left Panel - Study Folders */}
-      <div 
-        className={cn(
-          "fixed lg:relative inset-y-0 left-0 z-50 w-80 lg:w-auto flex-shrink-0 border-r border-border bg-card overflow-y-auto transform transition-transform duration-300 ease-in-out lg:transform-none",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
-        style={isClient ? { 
-          width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${sidebarWidth}px` : '320px'
-        } : undefined}
-      >
-        {/* Mobile Close Button */}
-        <div className="flex items-center justify-between p-4 border-b lg:hidden">
-          <h2 className="font-semibold">Study Folders</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <div 
-          className="px-2 py-1"
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            
-            if (draggedSelectedLectures && draggedSelectedLectures.length > 0) {
-              handleBulkLectureDrop(draggedSelectedLectures, '');
-              setDraggedSelectedLectures([]);
-              return;
-            }
-            
-            if (draggedLecture) {
-              handleLectureDrop(draggedLecture.job_id, '');
-              setDraggedLecture(null);
-            }
-          }}
-        >
-          <StudiesManager 
-            onNodeSelect={(nodeId) => {
-              setSelectedNodeId(nodeId);
-              // Close mobile menu when a folder is selected
-              if (window.innerWidth < 1024) {
-                setIsMobileMenuOpen(false);
-              }
-            }}
-            selectedNodeId={selectedNodeId}
-            draggedLecture={draggedLecture}
-            draggedSelectedLectures={draggedSelectedLectures}
-            draggedFolder={draggedFolder}
-            onLectureDrop={handleLectureDrop}
-            onBulkLectureDrop={handleBulkLectureDrop}
-            onFolderDrop={handleFolderDrop}
-            onDragEnd={() => {
-              setDraggedLecture(null);
-              setDraggedSelectedLectures([]);
-            }}
-            onFolderDragEnd={() => {
-              setDraggedFolder(null);
-            }}
-            onNodesLoaded={(nodes) => setAllStudyNodes(nodes)}
-            refreshTrigger={refreshTrigger}
-          />
-        </div>
-      </div>
-
-      {/* Resizer Handle - Hidden on mobile */}
-      <div
-        className={cn(
-          "hidden lg:block w-1 bg-border cursor-col-resize hover:bg-primary transition-colors relative group",
-          isResizing && "bg-primary"
-        )}
-        onMouseDown={handleMouseDown}
-      >
-        <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <div className="w-1 h-8 bg-card rounded-full shadow-sm"></div>
-        </div>
-      </div>
-
       {/* Right Panel - All Lectures */}
       <div className="flex-1 flex flex-col min-w-0 h-screen">
         <div className="flex-1 overflow-y-auto">
@@ -884,23 +527,9 @@ export default function StudiesWithLectures() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  {/* Mobile Menu Toggle */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="lg:hidden flex-shrink-0"
-                    onClick={() => setIsMobileMenuOpen(true)}
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
                   <h1 className="text-xl lg:text-3xl font-bold truncate">
                     <span className="text-foreground">Mindsy</span>
                     <span className="text-blue-500 ml-1">Lectures</span>
-                    {selectedNode && (
-                      <span className="text-muted-foreground ml-2 font-medium text-lg lg:text-xl">
-                        • {selectedNode.name}
-                      </span>
-                    )}
                   </h1>
                 </div>
                 
@@ -909,30 +538,8 @@ export default function StudiesWithLectures() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                {filteredLectures.length} {filteredLectures.length === 1 ? 'lecture' : 'lectures'}
-                {selectedNode ? ' in this folder' : ' total'}
+                {filteredLectures.length} {filteredLectures.length === 1 ? 'lecture' : 'lectures'} total
               </p>
-              {selectedNode && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-                    {nodePath.map((pathNode, index) => (
-                      <div key={pathNode.id} className="flex items-center gap-1">
-                        {index > 0 && <ChevronRight className="w-3 h-3" />}
-                        <span>{pathNode.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSelectedNodeId(null);
-                      setSelectedNode(null);
-                    }}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    ← Back to all lectures
-                  </button>
-                </div>
-              )}
             </div>
 
           {/* Search Bar and Sort */}
@@ -1042,6 +649,13 @@ export default function StudiesWithLectures() {
                   onDragStart={handleLectureDragStart}
                   getStatusIcon={getStatusIcon}
                   studyStats={studyHistory[lecture.job_id]}
+                  onFolderUpdate={(lectureId, folderId) => {
+                    setAllLectures(prev => prev.map(l =>
+                      l.job_id === lectureId
+                        ? { ...l, user_folder_id: folderId }
+                        : l
+                    ));
+                  }}
                 />
               ))}
             </div>
@@ -1049,14 +663,14 @@ export default function StudiesWithLectures() {
             <div className="space-y-6">
               {/* Desktop Column Headers - Only visible on desktop */}
               <div className="hidden md:block">
-                <div className="grid grid-cols-[40px_1fr_100px_120px_60px_100px_60px] gap-4 items-center px-4 py-2 bg-muted/30 rounded-lg text-sm font-medium text-muted-foreground border-b">
+                <div className="grid grid-cols-[40px_1fr_100px_60px_100px_60px_120px] gap-4 items-center px-4 py-2 bg-muted/30 rounded-lg text-sm font-medium text-muted-foreground border-b">
                   <div className="text-center">Status</div>
                   <div>Lecture</div>
                   <div className="text-center">Date</div>
-                  <div className="text-center">Folder</div>
                   <div className="text-center">Files</div>
                   <div className="text-center">Study Time</div>
                   <div className="text-center">Review</div>
+                  <div className="text-center">Folder</div>
                 </div>
               </div>
               
@@ -1086,6 +700,13 @@ export default function StudiesWithLectures() {
                         getStatusIcon={getStatusIcon}
                         studyStats={studyHistory[lecture.job_id]}
                         isLast={index === lectures.length - 1}
+                        onFolderUpdate={(lectureId, folderId) => {
+                          setAllLectures(prev => prev.map(l =>
+                            l.job_id === lectureId
+                              ? { ...l, user_folder_id: folderId }
+                              : l
+                          ));
+                        }}
                       />
                     ))}
                   </div>
@@ -1184,9 +805,10 @@ interface LectureCardProps {
     firstStudied: string | null;
   };
   isLast?: boolean;
+  onFolderUpdate?: (lectureId: string, folderId: string | null) => void;
 }
 
-function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats }: LectureCardProps) {
+function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, onFolderUpdate }: LectureCardProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -1216,22 +838,11 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
               {getStatusIcon(lecture.status)}
             </div>
           </div>
-          {/* Course Subject and Folder Info */}
+          {/* Course Subject and Date Info */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>
               {format(new Date(lecture.created_at), 'MMM d')}
             </span>
-            {lecture.study_nodes?.name && (
-              <>
-                <span>•</span>
-                <div className="flex items-center gap-1 truncate">
-                  <Folder className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">
-                    {lecture.study_nodes.name}
-                  </span>
-                </div>
-              </>
-            )}
             {lecture.course_subject && (
               <>
                 <span>•</span>
@@ -1254,14 +865,14 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
                     studyStats.totalMinutes > 0 ? 'bg-green-400' : 'bg-gray-300'
                   }`}></div>
                   <span className="text-sm font-medium text-muted-foreground">
-                    {studyStats.totalMinutes > 0 
-                      ? `${Math.round(studyStats.totalMinutes)} min studied` 
+                    {studyStats.totalMinutes > 0
+                      ? `${Math.round(studyStats.totalMinutes)} min studied`
                       : 'Not studied yet'
                     }
                   </span>
                 </div>
               </div>
-              
+
             </>
           ) : (
             // Default state - no study data available yet
@@ -1272,6 +883,18 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
               </span>
             </div>
           )}
+        </div>
+
+        {/* Folder Assignment */}
+        <div className="mt-auto pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
+          <FolderSelector
+            lectureId={lecture.job_id}
+            currentFolderId={lecture.user_folder_id}
+            onFolderChange={(folderId) => {
+              // Update parent component state
+              onFolderUpdate?.(lecture.job_id, folderId);
+            }}
+          />
         </div>
 
       </div>
@@ -1324,7 +947,7 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
 }
 
 // Lecture Row Card Component for List View
-function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, isLast }: LectureCardProps) {
+function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, isLast, onFolderUpdate }: LectureCardProps) {
   // Check if lecture has downloadable files
   const hasFiles = lecture.status === 'completed';
   
@@ -1354,22 +977,11 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
               </h3>
             </div>
             
-            {/* Bottom line: Date + folder */}
+            {/* Bottom line: Date + subject */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground ml-7">
               <span>
                 {format(new Date(lecture.created_at), 'MMM d, yyyy')}
               </span>
-              {lecture.study_nodes?.name && (
-                <>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Folder className="w-3 h-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      {lecture.study_nodes.name}
-                    </span>
-                  </div>
-                </>
-              )}
               {lecture.course_subject && (
                 <>
                   <span>•</span>
@@ -1382,7 +994,7 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
           </div>
 
           {/* Desktop: Single-line column layout */}
-          <div className="hidden md:grid md:grid-cols-[40px_1fr_100px_120px_60px_100px_60px] md:gap-4 md:items-center">
+          <div className="hidden md:grid md:grid-cols-[40px_1fr_100px_60px_100px_60px_120px] md:gap-4 md:items-center">
             {/* Column 1: Status Icon (40px) */}
             <div className="flex items-center justify-center">
               {getStatusIcon(lecture.status)}
@@ -1406,21 +1018,7 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
               <span className="whitespace-nowrap">{format(new Date(lecture.created_at), 'MMM d')}</span>
             </div>
 
-            {/* Column 4: Folder (120px) */}
-            <div className="flex items-center justify-center text-sm text-muted-foreground">
-              {lecture.study_nodes?.name ? (
-                <div className="flex items-center gap-1 min-w-0">
-                  <Folder className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">
-                    {lecture.study_nodes.name}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-muted-foreground/50">No folder</span>
-              )}
-            </div>
-
-            {/* Column 5: Files (60px) */}
+            {/* Column 4: Files (60px) */}
             <div className="flex items-center justify-center">
               {hasFiles ? (
                 <Paperclip className="w-4 h-4 text-primary" title="Files available" />
@@ -1429,7 +1027,7 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
               )}
             </div>
 
-            {/* Column 6: Study Time (100px) */}
+            {/* Column 5: Study Time (100px) */}
             <div className="flex items-center justify-center text-sm text-muted-foreground">
               {studyStats && studyStats.totalMinutes > 0 ? (
                 <div className="flex items-center gap-1">
@@ -1441,13 +1039,39 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
               )}
             </div>
 
-            {/* Column 7: Review Status (60px) */}
+            {/* Column 6: Review Status (60px) */}
             <div className="flex items-center justify-center">
               {lecture.marked_for_review ? (
                 <RotateCw className="w-4 h-4 text-orange-500" title="Marked for review" />
               ) : (
                 <div className="w-4 h-4 opacity-0"></div>
               )}
+            </div>
+
+            {/* Column 7: Folder Selector (120px) */}
+            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              <FolderSelector
+                lectureId={lecture.job_id}
+                currentFolderId={lecture.user_folder_id}
+                onFolderChange={(folderId) => {
+                  // Update parent component state
+                  onFolderUpdate?.(lecture.job_id, folderId);
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Mobile: Show FolderSelector below */}
+          <div className="md:hidden mt-2 ml-7">
+            <div onClick={(e) => e.stopPropagation()}>
+              <FolderSelector
+                lectureId={lecture.job_id}
+                currentFolderId={lecture.user_folder_id}
+                onFolderChange={(folderId) => {
+                  // Update parent component state
+                  onFolderUpdate?.(lecture.job_id, folderId);
+                }}
+              />
             </div>
           </div>
         </div>

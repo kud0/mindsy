@@ -30,7 +30,7 @@ export async function POST() {
           subject TEXT,
           description TEXT,
           lecture_id TEXT,
-          study_node_id UUID,
+          user_folder_id UUID,
           completed BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -40,7 +40,7 @@ export async function POST() {
         CREATE INDEX IF NOT EXISTS idx_study_sessions_user_id ON study_sessions(user_id);
         CREATE INDEX IF NOT EXISTS idx_study_sessions_start_time ON study_sessions(start_time);
         CREATE INDEX IF NOT EXISTS idx_study_sessions_lecture_id ON study_sessions(lecture_id);
-        CREATE INDEX IF NOT EXISTS idx_study_sessions_study_node_id ON study_sessions(study_node_id);
+        CREATE INDEX IF NOT EXISTS idx_study_sessions_user_folder_id ON study_sessions(user_folder_id);
 
         -- Enable RLS
         ALTER TABLE study_sessions ENABLE ROW LEVEL SECURITY;

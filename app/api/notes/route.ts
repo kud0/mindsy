@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   const { user } = authResult
   const searchParams = request.nextUrl.searchParams
-  const studyNodeId = searchParams.get('study_node_id')
+  const userFolderId = searchParams.get('user_folder_id')
   const status = searchParams.get('status') || 'all'
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
   const offset = parseInt(searchParams.get('offset') || '0')
@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    // Filter by study node if specified
-    if (studyNodeId) {
-      query = query.eq('study_node_id', studyNodeId)
+    // Filter by user folder if specified
+    if (userFolderId) {
+      query = query.eq('user_folder_id', userFolderId)
     }
 
     // Filter by status if specified
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     const {
       lecture_title,
       course_subject,
-      study_node_id,
+      user_folder_id,
       audio_file_path,
       pdf_file_path,
       processing_mode = 'enhance'

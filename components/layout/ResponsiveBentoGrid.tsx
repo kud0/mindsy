@@ -12,8 +12,9 @@ import { LecturesWidget } from '@/components/widgets/LecturesWidget';
 import { ExamsWidget } from '@/components/widgets/ExamsWidget';
 import { PomodoroWidget } from '@/components/widgets/PomodoroWidget';
 import { ScheduleWidget } from '@/components/widgets/ScheduleWidget';
-import { EssayWidget } from '@/components/widgets/EssayWidget';
 import { StatsWidget } from '@/components/widgets/StatsWidget';
+import { SocialWidget } from '@/components/widgets/SocialWidget';
+import { CoursesWidget } from '@/components/widgets/CoursesWidget';
 import { TestWidget } from '@/components/widgets/TestWidget';
 
 // CSS imports for react-grid-layout
@@ -26,10 +27,11 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 const widgetComponents = {
   profile: ProfileWidget,
   lectures: LecturesWidget,
+  social: SocialWidget,
+  courses: CoursesWidget,
   exams: ExamsWidget,
   pomodoro: PomodoroWidget,
   schedule: ScheduleWidget,
-  essay: EssayWidget,
   stats: StatsWidget,
 };
 
@@ -38,38 +40,42 @@ const defaultLayouts = {
   lg: [
     { i: 'profile', x: 0, y: 0, w: 4, h: 3 },
     { i: 'lectures', x: 4, y: 0, w: 8, h: 3 },
-    { i: 'exams', x: 0, y: 3, w: 8, h: 3 },
-    { i: 'pomodoro', x: 8, y: 3, w: 4, h: 3 },
-    { i: 'schedule', x: 0, y: 6, w: 4, h: 3 },
-    { i: 'essay', x: 4, y: 6, w: 8, h: 3 },
+    { i: 'social', x: 0, y: 3, w: 4, h: 3 },
+    { i: 'courses', x: 4, y: 3, w: 4, h: 3 },
+    { i: 'exams', x: 8, y: 3, w: 4, h: 3 },
+    { i: 'pomodoro', x: 0, y: 6, w: 4, h: 3 },
+    { i: 'schedule', x: 4, y: 6, w: 8, h: 3 },
     { i: 'stats', x: 0, y: 9, w: 12, h: 3 },
   ],
   md: [
     { i: 'profile', x: 0, y: 0, w: 3, h: 3 },
     { i: 'lectures', x: 3, y: 0, w: 5, h: 3 },
-    { i: 'exams', x: 0, y: 3, w: 5, h: 3 },
-    { i: 'pomodoro', x: 5, y: 3, w: 3, h: 3 },
-    { i: 'schedule', x: 0, y: 6, w: 3, h: 3 },
-    { i: 'essay', x: 3, y: 6, w: 5, h: 3 },
+    { i: 'social', x: 0, y: 3, w: 3, h: 3 },
+    { i: 'courses', x: 3, y: 3, w: 2, h: 3 },
+    { i: 'exams', x: 5, y: 3, w: 3, h: 3 },
+    { i: 'pomodoro', x: 0, y: 6, w: 3, h: 3 },
+    { i: 'schedule', x: 3, y: 6, w: 5, h: 3 },
     { i: 'stats', x: 0, y: 9, w: 8, h: 2 },
   ],
   sm: [
     { i: 'profile', x: 0, y: 0, w: 6, h: 3 },
     { i: 'lectures', x: 0, y: 3, w: 6, h: 3 },
-    { i: 'exams', x: 0, y: 6, w: 6, h: 3 },
-    { i: 'pomodoro', x: 0, y: 9, w: 6, h: 3 },
-    { i: 'schedule', x: 0, y: 12, w: 6, h: 3 },
-    { i: 'essay', x: 0, y: 15, w: 6, h: 3 },
-    { i: 'stats', x: 0, y: 18, w: 6, h: 2 },
+    { i: 'social', x: 0, y: 6, w: 6, h: 3 },
+    { i: 'courses', x: 0, y: 9, w: 6, h: 3 },
+    { i: 'exams', x: 0, y: 12, w: 6, h: 3 },
+    { i: 'pomodoro', x: 0, y: 15, w: 6, h: 3 },
+    { i: 'schedule', x: 0, y: 18, w: 6, h: 3 },
+    { i: 'stats', x: 0, y: 21, w: 6, h: 2 },
   ],
   xs: [
     { i: 'profile', x: 0, y: 0, w: 4, h: 3 },
     { i: 'lectures', x: 0, y: 3, w: 4, h: 3 },
-    { i: 'exams', x: 0, y: 6, w: 4, h: 3 },
-    { i: 'pomodoro', x: 0, y: 9, w: 4, h: 3 },
-    { i: 'schedule', x: 0, y: 12, w: 4, h: 3 },
-    { i: 'essay', x: 0, y: 15, w: 4, h: 3 },
-    { i: 'stats', x: 0, y: 18, w: 4, h: 2 },
+    { i: 'social', x: 0, y: 6, w: 4, h: 3 },
+    { i: 'courses', x: 0, y: 9, w: 4, h: 3 },
+    { i: 'exams', x: 0, y: 12, w: 4, h: 3 },
+    { i: 'pomodoro', x: 0, y: 15, w: 4, h: 3 },
+    { i: 'schedule', x: 0, y: 18, w: 4, h: 3 },
+    { i: 'stats', x: 0, y: 21, w: 4, h: 2 },
   ],
 };
 

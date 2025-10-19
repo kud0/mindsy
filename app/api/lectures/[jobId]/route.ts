@@ -1,7 +1,8 @@
-import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth/require-auth'
 import { getMockLectureData, validateLectureData } from '@/lib/lecture-data-mapper'
+import { loadAndTransformLectureData } from '@/lib/lecture-data-transformer'
 import { LectureData, StudyStats, StudyMaterial } from '@/types/lecture-data'
 
 interface RouteParams {
@@ -10,12 +11,12 @@ interface RouteParams {
   }>
 }
 
-// GET /api/lectures/[jobId] - Simplified endpoint serving new JSON structure
+// GET /api/lectures/[jobId] - Endpoint serving real data from database
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const { jobId } = await params
-  
-  console.log('🚀 Simplified Lectures API:', { jobId })
-  
+
+  console.log('🚀 Lectures API: Loading real data for job:', { jobId })
+
   // Authentication
   const authResult = await requireAuth(request)
   if (authResult.error) {
@@ -25,30 +26,121 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const { user } = authResult
 
   try {
-    // For now, load from sample JSON - in future this will load from database
-    const lectureData: LectureData = await getMockLectureData()
-    
-    // Validate the data structure
-    if (!validateLectureData(lectureData)) {
-      throw new Error('Invalid lecture data structure')
+    const supabase = await createClient()
+
+    // Fetch job data from database
+    console.log('📚 Fetching job data from database...');
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('job_id', jobId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (jobError || !job) {
+      console.log('❌ Job not found');
+      return createErrorResponse(`Job ${jobId} not found`, 404)
     }
 
-    // Get actual study stats from database if they exist
-    const supabase = await createClient()
+    console.log('📋 Job details:', {
+      jobId: job.job_id,
+      status: job.status,
+      hasTxtPath: !!job.txt_file_path,
+      txtPath: job.txt_file_path,
+      hasJsonPath: !!job.json_file_path,
+      hasTimestamps: !!job.timestamped_transcript
+    });
+
+    let lectureData: LectureData;
+
+    // Try to load from study_guides table first (most reliable)
+    console.log('🔍 Checking study_guides table for content...');
+    const { data: studyGuide, error: sgError } = await supabase
+      .from('study_guides')
+      .select('*')
+      .eq('job_id', jobId)
+      .single()
+
+    if (studyGuide && !sgError) {
+      console.log('✅ Found content in study_guides table');
+
+      // Reconstruct the Cornell Notes format from study_guides data
+      const cornellFormat = {
+        metadata: {
+          title: studyGuide.title || job.lecture_title,
+          subject: studyGuide.subject || job.course_subject,
+          language: studyGuide.language || 'en',
+          estimatedStudyTime: '45 minutes',
+          difficulty: 'intermediate'
+        },
+        tableOfContents: {
+          title: 'Table of Contents',
+          items: studyGuide.table_of_contents ?
+            studyGuide.table_of_contents.split('\n').map((item: string) => ({
+              title: item.split(':')[0]?.trim(),
+              description: item.split(':')[1]?.trim() || ''
+            })) : []
+        },
+        questions: studyGuide.questions || [],
+        explanations: studyGuide.explanations || [],
+        summary: studyGuide.summary || {}
+      };
+
+      lectureData = await loadAndTransformLectureData(cornellFormat);
+
+    } else if (job.json_file_path) {
+      // Try to load from JSON file if available
+      console.log('🔍 Loading from JSON file:', job.json_file_path);
+
+      // Use service role client to bypass RLS (needed for shared content)
+      const serviceClient = createServiceRoleClient()
+      const { data: jsonFile, error: downloadError } = await serviceClient.storage
+        .from('generated-notes')
+        .download(job.json_file_path)
+
+      if (!downloadError && jsonFile) {
+        const jsonText = await jsonFile.text()
+        const jsonData = JSON.parse(jsonText)
+        console.log('✅ Loaded JSON file, transforming data...');
+        lectureData = await loadAndTransformLectureData(jsonData);
+      } else {
+        console.log('❌ Could not load JSON file:', downloadError);
+        return createErrorResponse('No content available for this lecture. Please wait for processing to complete.', 404)
+      }
+    } else {
+      // No data available
+      console.log('⚠️ No content found');
+      return createErrorResponse('No content available for this lecture. Please wait for processing to complete.', 404)
+    }
+
+    // Get actual study stats and materials
     const actualStats = await fetchStudyStats(supabase, jobId, user.id)
     const actualMaterials = await fetchMaterials(supabase, jobId, user.id)
 
-    // Return structured response
+    // Fetch transcript with segments if available
+    const transcript = await fetchTranscript(supabase, job.txt_file_path, job.timestamped_transcript)
+
+    // Return structured response with real data
     const response = {
       lecture: {
         id: jobId,
-        data: lectureData
+        data: {
+          ...lectureData,
+          transcript: transcript // Add transcript to lecture data
+        }
       },
       stats: actualStats,
       materials: actualMaterials
     }
 
-    console.log('✅ Simplified API: Response ready with keys:', Object.keys(response))
+    console.log('✅ API: Response ready with real data:', {
+      hasQuestions: lectureData.questions?.length || 0,
+      hasExplanations: lectureData.explanations?.length || 0,
+      title: lectureData.metadata?.title,
+      hasTranscript: !!transcript?.text,
+      transcriptLength: transcript?.text?.length || 0,
+      segmentsCount: transcript?.segments?.length || 0
+    })
     return createSuccessResponse(response)
 
   } catch (error) {
@@ -149,4 +241,128 @@ async function fetchMaterials(supabase: any, jobId: string, userId: string): Pro
 
   console.log('✅ Found materials:', materials.length)
   return materials
+}
+
+// Helper: Fetch transcript text and segments
+async function fetchTranscript(supabase: any, txtFilePath: string | null, timestampedTranscript: any): Promise<any> {
+  const result: any = {
+    text: null,
+    segments: timestampedTranscript || []
+  };
+
+  if (!txtFilePath) {
+    console.log('⚠️ No transcript file path available');
+    return result;
+  }
+
+  try {
+    console.log('📝 Fetching transcript from:', txtFilePath);
+
+    // Use service role client for storage access (transcripts are uploaded with service role)
+    const { createClient: createSupabaseAdmin } = await import('@supabase/supabase-js');
+    const adminClient = createSupabaseAdmin(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: transcriptFile, error: downloadError } = await adminClient.storage
+      .from('generated-notes')
+      .download(txtFilePath);
+
+    if (downloadError || !transcriptFile) {
+      console.log('❌ Could not download transcript:', downloadError);
+      return result;
+    }
+
+    const transcriptText = await transcriptFile.text();
+    console.log('✅ Transcript loaded:', transcriptText.length, 'characters,', result.segments.length, 'segments');
+    result.text = transcriptText;
+    return result;
+  } catch (error) {
+    console.error('❌ Error fetching transcript:', error);
+    return result;
+  }
+}
+
+/**
+ * PATCH /api/lectures/[jobId]
+ * Update lecture properties (e.g., assign to folder)
+ */
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const { jobId } = await params
+
+  console.log('🔧 PATCH /api/lectures/[jobId]:', { jobId })
+
+  // Authentication
+  const authResult = await requireAuth(request)
+  if (authResult.error) {
+    return createErrorResponse(authResult.error.message, authResult.error.status)
+  }
+
+  const { user } = authResult
+
+  try {
+    const supabase = await createClient()
+    const body = await request.json()
+    const { user_folder_id } = body
+
+    // Validate input
+    if (user_folder_id !== null && user_folder_id !== undefined && typeof user_folder_id !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid user_folder_id format' },
+        { status: 400 }
+      )
+    }
+
+    // If folder is specified, verify it exists and belongs to user
+    if (user_folder_id) {
+      const { data: folder, error: folderError } = await supabase
+        .from('user_folders')
+        .select('id, course_id')
+        .eq('id', user_folder_id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (folderError || !folder) {
+        return NextResponse.json(
+          { error: 'Folder not found or access denied' },
+          { status: 404 }
+        )
+      }
+    }
+
+    // Update lecture folder assignment
+    const { data: updatedJob, error: updateError } = await supabase
+      .from('jobs')
+      .update({ user_folder_id: user_folder_id || null })
+      .eq('job_id', jobId)
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (updateError || !updatedJob) {
+      console.error('Error updating lecture:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update lecture' },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ Lecture updated successfully:', {
+      jobId,
+      user_folder_id: updatedJob.user_folder_id
+    })
+
+    return NextResponse.json({
+      success: true,
+      job: updatedJob
+    })
+
+  } catch (error) {
+    console.error('❌ Error in PATCH /lectures/[jobId]:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
 }

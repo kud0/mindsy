@@ -34,8 +34,16 @@ interface SearchResult {
   created_at?: string;
 }
 
-export function CommandBar() {
-  const [isOpen, setIsOpen] = useState(false);
+interface CommandBarProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function CommandBar({ isOpen: externalIsOpen, onOpenChange }: CommandBarProps = {}) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen ?? internalIsOpen;
+  const setIsOpen = onOpenChange ?? setInternalIsOpen;
+
   const [command, setCommand] = useState('');
   const [mode, setMode] = useState<CommandMode>('search');
   const [parsed, setParsed] = useState<ParsedCommand | null>(null);
@@ -47,19 +55,19 @@ export function CommandBar() {
   const supabase = createClient();
   const router = useRouter();
 
-  // Load study folders for subject matching
+  // Load course folders for subject matching
   useEffect(() => {
     const loadFolders = async () => {
       const { data: folders } = await supabase
-        .from('study_nodes')
+        .from('user_folders')
         .select('id, name')
         .order('name');
-      
+
       if (folders) {
         setStudyFolders(folders);
       }
     };
-    
+
     if (isOpen) {
       loadFolders();
     }
@@ -230,10 +238,10 @@ export function CommandBar() {
         .or(`lecture_title.ilike.%${query}%,course_subject.ilike.%${query}%`)
         .limit(5);
 
-      // Search in study_nodes (folders)
+      // Search in user_folders (course folders)
       const { data: folders } = await supabase
-        .from('study_nodes')
-        .select('id, name, type')
+        .from('user_folders')
+        .select('id, name')
         .ilike('name', `%${query}%`)
         .limit(3);
 

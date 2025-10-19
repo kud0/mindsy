@@ -6,21 +6,10 @@ export interface Note {
   course_subject: string | null;
   created_at: string;
   status: string;
-  study_node_id: string | null;
   marked_for_review?: boolean;
   review_reason?: string | null;
-  study_nodes?: {
-    name: string;
-  } | null;
-}
-
-export interface StudyNode {
-  id: string;
-  name: string;
-  type: 'course' | 'year' | 'subject' | 'semester' | 'custom';
-  parent_id: string | null;
-  color?: string;
-  children?: StudyNode[];
+  user_folder_id?: string | null;
+  user_id?: string;
 }
 
 export interface User {
@@ -79,7 +68,6 @@ export interface StudySession {
   subject?: string;
   description?: string;
   lecture_id?: string;
-  study_node_id?: string;
   completed: boolean;
   created_at: string;
   updated_at: string;
@@ -89,8 +77,8 @@ export interface StudySession {
 export interface Exam {
   id: string;
   user_id: string;
-  folder_id: string;
-  folder_name: string;
+  user_folder_id?: string | null;
+  folder_name?: string | null;
   title: string;
   questions: ExamQuestion[];
   question_count: number;

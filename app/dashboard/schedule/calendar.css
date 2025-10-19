@@ -155,17 +155,15 @@
   }
 }
 
-/* Dark mode specific adjustments */
-@media (prefers-color-scheme: dark) {
-  .rbc-calendar {
-    color: rgb(243 244 246);
-  }
-  
-  .rbc-off-range {
-    color: rgb(107 114 128);
-  }
-  
-  .rbc-off-range-bg {
-    background: rgb(31 41 55);
-  }
+/* Dark mode specific adjustments - only when .dark class is present */
+.dark .rbc-calendar {
+  color: rgb(243 244 246);
+}
+
+.dark .rbc-off-range {
+  color: rgb(107 114 128);
+}
+
+.dark .rbc-off-range-bg {
+  background: rgb(31 41 55);
 }

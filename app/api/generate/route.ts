@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { requireAuth, createErrorResponse, createSuccessResponse } from '@/lib/auth/require-auth';
 import { createRunPodClient } from '@/lib/runpod-client';
-import { generateMindsyNotes, type MindsyNotesInput } from '@/lib/openai-client';
+// Note: OpenAI generation now handled by content-processor.ts using generateStudentDeskContent()
 
 // Configure API route for dynamic operations
 export const dynamic = 'force-dynamic';

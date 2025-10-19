@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+import { LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface ActivityData {
   study: { completed: number; total: number; color: string };
@@ -13,6 +16,7 @@ interface ActivityData {
 export function ProfileWidget() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Mock activity data - Apple style rings
   const activityData: ActivityData = {
@@ -46,9 +50,29 @@ export function ProfileWidget() {
     return email.substring(0, 2).toUpperCase();
   };
 
-  const displayName = user?.user_metadata?.full_name || 
-                      user?.email?.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 
+  const displayName = user?.user_metadata?.full_name ||
+                      user?.email?.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
                       'Alex';
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        toast.error('Failed to log out');
+        console.error('Logout error:', error);
+        return;
+      }
+
+      toast.success('Logged out successfully');
+      router.push('/auth/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Unexpected logout error:', error);
+      toast.error('Failed to log out');
+    }
+  };
 
   const ActivityRings = () => {
     const size = 120;
@@ -148,6 +172,15 @@ export function ProfileWidget() {
     <div className="h-full w-full rounded-3xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 p-6 flex items-center justify-between relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent rounded-3xl" />
+
+      {/* Logout Button - Top Right */}
+      <button
+        onClick={handleLogout}
+        className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 transition-all hover:scale-105 group"
+        title="Log out"
+      >
+        <LogOut className="w-4 h-4 text-gray-700 dark:text-gray-200 group-hover:text-red-600" />
+      </button>
       
       {/* Left side - Profile Info */}
       <div className="relative z-10 flex flex-col justify-start pt-2">

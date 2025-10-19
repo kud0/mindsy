@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS study_sessions (
   subject TEXT,
   description TEXT,
   lecture_id TEXT, -- Reference to job_id from jobs table if applicable
-  study_node_id UUID, -- Reference to study_nodes table for folder organization
+  user_folder_id UUID, -- Reference to user_folders table for course folder organization
   completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS study_sessions (
 CREATE INDEX IF NOT EXISTS idx_study_sessions_user_id ON study_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_study_sessions_start_time ON study_sessions(start_time);
 CREATE INDEX IF NOT EXISTS idx_study_sessions_lecture_id ON study_sessions(lecture_id);
-CREATE INDEX IF NOT EXISTS idx_study_sessions_study_node_id ON study_sessions(study_node_id);
+CREATE INDEX IF NOT EXISTS idx_study_sessions_user_folder_id ON study_sessions(user_folder_id);
 
 -- Enable Row Level Security
 ALTER TABLE study_sessions ENABLE ROW LEVEL SECURITY;

@@ -3,7 +3,7 @@ import { YouTubeApiExtractor, YouTubeApiExtractorResult, YouTubeApiVideoData } f
 import { YouTubeHybridExtractor, YouTubeHybridResult, YouTubeHybridData } from './youtube-hybrid-extractor';
 import { YouTubeVercelExtractor, YouTubeVercelResult, YouTubeVercelData } from './youtube-vercel-extractor';
 import { YouTubeRunPodExtractor, YouTubeRunPodResult, YouTubeRunPodData } from './youtube-runpod-extractor';
-import { YouTubePuppeteerExtractor, YouTubePuppeteerResult, YouTubePuppeteerData } from './youtube-puppeteer-extractor';
+// import { YouTubePuppeteerExtractor, YouTubePuppeteerResult, YouTubePuppeteerData } from './youtube-puppeteer-extractor';
 import { YouTubeOAuthSimpleExtractor, YouTubeOAuthResult, YouTubeOAuthData } from './youtube-oauth-simple';
 import { WebExtractor, WebExtractorResult, WebArticleData } from './web-extractor';
 
@@ -12,7 +12,7 @@ export type LinkType = 'youtube' | 'podcast' | 'article' | 'unknown';
 export interface LinkExtractionResult {
   success: boolean;
   linkType: LinkType;
-  data?: YouTubeVideoData | YouTubeApiVideoData | YouTubeHybridData | YouTubeVercelData | YouTubeRunPodData | YouTubePuppeteerData | YouTubeOAuthData | WebArticleData;
+  data?: YouTubeVideoData | YouTubeApiVideoData | YouTubeHybridData | YouTubeVercelData | YouTubeRunPodData | YouTubeOAuthData | WebArticleData;
   error?: string;
   requiresAuth?: boolean;
   authUrl?: string;
@@ -213,6 +213,6 @@ export { YouTubeApiExtractor, YouTubeApiVideoData, YouTubeApiExtractorResult } f
 export { YouTubeHybridExtractor, YouTubeHybridData, YouTubeHybridResult } from './youtube-hybrid-extractor';
 export { YouTubeVercelExtractor, YouTubeVercelData, YouTubeVercelResult } from './youtube-vercel-extractor';
 export { YouTubeRunPodExtractor, YouTubeRunPodData, YouTubeRunPodResult } from './youtube-runpod-extractor';
-export { YouTubePuppeteerExtractor, YouTubePuppeteerData, YouTubePuppeteerResult } from './youtube-puppeteer-extractor';
+// export { YouTubePuppeteerExtractor, YouTubePuppeteerData, YouTubePuppeteerResult } from './youtube-puppeteer-extractor';
 export { YouTubeOAuthSimpleExtractor, YouTubeOAuthData, YouTubeOAuthResult } from './youtube-oauth-simple';
 export { WebExtractor, WebArticleData, WebExtractorResult } from './web-extractor';

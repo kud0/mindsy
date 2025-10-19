@@ -56,7 +56,7 @@ interface Note {
   status: string;
   created_at: string;
   updated_at: string;
-  study_node_id: string | null;
+  user_folder_id: string | null;
   // Old database fields
   audio_file_path?: string | null;
   pdf_file_path?: string | null;
@@ -80,10 +80,9 @@ interface Note {
     created_at: string;
     updated_at: string;
   }[];
-  study_nodes?: {
+  user_folders?: {
     id: string;
     name: string;
-    type: string;
   };
 }
 
@@ -99,7 +98,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
   const [editData, setEditData] = useState({
     lecture_title: '',
     course_subject: '',
-    study_node_id: ''
+    user_folder_id: ''
   });
   const [downloading, setDownloading] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -138,7 +137,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
         setEditData({
           lecture_title: noteData.lecture_title,
           course_subject: noteData.course_subject || '',
-          study_node_id: noteData.study_node_id || ''
+          user_folder_id: noteData.user_folder_id || ''
         });
       } else {
         const errorInfo = {
@@ -191,7 +190,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
         body: JSON.stringify({
           lecture_title: editData.lecture_title.trim(),
           course_subject: editData.course_subject.trim() || null,
-          study_node_id: editData.study_node_id || null
+          user_folder_id: editData.user_folder_id || null
         }),
       });
 
@@ -202,7 +201,7 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
           ...prev,
           lecture_title: editData.lecture_title.trim(),
           course_subject: editData.course_subject.trim() || null,
-          study_node_id: editData.study_node_id || null,
+          user_folder_id: editData.user_folder_id || null,
           updated_at: new Date().toISOString()
         } : null);
         setIsEditing(false);
@@ -509,10 +508,10 @@ export default function NoteDetailView({ jobId }: NoteDetailViewProps) {
                 <Clock className="w-4 h-4" />
                 Updated {format(new Date(note.updated_at), 'MMM d, yyyy')}
               </div>
-              {note.study_nodes && (
+              {note.user_folders && (
                 <div className="flex items-center gap-1">
                   <Folder className="w-4 h-4" />
-                  {note.study_nodes.name}
+                  {note.user_folders.name}
                 </div>
               )}
             </div>

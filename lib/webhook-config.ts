@@ -31,7 +31,7 @@ export function getWebhookConfig(): WebhookConfig {
       if (url.protocol === 'https:' || url.protocol === 'http:') {
         return {
           isWebhookEnabled: true,
-          webhookUrl: `${webhookBaseUrl}/api/runpod-webhook`,
+          webhookUrl: `${webhookBaseUrl.replace(/\/$/, '')}/api/runpod-webhook`,
           mode: 'webhook',
           debugInfo: {
             environment: env || 'unknown',
@@ -53,7 +53,7 @@ export function getWebhookConfig(): WebhookConfig {
     if (appUrl) {
       return {
         isWebhookEnabled: true,
-        webhookUrl: `${appUrl}/api/runpod-webhook`,
+        webhookUrl: `${appUrl.replace(/\/$/, '')}/api/runpod-webhook`,
         mode: 'webhook',
         debugInfo: {
           environment: env,

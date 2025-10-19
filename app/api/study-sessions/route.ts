@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, start_time, end_time, session_type, subject, description, lecture_id, study_node_id } = body;
+    const { title, start_time, end_time, session_type, subject, description, lecture_id, user_folder_id } = body;
 
     // Validate required fields
     if (!title || !start_time || !end_time || !session_type) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         subject,
         description,
         lecture_id,
-        study_node_id,
+        user_folder_id,
         completed: false,
         created_at: new Date().toISOString()
       })
@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, title, start_time, end_time, session_type, subject, description, completed, lecture_id, study_node_id } = body;
+    const { id, title, start_time, end_time, session_type, subject, description, completed, lecture_id, user_folder_id } = body;
     console.log('🔄 PUT API received:', { id, title, user_id: user.id });
 
     if (!id) {
@@ -146,7 +146,7 @@ export async function PUT(request: NextRequest) {
         description,
         completed,
         lecture_id,
-        study_node_id,
+        user_folder_id,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

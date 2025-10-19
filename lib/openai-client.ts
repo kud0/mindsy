@@ -18,7 +18,7 @@ export interface MindsyNotesInput {
   lectureTitle?: string;
   courseSubject?: string;
   detectedLanguage?: string;
-  formatMode?: 'cornell-notes' | 'clean-document'; // New flag for formatting mode
+  formatMode?: 'cornell-notes' | 'clean-document' | 'student-desk'; // Extended flag for formatting mode
 }
 
 export interface CornellNotesOutput {
@@ -29,6 +29,77 @@ export interface CornellNotesOutput {
     questions: any[];
     explanations: any[];
     summary: any;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
+export interface StudentDeskOutput {
+  success: boolean;
+  content?: {
+    metadata: {
+      title: string;
+      difficulty: 'beginner' | 'intermediate' | 'advanced';
+      estimatedTime: string;
+      subjectDomain: string;
+      examImportance: 'low' | 'medium' | 'high';
+    };
+    overview: {
+      mainTopic: string;
+      keyObjectives: string[];
+      coreConceptsList: string[];
+    };
+    questions: Array<{
+      id: string;
+      type: 'multiple-choice' | 'true-false' | 'fill-number';
+      question?: string;
+      difficulty?: 'easy' | 'medium' | 'hard';
+      points?: number;
+      hint?: string;
+      feedback?: string;
+      // Multiple choice specific
+      choices?: string[];
+      correctAnswer?: number;
+      // True/false specific
+      statement?: string;
+      correctAnswer?: boolean;
+      // Fill number specific
+      template?: string;
+      answer?: number;
+      acceptableRange?: [number, number];
+      unit?: string;
+    }>;
+    explanations: Array<{
+      id: string;
+      concept: string;  // MUST be specific (e.g., "Estructura del Esqueleto Axial")
+      introduction: string;  // Opening paragraph explaining the concept
+      sections?: Array<{
+        heading: string;
+        content: string;  // Paragraph content
+        points?: string[];  // Optional bullet points after content
+      }>;
+      importance: 'high' | 'medium' | 'low';
+      example?: string;
+    }>;
+    summary: {
+      essentialPoints: string[];
+      examFocus: {
+        mustKnow: string[];
+        likelyQuestions: string[];
+      };
+    };
+    engagement: {
+      quizMetrics: {
+        totalQuestions: number;
+        totalPoints: number;
+        passingScore: number;
+      };
+      achievements: Array<{
+        id: string;
+        name: string;
+        points: number;
+      }>;
+    };
   };
   error?: string;
   errorCode?: string;
@@ -269,6 +340,141 @@ export async function generateMindsyNotes(input: MindsyNotesInput): Promise<Corn
   }
 }
 
+/**
+ * Generate structured content for StudentDesk v2 interface
+ * Creates comprehensive interactive learning materials with proper question types and explanations
+ */
+export async function generateStudentDeskContent(input: MindsyNotesInput): Promise<StudentDeskOutput> {
+  try {
+    // Validate input - require either transcript OR pdfText
+    const hasTranscript = input.transcript && input.transcript.trim().length > 0;
+    const hasPdfText = input.pdfText && input.pdfText.trim().length > 0;
+    
+    if (!hasTranscript && !hasPdfText) {
+      return {
+        success: false,
+        error: 'Either transcript (for audio) or pdfText (for documents) is required',
+        errorCode: 'INVALID_INPUT'
+      };
+    }
+
+    // Create StudentDesk-specific prompt
+    const prompt = createStudentDeskPrompt(input);
+
+    console.log('🤖 OpenAI API: Generating StudentDesk content with structured format');
+    console.log('📤 Sending request to OpenAI...');
+    
+    const startTime = Date.now();
+    
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-5-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a world-class educational AI assistant specialized in creating interactive study materials and comprehensive learning experiences. Your expertise lies in cognitive science, instructional design, and creating content that maximizes student engagement and learning retention through structured, scientifically-informed approaches.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 35000
+    });
+    
+    const elapsed = Date.now() - startTime;
+    console.log(`✅ OpenAI API request successful in ${elapsed}ms`);
+
+    const generatedContent = completion.choices[0]?.message?.content;
+
+    if (!generatedContent) {
+      return {
+        success: false,
+        error: 'OpenAI API returned empty response',
+        errorCode: 'EMPTY_RESPONSE'
+      };
+    }
+
+    // Parse JSON response
+    let studentDeskContent;
+    try {
+      studentDeskContent = JSON.parse(generatedContent);
+      
+      // Auto-calculate engagement metrics from questions
+      if (studentDeskContent.questions && Array.isArray(studentDeskContent.questions)) {
+        const totalQuestions = studentDeskContent.questions.length;
+        const totalPoints = studentDeskContent.questions.reduce((sum: number, q: any) => sum + (q.points || 10), 0);
+        const passingScore = Math.floor(totalPoints * 0.7);
+        
+        if (studentDeskContent.engagement && studentDeskContent.engagement.quizMetrics) {
+          studentDeskContent.engagement.quizMetrics.totalQuestions = totalQuestions;
+          studentDeskContent.engagement.quizMetrics.totalPoints = totalPoints;
+          studentDeskContent.engagement.quizMetrics.passingScore = passingScore;
+        }
+      }
+      
+      console.log('✅ StudentDesk JSON parsed successfully', {
+        hasMetadata: !!studentDeskContent.metadata,
+        hasOverview: !!studentDeskContent.overview,
+        questionsCount: studentDeskContent.questions?.length || 0,
+        explanationsCount: studentDeskContent.explanations?.length || 0,
+        hasSummary: !!studentDeskContent.summary,
+        hasEngagement: !!studentDeskContent.engagement
+      });
+    } catch (parseError) {
+      console.error('❌ Failed to parse StudentDesk JSON response:', parseError);
+      console.error('📄 Raw response:', generatedContent?.substring(0, 200) + '...');
+      return {
+        success: false,
+        error: 'Failed to parse JSON response from OpenAI',
+        errorCode: 'JSON_PARSE_ERROR'
+      };
+    }
+
+    return {
+      success: true,
+      content: studentDeskContent
+    };
+
+  } catch (error) {
+    console.error('StudentDesk generation error:', error);
+
+    // Handle specific OpenAI errors
+    if (error instanceof OpenAI.APIError) {
+      return {
+        success: false,
+        error: `OpenAI API error: ${error.message}`,
+        errorCode: 'OPENAI_API_ERROR'
+      };
+    }
+
+    // Handle authentication errors
+    if (error instanceof OpenAI.AuthenticationError) {
+      return {
+        success: false,
+        error: 'OpenAI authentication failed - check API key',
+        errorCode: 'AUTHENTICATION_ERROR'
+      };
+    }
+
+    // Handle rate limit errors
+    if (error instanceof OpenAI.RateLimitError) {
+      return {
+        success: false,
+        error: 'OpenAI rate limit exceeded - please try again later',
+        errorCode: 'RATE_LIMIT_ERROR'
+      };
+    }
+
+    // Handle generic errors
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      errorCode: 'UNKNOWN_ERROR'
+    };
+  }
+}
+
 // Removed generateMindsyNotesWithStreaming - now using SSE approach
 
 
@@ -459,6 +665,295 @@ ${pdfText ? `**Document Text:**\n${pdfText}` : ''}
 
 `;
   return prompt;
+}
+
+/**
+ * Create structured prompt for StudentDesk v2 interface
+ * Generates content for 6-tab layout: Overview, Questions, Explanations, Summary, Study Time, Materials
+ */
+function createStudentDeskPrompt(input: MindsyNotesInput): string {
+  const { transcript, pdfText, lectureTitle, detectedLanguage } = input;
+  
+  // Get language-specific terms
+  const textForLanguageDetection = transcript || pdfText || '';
+  const { terms, language } = getLanguageTermsFromText(textForLanguageDetection, detectedLanguage);
+  
+  const content = transcript || pdfText || '';
+  const title = lectureTitle || 'Study Session';
+  
+  return `You are a world-class educational AI assistant specialized in creating interactive study materials. Transform this content into a comprehensive StudentDesk learning experience with structured content for multiple study modes.
+
+## Content to Transform:
+**Title:** ${title}
+**Content:** ${content}
+
+## Language Instructions:
+Use ${language} consistently throughout all content.
+
+## Required JSON Output Format:
+{
+  "metadata": {
+    "title": "${title}",
+    "difficulty": "beginner|intermediate|advanced",
+    "estimatedTime": "Estimate study time (e.g., '45 minutes')",
+    "subjectDomain": "Main subject area from content",
+    "examImportance": "low|medium|high"
+  },
+  "overview": {
+    "mainTopic": "Concise overview of the main topic in 2-3 sentences",
+    "keyObjectives": [
+      "Learning objective 1",
+      "Learning objective 2",
+      "Learning objective 3"
+    ],
+    "coreConceptsList": [
+      "Core concept 1",
+      "Core concept 2", 
+      "Core concept 3"
+    ]
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple-choice",
+      "question": "What is the primary function of [key concept]?",
+      "choices": [
+        "Correct answer with clear description",
+        "Plausible distractor based on common misconception A",
+        "Plausible distractor based on common misconception B",
+        "Plausible distractor based on related but incorrect concept"
+      ],
+      "correctAnswer": 0,
+      "difficulty": "medium",
+      "points": 10,
+      "hint": "Think about the core purpose and how it relates to [related concept]",
+      "feedback": "The correct answer is A because [explanation]. Many students confuse this with [common mistake], but the key difference is [clarification]."
+    },
+    {
+      "id": "q2",
+      "type": "true-false",
+      "statement": "[Subject] always results in [outcome] when [condition] is present",
+      "correctAnswer": true,
+      "difficulty": "easy",
+      "points": 5,
+      "hint": "Consider what happens in [specific scenario]",
+      "feedback": "This statement is TRUE because [explanation of the relationship]. This is a fundamental principle in [topic area]."
+    },
+    {
+      "id": "q3",
+      "type": "fill-number",
+      "question": "Based on the lecture, what was the [measurement/value/year]?",
+      "template": "The [measurement] is ___ [units]",
+      "answer": 42,
+      "acceptableRange": [40, 44],
+      "unit": "units",
+      "difficulty": "medium",
+      "points": 15,
+      "hint": "This value was mentioned when discussing [context]. Consider the [relevant formula or relationship]",
+      "feedback": "The correct answer is 42 units. This is calculated by [step-by-step explanation]. The acceptable range accounts for rounding."
+    },
+    {
+      "id": "q4",
+      "type": "multiple-choice",
+      "question": "Which of the following best describes [concept]?",
+      "choices": [
+        "Accurate and complete definition",
+        "Partially correct but missing key element",
+        "Common misconception",
+        "Confusing with similar but distinct concept"
+      ],
+      "correctAnswer": 0,
+      "difficulty": "hard",
+      "points": 15,
+      "hint": "Pay attention to the distinction between [X] and [Y]",
+      "feedback": "Option A is correct because [detailed explanation]. Option B is tempting but misses [key element]. Options C and D are common mistakes."
+    }
+  ],
+  "explanations": [
+    {
+      "id": "exp1",
+      "concept": "Estructura del Esqueleto Axial",
+      "introduction": "El esqueleto axial incluye el cráneo, la columna vertebral y la pelvis. Su función principal es proteger y estabilizar el cuerpo, aunque también permite cierta movilidad. A diferencia de otras articulaciones, como las del hombro, que priorizan la movilidad, el esqueleto axial se caracteriza por su estabilidad.",
+      "sections": [
+        {
+          "heading": "Características del Cráneo",
+          "content": "El cráneo es principalmente una estructura protectora, diseñada para resguardar el cerebro. Aunque tiene algo de movilidad en la mandíbula, su función principal es la protección."
+        },
+        {
+          "heading": "Movimientos de la Columna Vertebral",
+          "content": "Los movimientos de la columna vertebral incluyen varios tipos de desplazamientos que permiten la flexibilidad del tronco.",
+          "points": [
+            "Flexión: Inclinación del tronco hacia adelante, permitiendo doblar la espalda",
+            "Extensión: Inclinación hacia atrás, arqueando la columna en dirección opuesta",
+            "Rotación: Giro del tronco, que ocurre principalmente en la articulación atlanto-occipital"
+          ]
+        },
+        {
+          "heading": "Importancia Funcional",
+          "content": "El esqueleto axial cumple funciones críticas en la protección de órganos vitales y en el soporte estructural del cuerpo humano."
+        }
+      ],
+      "importance": "high",
+      "example": "Durante la marcha, la columna vertebral actúa como un sistema de absorción de impactos mientras permite el movimiento coordinado del tronco."
+    }
+  ],
+
+CRITICAL RULES FOR EXPLANATIONS (READ CAREFULLY):
+
+1. FORBIDDEN - DO NOT USE THESE:
+   ❌ "Key Concept"
+   ❌ "Core Concept"
+   ❌ "Important Topic"
+   ❌ "Concept 1", "Concept 2"
+   ❌ "Detailed explanation coming soon"
+   ❌ Any placeholder or generic text
+
+2. REQUIRED - YOU MUST USE:
+   ✅ Specific concept names from the actual lecture content
+   ✅ Real explanations with full paragraphs
+   ✅ The NEW schema with "introduction" and "sections" fields
+   ✅ DO NOT use old "explanation" or "keyPoints" fields
+
+3. SCHEMA STRUCTURE:
+   {
+     "concept": "SPECIFIC NAME FROM LECTURE",
+     "introduction": "FULL PARAGRAPH explaining the concept",
+     "sections": [
+       {
+         "heading": "Specific Subsection Name",
+         "content": "Full paragraph of explanation",
+         "points": ["Optional", "Bullet", "Points"]
+       }
+     ],
+     "importance": "high|medium|low",
+     "example": "Real-world example"
+   }
+  "summary": {
+    "essentialPoints": [
+      "Most critical point for exam success",
+      "Key insight that ties concepts together",
+      "Important practical application"
+    ],
+    "examFocus": {
+      "mustKnow": [
+        "Essential concept 1 for exams",
+        "Critical formula or principle",
+        "Key terminology with definitions"
+      ],
+      "likelyQuestions": [
+        "Probable exam question format 1",
+        "Expected essay topic or analysis question",
+        "Common application problem type"
+      ]
+    }
+  },
+  "engagement": {
+    "quizMetrics": {
+      "totalQuestions": "Auto-calculated from questions array",
+      "totalPoints": "Sum of all question points",
+      "passingScore": "70% of total points"
+    },
+    "achievements": [
+      {
+        "id": "ach1",
+        "name": "Concept Master",
+        "points": 50
+      }
+    ]
+  }
+}
+
+## Content Generation Requirements:
+
+1. **Overview Tab Content:**
+   - Write mainTopic as a clear, engaging introduction to the subject
+   - Create 3-5 specific learning objectives students will achieve
+   - List the core concepts that form the foundation of understanding (determine the appropriate number based on lecture complexity and length)
+
+2. **Questions Tab Content:**
+   - Determine the optimal number of questions based on lecture content and complexity:
+     * Short lectures (10-20 min): 8-12 questions
+     * Medium lectures (20-40 min): 12-18 questions
+     * Long/complex lectures (40+ min): 18-25 questions
+   - Question type distribution (maintain balance):
+     * 60% Multiple choice - ideal for conceptual understanding
+     * 25% True/False - good for quick fact checking
+     * 15% Fill-number - perfect for calculations and specific values
+   - Ensure questions test different cognitive levels: recall, comprehension, application, analysis
+   - Multiple choice: Create 4 realistic options with plausible distractors based on common misconceptions
+   - True/False: Write clear, unambiguous statements that test understanding, not trick questions
+   - Fill-number: Include calculations, percentages, dates, or specific quantitative values from content
+   - Each question MUST include:
+     * A helpful hint that guides without giving away the answer
+     * Detailed feedback explaining why the answer is correct and addressing common mistakes
+     * Appropriate difficulty level (easy/medium/hard) and point values
+
+3. **Explanations Tab Content (RICH FORMAT REQUIRED):**
+
+   🚨 CRITICAL SCHEMA REQUIREMENTS 🚨
+
+   YOU MUST USE THIS EXACT SCHEMA - DO NOT DEVIATE:
+   {
+     "concept": "Specific concept name from lecture",
+     "introduction": "Opening paragraph (NOT 'explanation' field!)",
+     "sections": [
+       {
+         "heading": "Subsection name",
+         "content": "Paragraph content",
+         "points": ["Optional bullets"]
+       }
+     ],
+     "importance": "high|medium|low",
+     "example": "Real-world example"
+   }
+
+   ❌ FORBIDDEN - DO NOT USE THESE FIELDS:
+   - "explanation" (OLD SCHEMA - DO NOT USE!)
+   - "keyPoints" (OLD SCHEMA - DO NOT USE!)
+   - Generic names like "Key Concept", "Core Concept", "Concept 1"
+
+   ✅ REQUIRED - YOU MUST USE:
+   - "introduction" field (paragraph text)
+   - "sections" array with objects containing "heading", "content", "points"
+   - Specific concept names from the actual lecture
+
+   CONTENT REQUIREMENTS:
+   - Analyze the lecture content and determine the optimal number of detailed explanations needed:
+     * Short lectures (10-20 min): 3-5 explanations for key concepts
+     * Medium lectures (20-40 min): 5-10 explanations
+     * Long/complex lectures (40+ min): 10-15+ explanations
+   - Choose concepts based on importance, complexity, and exam relevance
+   - Each explanation MUST have a SPECIFIC, DESCRIPTIVE concept name
+     * ✅ GOOD: "Estructura del Esqueleto Axial", "Photosynthesis Process", "Newton's Second Law"
+     * ❌ BAD: "Key Concept", "Core Concept", "Concept 1", "Important Topic"
+   - Each section needs "heading" (specific subsection name), "content" (paragraph), and optional "points" (bullets)
+   - Mix paragraphs and bullet points naturally (like a well-written textbook)
+   - Write as if teaching someone who missed the lecture entirely
+   - Provide practical examples in the "example" field
+   - Assign importance levels: high (exam-critical), medium (important supporting), low (supplementary)
+
+4. **Summary Tab Content:**
+   - Identify 4-6 essential points that capture the core learning
+   - Create comprehensive exam focus section with must-know concepts
+   - Generate likely exam questions based on content emphasis and complexity
+   - Ensure summary serves as effective review material
+
+5. **Engagement Metrics:**
+   - Calculate quiz metrics based on generated questions
+   - Create meaningful achievement milestones related to content mastery
+
+## Quality Standards:
+- All content must be in ${language}
+- Questions should be exam-quality with clear, unambiguous answers
+- Explanations must be detailed enough for independent learning
+- Use bold text for **key terms** and important concepts
+- Ensure content flows logically and builds understanding progressively
+- Generate an appropriate number of questions based on lecture length and complexity (prioritize quality over hitting arbitrary numbers)
+- Multiple choice distractors should be plausible but clearly wrong to an informed student
+- All questions must have both hints and detailed feedback
+- Return ONLY the JSON object, no additional text
+
+Generate the structured content now:`;
 }
 
 /**

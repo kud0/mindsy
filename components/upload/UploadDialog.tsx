@@ -38,7 +38,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useStudyFolders } from '@/hooks/useStudyFolders';
 
 interface UploadDialogProps {
   open: boolean;
@@ -64,7 +63,6 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
   const [linkUrl, setLinkUrl] = useState('');
   const [linkType, setLinkType] = useState<'youtube' | 'podcast' | 'url'>('youtube');
   const [lectureTitle, setLectureTitle] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState('');
   const [processingMode, setProcessingMode] = useState<'enhance' | 'basic'>('enhance');
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -79,7 +77,6 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
   const documentInputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const router = useRouter();
-  const { folders, loading: foldersLoading } = useStudyFolders();
 
   // Reset form when dialog opens/closes
   React.useEffect(() => {
@@ -96,7 +93,6 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
       setLinkUrl('');
       setLinkType('youtube');
       setLectureTitle('');
-      setSelectedFolder('');
       setUploadProgress(null);
       setIsUploading(false);
       setDragActive(false);
@@ -257,7 +253,6 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
       
       const formData = new FormData();
       formData.append('lectureTitle', lectureTitle);
-      formData.append('studyNodeId', selectedFolder);
       formData.append('uploadType', activeTab);
       formData.append('processingMode', processingMode);
 
@@ -309,7 +304,6 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
       // Note: Processing continues even after dialog closes
       const generatePayload: any = {
         lectureTitle,
-        studyNodeId: selectedFolder || undefined,
         processingMode: processingMode || 'enhance',
         uploadType: activeTab,
       };
@@ -728,41 +722,8 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
               </p>
             </div>
 
-            <div>
-              <Label htmlFor="selectedFolder">Study Folder</Label>
-              <Select value={selectedFolder} onValueChange={setSelectedFolder} disabled={isUploading || foldersLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder={
-                    foldersLoading 
-                      ? "Loading folders..." 
-                      : "Select a folder (optional)"
-                  } />
-                </SelectTrigger>
-                <SelectContent>
-                  {folders.length === 0 && !foldersLoading ? (
-                    <SelectItem value="" disabled>
-                      No study folders found - Create one in Lectures page
-                    </SelectItem>
-                  ) : (
-                    folders.map((folder) => (
-                      <SelectItem key={folder.id} value={folder.id}>
-                        <div className="flex items-center gap-2">
-                          <span style={{ paddingLeft: `${folder.level * 12}px` }}>
-                            {folder.level > 0 && '↳ '}
-                            {folder.name}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              {selectedFolder && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Selected: {folders.find(f => f.id === selectedFolder)?.path || 'Unknown folder'}
-                </p>
-              )}
-            </div>
+            {/* Note: Folder assignment has been moved to the course folder system.
+                Users can organize lectures within courses after upload. */}
           </CardContent>
         </Card>
 

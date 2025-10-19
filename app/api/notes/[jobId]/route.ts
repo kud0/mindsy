@@ -135,17 +135,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       notesData = newNotes || []
     }
 
-    // Get study nodes
-    const { data: studyNode } = await supabase
-      .from('study_nodes')
-      .select('id, name, type')
-      .eq('id', job.study_node_id)
+    // Get user folder
+    const { data: userFolder } = await supabase
+      .from('user_folders')
+      .select('id, name')
+      .eq('id', job.user_folder_id)
       .single()
 
     const note = {
       ...job,
       notes: notesData,
-      study_nodes: studyNode
+      user_folders: userFolder
     }
 
     if (notesError && notesData.length === 0) {
@@ -178,7 +178,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
   try {
     const body = await request.json()
-    const { lecture_title, course_subject, study_node_id } = body
+    const { lecture_title, course_subject, user_folder_id } = body
 
     const supabase = await createClient()
 
@@ -201,7 +201,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     if (lecture_title !== undefined) updates.lecture_title = lecture_title.trim()
     if (course_subject !== undefined) updates.course_subject = course_subject?.trim() || null
-    if (study_node_id !== undefined) updates.study_node_id = study_node_id || null
+    if (user_folder_id !== undefined) updates.user_folder_id = user_folder_id || null
 
     const { data: updatedNote, error: updateError } = await supabase
       .from('jobs')

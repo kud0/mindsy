@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       // Try alternative approach - just try to query common tables
       const tableTests = [];
       
-      const testTables = ['jobs', 'study_nodes', 'exams', 'exam_attempts', 'user_performance', 'user_achievements'];
+      const testTables = ['jobs', 'user_folders', 'exams', 'exam_attempts', 'user_performance', 'user_achievements'];
       
       for (const tableName of testTables) {
         try {

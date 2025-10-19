@@ -63,12 +63,12 @@ export async function GET(request: NextRequest) {
       console.log('📚 Found', lectures.length, 'lecture matches');
     }
 
-    // 2. Search study folders
+    // 2. Search course folders
     const { data: folders, error: foldersError } = await supabase
-      .from('study_nodes')
-      .select('id, name, description, type')
+      .from('user_folders')
+      .select('id, folder_name, description')
       .eq('user_id', user.id)
-      .ilike('name', `%${searchTerm}%`)
+      .ilike('folder_name', `%${searchTerm}%`)
       .limit(5);
 
     if (!foldersError && folders) {
@@ -76,8 +76,8 @@ export async function GET(request: NextRequest) {
         results.push({
           type: 'folder',
           id: folder.id,
-          title: folder.name,
-          subtitle: folder.description || `${folder.type} folder`
+          title: folder.folder_name,
+          subtitle: folder.description || 'Course folder'
         });
       });
       console.log('📁 Found', folders.length, 'folder matches');

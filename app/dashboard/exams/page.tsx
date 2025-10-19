@@ -11,14 +11,13 @@ export default async function ExamsPage() {
     return <div>Loading...</div>;
   }
 
-  // Get user's folders for exam generation
+  // Get user's folders for exam generation (using user_folders)
   const { data: folders = [] } = await supabase
-    .from('study_nodes')
+    .from('user_folders')
     .select(`
       id,
       name,
       parent_id,
-      type,
       description,
       created_at
     `)
@@ -32,7 +31,7 @@ export default async function ExamsPage() {
         .from('jobs')
         .select('*', { count: 'exact' })
         .eq('user_id', user.id)
-        .eq('folder_id', folder.id)
+        .eq('user_folder_id', folder.id)
         .eq('status', 'completed');
 
       return {
@@ -40,7 +39,6 @@ export default async function ExamsPage() {
         name: folder.name,
         count: count || 0,
         parentId: folder.parent_id,
-        type: folder.type,
         description: folder.description
       };
     })

@@ -168,23 +168,157 @@ export function validateLectureData(data: any): data is LectureData {
 }
 
 /**
- * Gets mock lecture data for testing (from sample-lecture.json)
+ * Gets mock lecture data for testing (returns hardcoded sample data)
  */
 export async function getMockLectureData(): Promise<LectureData> {
-  try {
-    const response = await fetch('/data/student-desk/sample-lecture.json');
-    if (!response.ok) {
-      throw new Error('Failed to load mock data');
+  // Return hardcoded sample data instead of fetching from file
+  const sampleData: LectureData = {
+    metadata: {
+      title: "Introduction to Machine Learning",
+      subjectDomain: "Computer Science",
+      difficulty: "intermediate",
+      estimatedTime: "45 minutes",
+      examImportance: "high",
+      hook: "Discover how machines learn from data"
+    },
+    overview: {
+      mainTopic: "Machine Learning Fundamentals",
+      keyObjectives: [
+        "Understand supervised vs unsupervised learning",
+        "Learn about common ML algorithms",
+        "Apply ML concepts to real-world problems"
+      ],
+      coreConceptsList: [
+        "Training data",
+        "Model evaluation",
+        "Feature engineering",
+        "Overfitting and underfitting"
+      ]
+    },
+    questions: [
+      {
+        id: "q1",
+        statement: "What is the main difference between supervised and unsupervised learning?",
+        feedback: "Supervised learning uses labeled data to train models, while unsupervised learning finds patterns in unlabeled data.",
+        difficulty: "medium",
+        points: 10,
+        estimatedTime: "2 minutes"
+      },
+      {
+        id: "q2",
+        statement: "Explain what overfitting means in machine learning.",
+        feedback: "Overfitting occurs when a model learns the training data too well, including noise and outliers, resulting in poor generalization to new data.",
+        difficulty: "medium",
+        points: 10,
+        estimatedTime: "3 minutes"
+      }
+    ],
+    explanations: [
+      {
+        id: "exp1",
+        concept: "Types of Machine Learning",
+        importance: "high",
+        explanation: "Machine learning can be categorized into three main types: supervised learning (learning from labeled examples), unsupervised learning (finding patterns in unlabeled data), and reinforcement learning (learning through interaction with an environment).",
+        keyPoints: ["Supervised uses labeled data", "Unsupervised finds patterns", "Reinforcement learns through interaction"],
+        example: "Spam detection is supervised learning, customer segmentation is unsupervised",
+        multiModalExplanation: {
+          text: "Machine learning types explanation",
+          visual: "Diagram showing three ML types",
+          analogy: "Like learning to cook with recipes (supervised) vs experimenting (unsupervised)",
+          example: "Email spam filtering",
+          interactiveElement: "Try classifying examples"
+        },
+        depthLevels: {
+          eli5: "Computers can learn in different ways",
+          standard: "Three main types of machine learning",
+          advanced: "Mathematical foundations of ML paradigms"
+        },
+        commonConfusions: [],
+        expertPerspective: "Understanding the right type for your problem is crucial"
+      },
+      {
+        id: "exp2",
+        concept: "Model Evaluation Metrics",
+        importance: "high",
+        explanation: "Common metrics include accuracy, precision, recall, and F1-score for classification problems, and MSE, RMSE, and R² for regression problems.",
+        keyPoints: ["Accuracy measures overall correctness", "Precision measures positive prediction quality", "Recall measures completeness"],
+        example: "In medical diagnosis, high recall is critical to not miss any cases",
+        multiModalExplanation: {
+          text: "Evaluation metrics explanation",
+          visual: "Confusion matrix visualization",
+          analogy: "Like grading a test with different scoring methods",
+          example: "Medical test evaluation",
+          interactiveElement: "Calculate metrics from confusion matrix"
+        },
+        depthLevels: {
+          eli5: "Ways to measure how good a model is",
+          standard: "Different metrics for different problems",
+          advanced: "Statistical significance and confidence intervals"
+        },
+        commonConfusions: [],
+        expertPerspective: "Choose metrics that align with business objectives"
+      }
+    ],
+    summary: {
+      essentialPoints: [
+        "Machine learning enables computers to learn from data",
+        "Three main types: supervised, unsupervised, reinforcement",
+        "Model evaluation is crucial for performance assessment",
+        "Feature engineering improves model performance"
+      ],
+      examFocus: {
+        mustKnow: [
+          "Definition and types of machine learning",
+          "Common algorithms and their applications",
+          "Evaluation metrics and their interpretation"
+        ],
+        likelyQuestions: [
+          "Compare and contrast different ML algorithms",
+          "Explain the bias-variance tradeoff",
+          "Describe cross-validation techniques"
+        ]
+      },
+      studyPlan: {
+        priorities: [
+          "Review core ML concepts",
+          "Practice with algorithm implementations",
+          "Work through example problems"
+        ],
+        timeAllocation: {
+          theory: 40,
+          practice: 60
+        }
+      },
+      resources: {
+        essential: ["Course textbook chapters 1-3", "Lecture slides"],
+        recommended: ["Andrew Ng's ML course", "Hands-On Machine Learning book"],
+        practice: ["Kaggle competitions", "Google Colab notebooks"]
+      }
+    },
+    adaptiveFeatures: {
+      masteryTracking: {
+        currentLevel: 0,
+        progressIndicators: ["Questions answered", "Time spent", "Accuracy rate"]
+      },
+      personalizedTips: [
+        "Focus on understanding algorithms conceptually before diving into math",
+        "Practice with real datasets to solidify understanding"
+      ]
+    },
+    assessmentAlignment: {
+      examFormat: "Multiple choice and short answer",
+      keyTopics: ["ML fundamentals", "Algorithm selection", "Model evaluation"],
+      practiceQuestions: 10
+    },
+    engagement: {
+      quizMetrics: {
+        totalQuestions: 10,
+        totalPoints: 100,
+        passingScore: 70
+      },
+      achievements: []
     }
-    const data = await response.json();
-    
-    if (!validateLectureData(data)) {
-      throw new Error('Invalid lecture data structure');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error loading mock lecture data:', error);
-    throw error;
-  }
+  };
+  
+  return sampleData;
 }

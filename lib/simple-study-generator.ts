@@ -11,9 +11,18 @@ export interface StudyGuideQuestion {
   answer: string;
 }
 
-export interface StudyGuideExplanation {
-  title: string;
+export interface StudyGuideExplanationSection {
+  heading: string;
   content: string;
+  points?: string[];
+}
+
+export interface StudyGuideExplanation {
+  title: string;  // MUST be specific concept name
+  introduction: string;  // Opening paragraph
+  sections?: StudyGuideExplanationSection[];  // Subsections with headers
+  // Legacy support
+  content?: string;
 }
 
 export interface StudyGuideSummary {
@@ -105,19 +114,48 @@ Transcript: ${transcript}
      * MEDIUM content (1000-3000 words): Create 6-10 questions covering all major topics  
      * LONG content (3000+ words): Create 10-15 questions for thorough coverage
 
-2. **COMPREHENSIVE EXPLANATIONS THAT TEACH:**
-   - For each question, write detailed, well-structured explanations
-   - **Crucially, explain all concepts as if you are teaching them to someone who missed the lecture entirely**
-   - Define terms and provide necessary context
-   - Use clear, logical structure with bullet points and sub-points
+2. **COMPREHENSIVE EXPLANATIONS THAT TEACH (RICH FORMAT REQUIRED):**
+
+   🚨 CRITICAL SCHEMA REQUIREMENTS 🚨
+
+   YOU MUST USE THIS EXACT SCHEMA - DO NOT DEVIATE:
+   {
+     "title": "Specific concept name from lecture",
+     "introduction": "Opening paragraph (NOT 'content' field!)",
+     "sections": [
+       {
+         "heading": "Subsection name",
+         "content": "Paragraph content",
+         "points": ["Optional bullets"]
+       }
+     ]
+   }
+
+   ❌ FORBIDDEN - DO NOT USE THESE FIELDS:
+   - "content" (OLD SCHEMA - DO NOT USE!)
+   - Generic names like "Key Concept", "Core Concept", "Concept 1"
+   - Placeholder text like "Detailed explanation coming soon"
+
+   ✅ REQUIRED - YOU MUST USE:
+   - "title" field with specific concept name
+   - "introduction" field (opening paragraph)
+   - "sections" array with objects containing "heading", "content", "points"
+
+   CONTENT REQUIREMENTS:
+   - Create detailed explanations for the most important concepts from the lecture
+   - Analyze lecture length to determine appropriate number of explanations:
+     * Short lectures (10-20 min): 3-5 key explanations
+     * Medium lectures (20-40 min): 5-10 explanations
+     * Long lectures (40+ min): 10-15+ comprehensive explanations
+   - Each explanation MUST have a SPECIFIC, DESCRIPTIVE title
+     * ✅ GOOD: "Estructura del Esqueleto Axial", "Photosynthesis Process", "Newton's Second Law"
+     * ❌ BAD: "Key Concept", "Core Concept", "Concept 1", "Important Topic"
+   - Each section needs "heading" (specific subsection name), "content" (paragraph), and optional "points" (bullets)
+   - Mix paragraphs and bullet points naturally (like the example in JSON format)
+   - Write as if teaching someone who missed the lecture entirely
+   - Define all terms and provide necessary context
    - Include examples, analogies, and real-world applications
    - Connect ideas to broader themes and other concepts
-   - Example format for answers:
-     * Primary mechanism explanation with scientific basis
-     * Relationship to broader theoretical framework
-     * **Key terminology** with precise definitions
-     * Clinical/practical applications and significance
-     * Real-world examples or case studies
 
 3. **ACADEMIC SUMMARY - STANDALONE STUDY GUIDE:**
    - **Objective:** This summary MUST function as a standalone study guide. A student should be able to read this section alone and understand all the critical concepts, their connections, and the main conclusions.
@@ -143,16 +181,42 @@ Transcript: ${transcript}
   ],
   "explanations": [
     {
-      "title": "Fundamental Concepts and Theoretical Framework",
-      "content": "Comprehensive explanation of core theoretical principles underlying the lecture content. Include historical context, scientific foundations, and how these concepts form the basis for practical applications. Define all technical terminology and explain the logical progression of ideas."
+      "title": "Estructura del Esqueleto Axial",
+      "introduction": "El esqueleto axial incluye el cráneo, la columna vertebral y la pelvis. Su función principal es proteger y estabilizar el cuerpo, aunque también permite cierta movilidad. A diferencia de otras articulaciones, como las del hombro, que priorizan la movilidad, el esqueleto axial se caracteriza por su estabilidad.",
+      "sections": [
+        {
+          "heading": "Características del Cráneo",
+          "content": "El cráneo es principalmente una estructura protectora, diseñada para resguardar el cerebro. Aunque tiene algo de movilidad en la mandíbula, su función principal es la protección."
+        },
+        {
+          "heading": "Movimientos de la Columna Vertebral",
+          "content": "Los movimientos de la columna vertebral incluyen:",
+          "points": [
+            "Flexión: Inclinación hacia adelante.",
+            "Extensión: Inclinación hacia atrás.",
+            "Rotación: Ocurre en la articulación atlanto-occipital, donde se produce un mecanismo de deslizamiento y rotación."
+          ]
+        }
+      ]
     },
     {
-      "title": "Mechanisms and Processes",
-      "content": "Detailed analysis of how the discussed systems, processes, or phenomena actually work. Break down complex mechanisms into understandable components while maintaining scientific accuracy. Explain cause-and-effect relationships and interdependencies."
-    },
-    {
-      "title": "Applications and Real-World Significance",
-      "content": "Exploration of how the theoretical concepts translate into practical applications, clinical significance, or real-world implementations. Include case studies, examples, and current research developments that demonstrate the relevance of the material."
+      "title": "SPECIFIC CONCEPT NAME #2 (NOT 'Key Concept'!)",
+      "introduction": "Opening paragraph that clearly explains what this concept is, why it matters, and its relevance to the broader subject matter...",
+      "sections": [
+        {
+          "heading": "First Major Aspect",
+          "content": "Detailed paragraph explaining this particular aspect of the concept. Write as if teaching someone who wasn't there..."
+        },
+        {
+          "heading": "Second Major Aspect",
+          "content": "Another comprehensive paragraph...",
+          "points": [
+            "Optional bullet point for details",
+            "Another key detail",
+            "Additional clarification"
+          ]
+        }
+      ]
     }
   ],
   "summary": {
@@ -175,11 +239,12 @@ Transcript: ${transcript}
 }
 
 **Quality Assurance Framework:**
-- **Comprehensive Coverage:** IMPORTANT - Look at content length, not just major concepts. Longer content needs more questions.
-- **Minimum Standards:** 
-  * Even short content should have at least 3-4 questions
-  * Medium content should have 5-8 questions minimum
-  * Long content should have 8+ questions for proper coverage
+- **Comprehensive Coverage:** IMPORTANT - Analyze content length and complexity to determine optimal question count. Longer and more complex content needs more questions.
+- **Adaptive Standards:**
+  * Determine the appropriate number of questions based on content depth and breadth
+  * Short content: Generate enough questions to cover key concepts (typically 3-5)
+  * Medium content: Ensure comprehensive coverage (typically 6-12)
+  * Long/complex content: Create thorough assessment (typically 12-20+)
 - **Topic Distribution:** Ensure questions cover ALL sections of the content, not just the beginning
 - **Balance Check:** Mix foundational questions with application and analysis questions
 - **Explanation Alignment:** Create one detailed explanation section for every 2-3 related questions

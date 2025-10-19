@@ -20,8 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Folder ID required' }, { status: 400 });
     }
 
-    // Get all notes from the folder - using jobs table which stores the notes
-    // Note: The jobs table doesn't have folder_id, it's stored in the notes table
+    // Get all notes from the folder
     const { data: notes, error: notesError } = await supabase
       .from('notes')
       .select(`
@@ -30,12 +29,12 @@ export async function POST(request: NextRequest) {
           lecture_title,
           md_file_path,
           status,
-          study_node_id
+          user_folder_id
         )
       `)
       .eq('user_id', user.id)
       .eq('jobs.status', 'completed')
-      .eq('jobs.study_node_id', folderId === 'unfiled' ? null : folderId);
+      .eq('jobs.user_folder_id', folderId === 'unfiled' ? null : folderId);
 
     if (notesError || !notes || notes.length === 0) {
       return NextResponse.json(

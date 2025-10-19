@@ -83,35 +83,34 @@ export function AIScheduleGenerator({
   }, [isOpen]);
 
   const loadUserLectures = async () => {
-    // Get lectures with their associated study nodes (folders)
+    // Get lectures with their associated course folders
     const { data: lectures } = await supabase
       .from('jobs')
       .select(`
-        job_id, 
-        lecture_title, 
+        job_id,
+        lecture_title,
         course_subject,
-        study_node_id,
-        study_nodes!inner (
+        user_folder_id,
+        user_folders!inner (
           id,
-          name,
-          type
+          name
         )
       `)
       .in('status', ['completed'])
       .order('created_at', { ascending: false });
-    
+
     if (lectures) {
       setUserLectures(lectures);
     }
   };
 
   const loadUserFolders = async () => {
-    // Get all user's study folders/nodes
+    // Get all user's course folders
     const { data: folders } = await supabase
-      .from('study_nodes')
-      .select('id, name, type, parent_id')
+      .from('user_folders')
+      .select('id, name, parent_id')
       .order('name', { ascending: true });
-    
+
     if (folders) {
       setUserFolders(folders);
     }
@@ -138,7 +137,7 @@ export function AIScheduleGenerator({
 
   // Get folders that have lectures (no empty folders)
   const getFoldersWithLectures = () => {
-    const folderIds = new Set(userLectures.map(lecture => lecture.study_node_id).filter(Boolean));
+    const folderIds = new Set(userLectures.map(lecture => lecture.user_folder_id).filter(Boolean));
     return userFolders.filter(folder => folderIds.has(folder.id));
   };
 
@@ -149,12 +148,12 @@ export function AIScheduleGenerator({
 
     try {
       // Find relevant lectures for the selected folder
-      const relevantLectures = selectedFolder 
-        ? userLectures.filter(lecture => lecture.study_node_id === selectedFolder)
-        : userLectures.filter(lecture => 
+      const relevantLectures = selectedFolder
+        ? userLectures.filter(lecture => lecture.user_folder_id === selectedFolder)
+        : userLectures.filter(lecture =>
             lecture.course_subject?.toLowerCase().includes(examSubject.toLowerCase()) ||
             lecture.lecture_title?.toLowerCase().includes(examSubject.toLowerCase()) ||
-            lecture.study_nodes?.name?.toLowerCase().includes(examSubject.toLowerCase())
+            lecture.user_folders?.name?.toLowerCase().includes(examSubject.toLowerCase())
           );
       
       // Get folder info for better context
@@ -231,8 +230,8 @@ export function AIScheduleGenerator({
   const createRuleBasedSchedule = (): StudyPlan => {
     const sessions: GeneratedSession[] = [];
     const daysUntilExam = differenceInDays(new Date(examDate), new Date());
-    const relevantLectures = selectedFolder 
-      ? userLectures.filter(lecture => lecture.study_node_id === selectedFolder)
+    const relevantLectures = selectedFolder
+      ? userLectures.filter(lecture => lecture.user_folder_id === selectedFolder)
       : [];
     
     const selectedFolderInfo = selectedFolder 
@@ -479,7 +478,7 @@ export function AIScheduleGenerator({
             {selectedFolder && (
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm text-green-600 dark:text-green-400">
-                  📚 {userLectures.filter(l => l.study_node_id === selectedFolder).length} lectures found in "{userFolders.find(f => f.id === selectedFolder)?.name}"
+                  📚 {userLectures.filter(l => l.user_folder_id === selectedFolder).length} lectures found in "{userFolders.find(f => f.id === selectedFolder)?.name}"
                 </p>
                 <p className="text-xs text-green-500 dark:text-green-500 mt-1">
                   Path: {getFolderPath(selectedFolder)}

@@ -259,7 +259,7 @@ export function StudyScheduleClient() {
             subject: sessionData.subject,
             description: sessionData.description,
             lecture_id: sessionData.lectureId,
-            study_node_id: sessionData.studyNodeId
+            user_folder_id: sessionData.userFolderId
           })
         });
 
@@ -283,7 +283,7 @@ export function StudyScheduleClient() {
             subject: sessionData.subject,
             description: sessionData.description,
             lecture_id: sessionData.lectureId,
-            study_node_id: sessionData.studyNodeId
+            user_folder_id: sessionData.userFolderId
           })
         });
 
@@ -635,7 +635,7 @@ export function StudyScheduleClient() {
                       subject: selectedSession.subject,
                       description: selectedSession.description,
                       lectureId: selectedSession.lectureId,
-                      studyNodeId: (selectedSession as any).studyNodeId
+                      userFolderId: (selectedSession as any).userFolderId
                     });
                     setSelectedTime(undefined);
                     setShowSessionDialog(true);

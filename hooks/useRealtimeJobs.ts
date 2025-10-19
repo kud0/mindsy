@@ -8,24 +8,13 @@ interface Job {
   lecture_title: string;
   status: 'processing' | 'completed' | 'failed';
   created_at: string;
-  study_node_id?: string;
+  user_folder_id?: string | null;
   audio_duration?: number;
   txt_file_path?: string;
   output_pdf_path?: string;
   user_id: string;
   course_subject?: string;
   processing_completed_at?: string;
-}
-
-interface StudyNode {
-  id: string;
-  name: string;
-  parent_id?: string;
-  user_id: string;
-  created_at: string;
-  node_type: 'folder' | 'course' | 'year' | 'subject' | 'semester';
-  description?: string;
-  color?: string;
 }
 
 interface StudyGuide {
@@ -48,22 +37,16 @@ interface UseRealtimeJobsProps {
   onJobInsert?: (job: Job) => void;
   onJobUpdate?: (job: Job) => void;
   onJobDelete?: (jobId: string) => void;
-  onStudyNodeInsert?: (node: StudyNode) => void;
-  onStudyNodeUpdate?: (node: StudyNode) => void;
-  onStudyNodeDelete?: (nodeId: string) => void;
   onStudyGuideInsert?: (guide: StudyGuide) => void;
   onStudyGuideUpdate?: (guide: StudyGuide) => void;
   onStudyGuideDelete?: (guideId: string) => void;
 }
 
-export function useRealtimeJobs({ 
-  userId, 
-  onJobInsert, 
-  onJobUpdate, 
+export function useRealtimeJobs({
+  userId,
+  onJobInsert,
+  onJobUpdate,
   onJobDelete,
-  onStudyNodeInsert,
-  onStudyNodeUpdate,
-  onStudyNodeDelete,
   onStudyGuideInsert,
   onStudyGuideUpdate,
   onStudyGuideDelete
@@ -123,52 +106,6 @@ export function useRealtimeJobs({
           console.log('🗑️ Job deleted:', payload.old);
           if (onJobDelete) {
             onJobDelete((payload.old as Job).job_id);
-          }
-        }
-      )
-      // Study nodes subscriptions
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'study_nodes',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('📁 New study node inserted:', payload.new);
-          if (onStudyNodeInsert) {
-            onStudyNodeInsert(payload.new as StudyNode);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'study_nodes',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('📝 Study node updated:', payload.new);
-          if (onStudyNodeUpdate) {
-            onStudyNodeUpdate(payload.new as StudyNode);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'study_nodes',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('🗑️ Study node deleted:', payload.old);
-          if (onStudyNodeDelete) {
-            onStudyNodeDelete((payload.old as StudyNode).id);
           }
         }
       )
@@ -232,5 +169,5 @@ export function useRealtimeJobs({
       console.log('🧹 Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [userId, onJobInsert, onJobUpdate, onJobDelete, onStudyNodeInsert, onStudyNodeUpdate, onStudyNodeDelete, onStudyGuideInsert, onStudyGuideUpdate, onStudyGuideDelete]);
+  }, [userId, onJobInsert, onJobUpdate, onJobDelete, onStudyGuideInsert, onStudyGuideUpdate, onStudyGuideDelete]);
 }

@@ -25,15 +25,13 @@ import UploadWidget from '@/components/upload/UploadWidget';
 interface DashboardOverviewProps {
   userName: string;
   totalNotes: number;
-  totalStudyNodes: number;
   subscriptionTier: string;
 }
 
-export default function DashboardOverview({ 
-  userName, 
-  totalNotes, 
-  totalStudyNodes,
-  subscriptionTier 
+export default function DashboardOverview({
+  userName,
+  totalNotes,
+  subscriptionTier
 }: DashboardOverviewProps) {
   const router = useRouter();
 
@@ -129,14 +127,10 @@ export default function DashboardOverview({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-primary">{totalNotes}</div>
                     <div className="text-sm text-muted-foreground">Total Notes</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-secondary">{totalStudyNodes}</div>
-                    <div className="text-sm text-muted-foreground">Study Folders</div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-accent">0</div>

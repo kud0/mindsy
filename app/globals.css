@@ -223,7 +223,7 @@ body {
   border-color: var(--border) !important;
 }
 
-/* Force light mode regardless of system preferences */
+/* Force color scheme based on theme class only */
 html:not(.dark) {
   color-scheme: light !important;
 }
@@ -232,33 +232,11 @@ html.dark {
   color-scheme: dark !important;
 }
 
-/* Force light mode on widget containers */
+/* Ensure widget containers use proper theme colors */
 html:not(.dark) .widget-container,
 html:not(.dark) .widget-content {
   background: rgba(255, 255, 255, 0.9) !important;
   color: rgb(17 24 39) !important;
-}
-
-/* Prevent any system dark mode interference */
-@media (prefers-color-scheme: dark) {
-  html:not(.dark) * {
-    color-scheme: light !important;
-  }
-  
-  /* Force light backgrounds on widgets even with system dark mode */
-  html:not(.dark) .widget-content,
-  html:not(.dark) [class*="bg-gray-950"],
-  html:not(.dark) [class*="dark:bg-gray"],
-  html:not(.dark) .dark\:bg-gray-950\/95,
-  html:not(.dark) .dark\:bg-gray-800\/90 {
-    background: rgba(255, 255, 255, 0.9) !important;
-  }
-  
-  /* Force light text colors */
-  html:not(.dark) .dark\:text-gray-50,
-  html:not(.dark) .dark\:text-gray-100 {
-    color: rgb(17 24 39) !important;
-  }
 }
 
 /* React Grid Layout Styles */

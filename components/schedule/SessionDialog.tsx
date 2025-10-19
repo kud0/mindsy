@@ -20,13 +20,12 @@ export interface SessionDialogData {
   subject?: string;
   description?: string;
   lectureId?: string;
-  studyNodeId?: string;
+  userFolderId?: string;
 }
 
-interface StudyFolder {
+interface CourseFolder {
   id: string;
   name: string;
-  type: 'course' | 'year' | 'subject' | 'semester' | 'custom';
   description?: string;
   parent_id?: string;
 }
@@ -35,7 +34,7 @@ interface Lecture {
   job_id: string;
   lecture_title: string;
   course_subject?: string;
-  study_node_id?: string;
+  user_folder_id?: string;
 }
 
 interface SessionDialogProps {
@@ -70,31 +69,31 @@ export function SessionDialog({
     description: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [studyFolders, setStudyFolders] = useState<StudyFolder[]>([]);
+  const [courseFolders, setCourseFolders] = useState<CourseFolder[]>([]);
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const supabase = createClient();
 
-  // Load study folders and lectures when dialog opens
+  // Load course folders and lectures when dialog opens
   const loadStudyData = async () => {
     if (!isOpen) return;
-    
+
     setLoadingData(true);
     try {
-      // Load study folders
+      // Load course folders (user_folders)
       const { data: folders, error: foldersError } = await supabase
-        .from('study_nodes')
-        .select('id, name, type, description, parent_id')
+        .from('user_folders')
+        .select('id, name, description, parent_id')
         .order('name');
 
       if (!foldersError && folders) {
-        setStudyFolders(folders);
+        setCourseFolders(folders);
       }
 
       // Load lectures
       const { data: lecturesData, error: lecturesError } = await supabase
         .from('jobs')
-        .select('job_id, lecture_title, course_subject, study_node_id')
+        .select('job_id, lecture_title, course_subject, user_folder_id')
         .in('status', ['completed', 'processing'])
         .order('lecture_title');
 
@@ -124,7 +123,7 @@ export function SessionDialog({
           description: initialData.description || '',
           id: initialData.id, // Make sure ID is preserved
           lectureId: initialData.lectureId,
-          studyNodeId: initialData.studyNodeId
+          userFolderId: initialData.userFolderId
         });
       } else if (selectedTime) {
         // Create new session starting at selected time
@@ -143,8 +142,8 @@ export function SessionDialog({
   const handleSave = async () => {
     // Auto-generate title if none provided and folder is selected
     let finalTitle = formData.title;
-    if (!finalTitle.trim() && formData.studyNodeId) {
-      const folder = studyFolders.find(f => f.id === formData.studyNodeId);
+    if (!finalTitle.trim() && formData.userFolderId) {
+      const folder = courseFolders.find(f => f.id === formData.userFolderId);
       finalTitle = folder ? `Study ${folder.name}` : 'Study Session';
     }
     
@@ -205,23 +204,23 @@ export function SessionDialog({
           {/* What to Study - Primary Selection */}
           <div>
             <Label htmlFor="folder">What do you want to study?</Label>
-            <Select 
-              value={formData.studyNodeId || 'custom'} 
+            <Select
+              value={formData.userFolderId || 'custom'}
               onValueChange={(value) => {
                 if (value === 'custom') {
                   // Custom study session
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    studyNodeId: undefined,
+                  setFormData(prev => ({
+                    ...prev,
+                    userFolderId: undefined,
                     title: '',
                     subject: ''
                   }));
                 } else {
                   // Folder-based study session
-                  const folder = studyFolders.find(f => f.id === value);
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    studyNodeId: value,
+                  const folder = courseFolders.find(f => f.id === value);
+                  setFormData(prev => ({
+                    ...prev,
+                    userFolderId: value,
                     title: folder ? `Study ${folder.name}` : '',
                     subject: folder?.name || ''
                   }));
@@ -238,12 +237,11 @@ export function SessionDialog({
                     <span>Custom Study Session</span>
                   </div>
                 </SelectItem>
-                {studyFolders.map(folder => (
+                {courseFolders.map(folder => (
                   <SelectItem key={folder.id} value={folder.id}>
                     <div className="flex items-center gap-2">
                       <Folder className="w-4 h-4" />
                       <span>{folder.name}</span>
-                      <span className="text-xs text-gray-500 ml-2">({folder.type})</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -255,7 +253,7 @@ export function SessionDialog({
           </div>
 
           {/* Custom Title (only if custom selected or auto-filled title needs editing) */}
-          {(formData.studyNodeId === undefined || formData.title) && (
+          {(formData.userFolderId === undefined || formData.title) && (
             <div>
               <Label htmlFor="title">Session Name</Label>
               <Input
