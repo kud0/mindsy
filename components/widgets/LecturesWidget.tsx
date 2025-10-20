@@ -29,7 +29,7 @@ export function LecturesWidget() {
 
   const fetchRecentLectures = async () => {
     try {
-      const response = await fetch('/api/notes?limit=6');
+      const response = await fetch('/api/notes?limit=3');
       if (response.ok) {
         const data = await response.json();
         console.log('API Response:', data);
@@ -46,16 +46,16 @@ export function LecturesWidget() {
     }
   };
 
-  const getStatusDot = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':
-        return 'bg-green-400';
+        return { icon: '✓', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-900/30' };
       case 'processing':
-        return 'bg-blue-400 animate-pulse';
+        return { icon: '⏱', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' };
       case 'failed':
-        return 'bg-red-400';
+        return { icon: '✗', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' };
       default:
-        return 'bg-gray-400';
+        return { icon: '○', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-900/30' };
     }
   };
 
@@ -67,20 +67,20 @@ export function LecturesWidget() {
     <>
       <BaseWidget
         title="Lectures"
-        icon={FileText}
+        iconImage="/images/lecture.png"
         href="/dashboard/lectures"
         color="text-purple-600"
         bgColor="bg-purple-100"
         loading={loading}
         actions={
-          <Button 
+          <Button
             variant="ghost"
             size="icon"
             onClick={() => setUploadOpen(true)}
           >
-            <img 
-              src="/upload.png" 
-              alt="Upload" 
+            <img
+              src="/upload.png"
+              alt="Upload"
               className="h-7 w-7 object-contain"
             />
           </Button>
@@ -88,62 +88,60 @@ export function LecturesWidget() {
       >
         {lectures.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <FileText className="h-12 w-12 opacity-50 mb-3" />
+            <img
+              src="/images/lecture.png"
+              alt="Lectures"
+              className="w-12 h-12 opacity-50 mb-3 object-contain"
+            />
             <p className="text-sm">No lectures yet</p>
             <p className="text-xs opacity-70 mt-1">Upload your first lecture to get started</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 divide-x divide-gray-300/30 gap-x-4">
-            <div className="pr-2">
-              {lectures.slice(0, 3).map((lecture, index) => (
+          <div className="space-y-3">
+            {lectures.slice(0, 3).map((lecture, index) => {
+              const statusInfo = getStatusIcon(lecture.status);
+              return (
                 <div key={lecture.job_id}>
-                  <div 
-                    className="flex items-center gap-2 hover:bg-white/10 rounded p-1 transition-colors cursor-pointer py-2"
+                  <div
+                    className="flex items-start gap-3 hover:bg-muted/50 rounded-lg p-2 transition-all cursor-pointer group"
                     onClick={() => handleLectureClick(lecture.job_id)}
                   >
-                    <div 
-                      className={cn("w-2 h-2 rounded-full flex-shrink-0", getStatusDot(lecture.status))} 
-                    />
+                    {/* Status Icon */}
+                    <div
+                      className={cn(
+                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm transition-transform group-hover:scale-110",
+                        statusInfo.bg,
+                        statusInfo.color
+                      )}
+                    >
+                      {statusInfo.icon}
+                    </div>
+
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate leading-tight">
+                      <p className="text-sm font-semibold truncate leading-tight mb-1">
                         {lecture.lecture_title}
                       </p>
-                      <p className="text-xs opacity-60 truncate leading-tight">
-                        {new Date(lecture.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>
+                          {new Date(lecture.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                        <span>•</span>
+                        <span className="capitalize">{lecture.status}</span>
+                      </div>
                     </div>
                   </div>
-                  {index < 2 && (
-                    <div className="border-b border-gray-300/30 my-3"></div>
+
+                  {/* Divider between items (except last) */}
+                  {index < Math.min(lectures.length, 3) - 1 && (
+                    <div className="border-b border-border/50 my-2 ml-10"></div>
                   )}
                 </div>
-              ))}
-            </div>
-            <div className="pl-2">
-              {lectures.slice(3, 6).map((lecture, index) => (
-                <div key={lecture.job_id}>
-                  <div 
-                    className="flex items-center gap-2 hover:bg-white/10 rounded p-1 transition-colors cursor-pointer py-2"
-                    onClick={() => handleLectureClick(lecture.job_id)}
-                  >
-                    <div 
-                      className={cn("w-2 h-2 rounded-full flex-shrink-0", getStatusDot(lecture.status))} 
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate leading-tight">
-                        {lecture.lecture_title}
-                      </p>
-                      <p className="text-xs opacity-60 truncate leading-tight">
-                        {new Date(lecture.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  {index < 2 && (
-                    <div className="border-b border-gray-300/30 my-3"></div>
-                  )}
-                </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
       </BaseWidget>

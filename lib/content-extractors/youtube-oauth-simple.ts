@@ -219,7 +219,7 @@ export class YouTubeOAuthSimpleExtractor {
     }
 
     // Find the best caption track (prefer English, then auto-generated)
-    let bestCaption = captions.find((cap: any) => 
+    const bestCaption = captions.find((cap: any) => 
       cap.snippet?.language === 'en' && cap.snippet?.trackKind !== 'asr'
     ) || captions.find((cap: any) => 
       cap.snippet?.language === 'en'

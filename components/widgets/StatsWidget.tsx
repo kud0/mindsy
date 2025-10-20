@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, BookOpen, Clock, Award } from 'lucide-react';
+import { TrendingUp, BookOpen, Award, TrendingUp as TrendingUpIcon } from 'lucide-react';
 import { BaseWidget } from './BaseWidget';
 import { Progress } from '@/components/ui/progress';
 
@@ -11,7 +11,9 @@ export function StatsWidget() {
     weeklyGoal: 20,
     completedLectures: 0,
     averageScore: 0,
-    streak: 0
+    streak: 0,
+    lecturesTrend: 0,
+    scoreTrend: 0
   });
 
   useEffect(() => {
@@ -21,7 +23,9 @@ export function StatsWidget() {
       weeklyGoal: 20,
       completedLectures: 8,
       averageScore: 85,
-      streak: 5
+      streak: 5,
+      lecturesTrend: 3,  // +3 from last week
+      scoreTrend: 5       // +5% from last week
     });
   }, []);
 
@@ -30,49 +34,65 @@ export function StatsWidget() {
   return (
     <BaseWidget
       title="Study Stats"
-      icon={TrendingUp}
+      iconImage="/images/statistics.png"
       href="/dashboard"
       color="text-blue-600 dark:text-blue-400"
       bgColor="bg-blue-100 dark:bg-blue-900/30"
     >
       <div className="space-y-4">
-        {/* Weekly Goal Progress */}
+        {/* Weekly Goal Progress - Now Primary Metric */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Weekly Goal</span>
-            <span className="font-medium">{stats.totalStudyHours}h / {stats.weeklyGoal}h</span>
+            <span className="text-muted-foreground font-medium">Weekly Goal</span>
+            <span className="font-semibold">{stats.totalStudyHours}h / {stats.weeklyGoal}h</span>
           </div>
-          <Progress value={weeklyProgress} className="h-2" />
+          <Progress
+            value={weeklyProgress}
+            className="h-3 bg-muted/50"
+          />
+          <p className="text-xs text-muted-foreground text-right">
+            {Math.round(weeklyProgress)}% complete
+          </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Side by Side Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg ">
-            <div className="flex items-center gap-2 mb-1">
-              <BookOpen className="h-3 w-3 text-muted-foreground" />
-              <p className="text-lg font-bold">{stats.completedLectures}</p>
+          {/* Lectures Card */}
+          <div className="p-3 rounded-lg bg-muted/30 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              {stats.lecturesTrend > 0 && (
+                <div className="flex items-center gap-0.5 text-green-600 dark:text-green-400">
+                  <TrendingUpIcon className="h-3 w-3" />
+                  <span className="text-[10px] font-medium">+{stats.lecturesTrend}</span>
+                </div>
+              )}
             </div>
+            <p className="text-2xl font-bold mb-0.5">{stats.completedLectures}</p>
             <p className="text-xs text-muted-foreground">Lectures</p>
+            <p className="text-[10px] text-green-600 dark:text-green-400 mt-1">
+              This week
+            </p>
           </div>
-          <div className="p-3 rounded-lg ">
-            <div className="flex items-center gap-2 mb-1">
-              <Award className="h-3 w-3 text-muted-foreground" />
-              <p className="text-lg font-bold">{stats.averageScore}%</p>
+
+          {/* Average Score Card */}
+          <div className="p-3 rounded-lg bg-muted/30 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <Award className="h-4 w-4 text-muted-foreground" />
+              {stats.scoreTrend > 0 && (
+                <div className="flex items-center gap-0.5 text-green-600 dark:text-green-400">
+                  <TrendingUpIcon className="h-3 w-3" />
+                  <span className="text-[10px] font-medium">+{stats.scoreTrend}%</span>
+                </div>
+              )}
             </div>
+            <p className="text-2xl font-bold mb-0.5">{stats.averageScore}%</p>
             <p className="text-xs text-muted-foreground">Avg Score</p>
+            <p className="text-[10px] text-green-600 dark:text-green-400 mt-1">
+              Improving
+            </p>
           </div>
         </div>
-
-        {/* Streak */}
-        {stats.streak > 0 && (
-          <div className="flex items-center justify-center p-3 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-            <span className="text-2xl mr-2">🔥</span>
-            <div>
-              <p className="text-sm font-medium">{stats.streak} Day Streak!</p>
-              <p className="text-xs text-muted-foreground">Keep it going!</p>
-            </div>
-          </div>
-        )}
       </div>
     </BaseWidget>
   );

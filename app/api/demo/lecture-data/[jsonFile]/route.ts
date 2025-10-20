@@ -170,7 +170,7 @@ export async function OPTIONS() {
         // Try to get basic info from each file
         let title = file.replace('.json', '');
         let questionsCount = 0;
-        let size = Math.round(stats.size / 1024);
+        const size = Math.round(stats.size / 1024);
         
         try {
           const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));

@@ -23,11 +23,11 @@ interface TabNavigationProps {
 
 export function TabNavigation({ activeTabId, onTabChange }: TabNavigationProps) {
   return (
-    <nav className="flex bg-white">
+    <nav className="flex bg-card border-b border-border">
       {TABS.map((tab) => {
         const isActive = activeTabId === tab.id;
         const IconComponent = tab.icon;
-        
+
         return (
           <button
             key={tab.id}
@@ -39,9 +39,9 @@ export function TabNavigation({ activeTabId, onTabChange }: TabNavigationProps) 
             className={`
               flex-1 flex flex-col items-center justify-center py-3 px-2 min-h-[48px]
               border-b-2 transition-colors duration-200
-              ${isActive 
-                ? 'border-gray-900 text-gray-900' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              ${isActive
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
               }
             `}
             onClick={() => onTabChange(tab.id)}

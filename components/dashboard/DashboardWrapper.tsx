@@ -1,5 +1,14 @@
 "use client"
 
+// ========================================
+// Dashboard Layout Wrapper
+// ========================================
+// This wrapper provides context and navigation for ALL dashboard pages
+// It wraps children from app/dashboard/layout.tsx
+// IMPORTANT: Keep this wrapper TRANSPARENT (no bg-* classes)
+// so that child pages can set their own backgrounds
+// ========================================
+
 import React, { createContext, useContext, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { BottomNavbar } from '../navigation/BottomNavbar';
@@ -27,16 +36,29 @@ const CommandBarContext = createContext<CommandBarContextType>({
 export const useScroll = () => useContext(ScrollContext);
 export const useCommandBar = () => useContext(CommandBarContext);
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  plan: 'free' | 'pro';
+}
+
 export function DashboardWrapper({
-  children
-}: { children: React.ReactNode }) {
+  children,
+  user
+}: {
+  children: React.ReactNode;
+  user: User;
+}) {
   const pathname = usePathname();
   // Check if we're on a lecture detail page (student desk)
+  // Pattern: /dashboard/lectures/[jobId] (but not /dashboard/lectures itself)
   const isStudentDesk = pathname?.startsWith('/dashboard/lectures/') && pathname !== '/dashboard/lectures';
   const [isScrolled, setIsScrolled] = useState(false);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
 
-  console.log('DashboardWrapper - pathname:', pathname, 'isStudentDesk:', isStudentDesk, 'isScrolled:', isScrolled);
+  console.log('🔍 DashboardWrapper - pathname:', pathname, 'isStudentDesk:', isStudentDesk);
 
   const openCommandBar = () => {
     setCommandBarOpen(true);
@@ -45,14 +67,14 @@ export function DashboardWrapper({
   return (
     <ScrollContext.Provider value={{ isScrolled, setIsScrolled }}>
       <CommandBarContext.Provider value={{ openCommandBar }}>
-        <div className="flex h-screen bg-background">
+        <div className="flex h-screen">
           {/* Main content area */}
           <main className="flex-1 overflow-y-auto overflow-x-hidden">
             {children}
           </main>
 
-          {/* Mobile Bottom Navigation */}
-          <BottomNavbar isScrolled={isStudentDesk ? isScrolled : false} />
+          {/* Mobile Bottom Navigation - Hidden on student desk */}
+          {!isStudentDesk && <BottomNavbar isScrolled={false} />}
 
           {/* Command Bar (Cmd+K search) */}
           <CommandBar isOpen={commandBarOpen} onOpenChange={setCommandBarOpen} />

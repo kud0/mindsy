@@ -1,6 +1,7 @@
 'use client';
 
 import { UserMinus } from 'lucide-react';
+import { BattleChallengeButton } from '../battles/BattleChallengeButton';
 
 interface FriendCardProps {
   friend: {
@@ -14,9 +15,14 @@ interface FriendCardProps {
     created_at: string;
   };
   onRemove: () => void;
+  userFolders?: Array<{
+    id: string;
+    folder_name: string;
+    lecture_count?: number;
+  }>;
 }
 
-export function FriendCard({ friend, onRemove }: FriendCardProps) {
+export function FriendCard({ friend, onRemove, userFolders = [] }: FriendCardProps) {
   return (
     <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -36,15 +42,18 @@ export function FriendCard({ friend, onRemove }: FriendCardProps) {
         </div>
       </div>
 
-      {/* Remove Button */}
-      <button
-        onClick={onRemove}
-        className="flex items-center gap-1 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
-        title="Remove friend"
-      >
-        <UserMinus className="w-4 h-4" />
-        Remove
-      </button>
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2">
+        <BattleChallengeButton friend={friend} userFolders={userFolders} />
+        <button
+          onClick={onRemove}
+          className="flex items-center gap-1 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+          title="Remove friend"
+        >
+          <UserMinus className="w-4 h-4" />
+          Remove
+        </button>
+      </div>
     </div>
   );
 }

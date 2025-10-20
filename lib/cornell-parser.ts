@@ -156,7 +156,7 @@ export function extractStudyQuestionsAndAnswers(notesContent: string): StudyQues
 
   questionMatches.forEach((questionMatch, index) => {
     const questionNumber = index + 1
-    let questionText = questionMatch
+    const questionText = questionMatch
       .replace(/^###\s*(?:Question|Pregunta)\s*\d+:\s*/, '')
       .replace(/^\s*[\*\-\d\.]\s*/, '')
       .trim()

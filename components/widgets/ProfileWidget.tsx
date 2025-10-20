@@ -168,26 +168,43 @@ export function ProfileWidget() {
     );
   };
 
+  const handleCardClick = () => {
+    router.push('/dashboard/account');
+  };
+
   return (
-    <div className="h-full w-full rounded-3xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 p-6 flex items-center justify-between relative overflow-hidden">
+    <div
+      className="h-full w-full rounded-3xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 p-6 flex flex-col justify-between relative overflow-hidden cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleCardClick();
+        }
+      }}
+    >
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent rounded-3xl" />
 
       {/* Logout Button - Top Right */}
       <button
-        onClick={handleLogout}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent card click
+          handleLogout();
+        }}
         className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 transition-all hover:scale-105 group"
         title="Log out"
       >
         <LogOut className="w-4 h-4 text-gray-700 dark:text-gray-200 group-hover:text-red-600" />
       </button>
-      
-      {/* Left side - Profile Info */}
-      <div className="relative z-10 flex flex-col justify-start pt-2">
-        {/* Large Profile Photo */}
+
+      {/* Top section - Profile Info */}
+      <div className="relative z-10 flex items-center gap-4">
+        {/* Profile Photo */}
         <div className="relative">
           <div className={cn(
-            "w-32 h-32 rounded-full flex items-center justify-center text-white text-3xl font-bold overflow-hidden",
+            "w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden",
             "bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg"
           )}>
             {user?.user_metadata?.avatar_url ? (
@@ -209,20 +226,38 @@ export function ProfileWidget() {
           </div>
         </div>
 
-        {/* Name */}
-        <div>
-          <h2 className="text-2xl py-9 font-bold text-gray-900 dark:text-white">{displayName}</h2>
-        </div>
-
-        {/* Mindsy Pro Badge */}
-        <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Mindsy Pro</span>
+        {/* Name and Badge */}
+        <div className="flex-1">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{displayName}</h2>
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/30 backdrop-blur-sm border border-white/30">
+            <span className="text-xs font-medium text-gray-800 dark:text-gray-200">Mindsy Pro</span>
+          </div>
         </div>
       </div>
 
-      {/* Activity Rings positioned near badge */}
-      <div className="absolute bottom-6 right-6 z-10 scale-95">
-        <ActivityRings />
+      {/* Bottom section - Activity Rings */}
+      <div className="relative z-10 flex justify-center">
+        <div className="scale-90">
+          <ActivityRings />
+        </div>
+      </div>
+
+      {/* Quick Stats Below Badge */}
+      <div className="relative z-10 flex items-center justify-center gap-4 text-xs text-gray-700 dark:text-gray-300">
+        <div className="flex items-center gap-1">
+          <span className="font-semibold">{activityData.study.completed}</span>
+          <span className="opacity-70">Study</span>
+        </div>
+        <span className="opacity-50">•</span>
+        <div className="flex items-center gap-1">
+          <span className="font-semibold">{activityData.exams.completed}</span>
+          <span className="opacity-70">Exams</span>
+        </div>
+        <span className="opacity-50">•</span>
+        <div className="flex items-center gap-1">
+          <span className="font-semibold">{activityData.streak.completed}</span>
+          <span className="opacity-70">Streak</span>
+        </div>
       </div>
     </div>
   );

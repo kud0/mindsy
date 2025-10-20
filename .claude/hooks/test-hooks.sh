@@ -83,12 +83,20 @@ fi
 # Test 6: Test post-agent-task hook (dry run - no changes)
 echo ""
 echo "Test 6: Testing post-agent-task hook (no changes)..."
-output=$(bash "$HOOKS_DIR/post-agent-task.sh" "test-agent" "test task" "test-session" 2>&1)
-if echo "$output" | grep -q "No changes to commit"; then
-  echo "✓ post-agent-task hook correctly detects no changes"
+# Ensure we're starting with a clean git state
+current_changes=$(git status -s)
+if [ -z "$current_changes" ]; then
+  output=$(bash "$HOOKS_DIR/post-agent-task.sh" "test-agent" "test task" "test-session" 2>&1)
+  if echo "$output" | grep -q "No changes to commit"; then
+    echo "✓ post-agent-task hook correctly detects no changes"
+  else
+    echo "✗ post-agent-task hook did not detect absence of changes"
+    echo "Output: $output"
+    exit 1
+  fi
 else
-  echo "✗ post-agent-task hook did not detect absence of changes"
-  exit 1
+  echo "⚠️  Skipping test - git has uncommitted changes"
+  echo "   Commit or stash changes first, then re-run test"
 fi
 
 # Test 7: Verify git repository status

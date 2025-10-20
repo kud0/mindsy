@@ -66,7 +66,12 @@ BEGIN
     CHECK (type IN (
       'friend_request',
       'friend_accepted',
-      'share',
+      'content_shared',
+      'battle_turn',
+      'battle_round_ready',
+      'battle_accepted',
+      'battle_declined',
+      'battle_complete',
       'achievement',
       'system'
     ));

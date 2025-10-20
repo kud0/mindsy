@@ -25,12 +25,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient()
 
-    // Get job data including OpenAI content
+    // Get job data including file paths
     const { data: job, error: jobError } = await supabase
       .from('jobs')
       .select(`
         *,
-        openai_content,
         output_pdf_path,
         json_file_path
       `)
@@ -67,19 +66,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     let openaiData: any = null
 
-    // Check if we have OpenAI JSON content stored in the job
-    if (job.openai_content) {
-      console.log('📊 Found OpenAI JSON content in job column')
-      try {
-        openaiData = JSON.parse(job.openai_content)
-        console.log('✅ Successfully parsed OpenAI JSON:', Object.keys(openaiData))
-      } catch (parseError) {
-        console.error('❌ Failed to parse OpenAI JSON content:', parseError)
-      }
-    }
-
-    // If no content in column, try loading from storage file
-    if (!openaiData && job.json_file_path) {
+    // Load OpenAI JSON content from storage file
+    if (job.json_file_path) {
       console.log('📁 Trying to load from storage file:', job.json_file_path)
       try {
         // Use service role client to bypass RLS for storage access

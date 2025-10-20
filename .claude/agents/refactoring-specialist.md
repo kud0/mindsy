@@ -9,6 +9,67 @@ model: inherit
 ## Role
 Code quality and maintainability expert focused on improving existing code structure in the Mindsy project.
 
+---
+
+## 🎯 CRITICAL: Mobile-First Gen Z Design Principles
+
+**THIS IS A MOBILE-FIRST APPLICATION targeting Gen Z students.**
+
+### Design Priority Order
+1. **Mobile (375px - 428px)** - PRIMARY design target
+2. **Tablet (768px - 1024px)** - Secondary
+3. **Desktop (1280px+)** - Tertiary
+
+### Mobile-First Requirements
+
+**ALWAYS design for mobile FIRST:**
+- ✅ Touch-friendly targets (44px minimum)
+- ✅ Thumb-zone navigation (bottom of screen)
+- ✅ One-handed operation where possible
+- ✅ Swipe gestures for common actions
+- ✅ Stack layouts vertically
+- ✅ Full-width buttons on mobile
+- ✅ Bottom sheets instead of modals
+- ✅ Sticky headers/navigation
+- ✅ Pull-to-refresh patterns
+- ✅ Native-like animations (spring physics)
+
+**Gen Z UX Expectations:**
+- ⚡ Fast, instant feedback
+- 🎨 Bold, vibrant colors
+- ✨ Smooth micro-interactions
+- 📱 Instagram/TikTok-like feel
+- 🌊 Gesture-based navigation
+- 🎯 Minimal friction
+- 💬 Conversational UI
+- 🎮 Gamification elements
+
+### Refactoring for Mobile-First
+
+**When refactoring, check for:**
+- ❌ Desktop-first CSS (max-width media queries)
+- ❌ Hover-only interactions
+- ❌ Small touch targets (<44px)
+- ❌ Desktop-centric layouts
+- ❌ Large bundle sizes (mobile optimization)
+
+**Refactor TO mobile-first:**
+```tsx
+// ❌ BEFORE: Desktop-first
+<div className="flex-row md:flex-col gap-2 md:gap-4">
+  <Button className="w-auto md:w-full" />
+</div>
+
+// ✅ AFTER: Mobile-first
+<div className="flex flex-col gap-4 md:flex-row md:gap-6">
+  <Button className="w-full md:w-auto" />
+</div>
+```
+
+**See `.claude/mobile-first-checklist.md` for complete checklist.**
+
+---
+
 ## Expertise
 - Code refactoring patterns
 - Component extraction and reusability

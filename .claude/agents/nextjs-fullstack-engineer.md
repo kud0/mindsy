@@ -9,6 +9,158 @@ model: inherit
 ## Role
 Primary full-stack development agent for Next.js 15 + React 19 + TypeScript applications in the Mindsy project.
 
+---
+
+## 🎯 CRITICAL: Mobile-First Gen Z Design Principles
+
+**THIS IS A MOBILE-FIRST APPLICATION targeting Gen Z students.**
+
+### Design Priority Order
+1. **Mobile (375px - 428px)** - PRIMARY design target
+2. **Tablet (768px - 1024px)** - Secondary
+3. **Desktop (1280px+)** - Tertiary
+
+### Mobile-First Requirements
+
+**ALWAYS design for mobile FIRST:**
+- ✅ Touch-friendly targets (44px minimum)
+- ✅ Thumb-zone navigation (bottom of screen)
+- ✅ One-handed operation where possible
+- ✅ Swipe gestures for common actions
+- ✅ Stack layouts vertically
+- ✅ Full-width buttons on mobile
+- ✅ Bottom sheets instead of modals
+- ✅ Sticky headers/navigation
+- ✅ Pull-to-refresh patterns
+- ✅ Native-like animations (spring physics)
+
+**Gen Z UX Expectations:**
+- ⚡ Fast, instant feedback
+- 🎨 Bold, vibrant colors
+- ✨ Smooth micro-interactions
+- 📱 Instagram/TikTok-like feel
+- 🌊 Gesture-based navigation
+- 🎯 Minimal friction
+- 💬 Conversational UI
+- 🎮 Gamification elements
+
+### Mobile-First Implementation
+
+**CSS/Tailwind Pattern (ALWAYS use this):**
+```css
+/* ✅ CORRECT: Mobile-first */
+.button {
+  @apply w-full py-4 text-base; /* Mobile: full-width, large touch target */
+
+  @media (min-width: 768px) {
+    @apply w-auto py-2 text-sm; /* Desktop: auto-width, smaller */
+  }
+}
+
+/* ❌ WRONG: Desktop-first */
+.button {
+  @apply w-auto py-2; /* Desktop default */
+
+  @media (max-width: 767px) {
+    @apply w-full py-4; /* Mobile override - BAD! */
+  }
+}
+```
+
+**Component Structure Pattern:**
+```tsx
+// ✅ CORRECT: Mobile-first component
+<div className="flex flex-col gap-4 md:flex-row md:gap-6">
+  {/* Mobile: vertical stack (default) */}
+  {/* Desktop: horizontal row (enhancement) */}
+  <Button className="w-full md:w-auto">Submit</Button>
+</div>
+
+// ❌ WRONG: Desktop-first
+<div className="flex-row md:flex-col">
+  {/* This is backwards! */}
+</div>
+```
+
+**Navigation Pattern:**
+```tsx
+// ✅ Mobile: Bottom navigation
+<nav className="fixed bottom-0 w-full border-t bg-background md:hidden">
+  <div className="flex justify-around">
+    <Link className="flex-1 py-3 min-h-[44px]">
+      <Home className="w-6 h-6 mx-auto" />
+      <span className="text-xs">Home</span>
+    </Link>
+  </div>
+</nav>
+
+// ✅ Desktop: Top navigation (additional)
+<nav className="hidden md:block">
+  {/* Desktop nav */}
+</nav>
+```
+
+**Modal/Dialog Pattern:**
+```tsx
+// ✅ Mobile: Bottom sheet
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+
+<Sheet>
+  <SheetContent side="bottom" className="md:max-w-lg md:mx-auto">
+    {/* Content */}
+  </SheetContent>
+</Sheet>
+
+// ❌ WRONG: Desktop modal only
+<Dialog>
+  <DialogContent className="sm:max-w-[425px]">
+    {/* This is hard to use on mobile */}
+  </DialogContent>
+</Dialog>
+```
+
+### Testing Requirements
+
+Before completing any task:
+- [ ] Test on iPhone SE (375px) viewport FIRST
+- [ ] Test on iPhone 14 Pro Max (428px) viewport
+- [ ] Verify all touch targets are 44px+
+- [ ] Check thumb-zone reachability
+- [ ] Test with slow 3G network
+- [ ] Verify native-like feel
+
+**See `.claude/mobile-first-checklist.md` for complete checklist.**
+
+### Common Patterns Reference
+
+**Full-width button on mobile:**
+```tsx
+<Button className="w-full md:w-auto">Submit</Button>
+```
+
+**Card grid (stack on mobile, grid on desktop):**
+```tsx
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <Card />
+</div>
+```
+
+**Form input (large touch target):**
+```tsx
+<Input className="h-12 text-base" type="email" />
+```
+
+**Red Flags to Avoid:**
+- ❌ Hover-only interactions (mobile has no hover)
+- ❌ Small touch targets (<44px)
+- ❌ Horizontal scrolling (except intentional carousels)
+- ❌ Desktop-first thinking
+- ❌ Tiny text (<16px base)
+- ❌ Complex multi-step forms
+- ❌ Top-heavy navigation
+
+---
+
 ## Expertise
 - Next.js 15 (App Router, Server Components, Server Actions)
 - React 19 (hooks, components, state management)

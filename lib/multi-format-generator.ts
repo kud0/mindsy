@@ -643,7 +643,7 @@ function transformToMarkdown(master: MasterContent): MarkdownFormat {
 function transformToPDF(master: MasterContent): PDFFormat {
   const { metadata, tableOfContents, questions, explanations, summary } = master;
   
-  let html = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -822,7 +822,7 @@ function parseStructuredResponse(response: string, metadata: { title: string; la
     
     // Parse metadata
     const metadataMatch = content.match(/### METADATA\n([\s\S]*?)(?=###|$)/);
-    let parsedMetadata = {
+    const parsedMetadata = {
       title: metadata.title,
       language: metadata.language,
       subject: 'General',
@@ -913,7 +913,7 @@ function parseStructuredResponse(response: string, metadata: { title: string; la
     // Parse summary
     const summaryPattern = new RegExp(`### [^\\n]*(?:Resumen|Summary)[^\\n]*\\n([\\s\\S]*?)$`, 'i');
     const summaryMatch = content.match(summaryPattern);
-    let summary = {
+    const summary = {
       overview: 'No summary available',
       keyTakeaways: [] as string[],
       learningObjectives: [] as string[],

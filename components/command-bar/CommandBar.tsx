@@ -83,7 +83,7 @@ export function CommandBar({ isOpen: externalIsOpen, onOpenChange }: CommandBarP
     const words = lowered.split(' ');
     
     // Initialize result
-    let result: ParsedCommand = {
+    const result: ParsedCommand = {
       isValid: false,
       type: 'study',
       duration: 60, // default 1 hour

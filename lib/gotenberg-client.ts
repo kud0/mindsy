@@ -802,7 +802,7 @@ export class GotenbergClient {
     const bookmarks = this.generatePdfBookmarks(htmlContent);
     
     // Add bookmark metadata to HTML
-    let processedContent = this.addBookmarkMetadata(htmlContent, bookmarks);
+    const processedContent = this.addBookmarkMetadata(htmlContent, bookmarks);
     return `
 <!DOCTYPE html>
 <html lang="en">

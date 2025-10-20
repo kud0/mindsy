@@ -71,20 +71,24 @@ export function ThemeToggle() {
   return (
     <button
       onClick={handleThemeChange}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-        isDark ? 'bg-purple-600' : 'bg-gray-300'
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-md ${
+        isDark
+          ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500'
+          : 'bg-gray-300 hover:bg-gray-400 focus:ring-gray-400'
       }`}
-      aria-label="Toggle dark mode"
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+      aria-pressed={isDark}
+      role="switch"
     >
       <div
-        className={`inline-flex h-4 w-4 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 ${
+        className={`inline-flex h-4 w-4 items-center justify-center rounded-full bg-white shadow-md transition-all duration-200 ${
           isDark ? 'translate-x-6' : 'translate-x-1'
         }`}
       >
         {isDark ? (
-          <MoonIcon className="h-3 w-3 text-purple-600" />
+          <MoonIcon className="h-3 w-3 text-purple-600 transition-colors" />
         ) : (
-          <SunIcon className="h-3 w-3 text-yellow-500" />
+          <SunIcon className="h-3 w-3 text-yellow-500 transition-colors" />
         )}
       </div>
     </button>

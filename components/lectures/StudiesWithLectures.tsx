@@ -47,7 +47,8 @@ import {
   Trash2,
   RotateCw,
   Paperclip,
-  Timer
+  Timer,
+  Folder
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -55,7 +56,27 @@ import { cn } from '@/lib/utils';
 import { Note } from '@/types/database';
 import UploadWidget from '@/components/upload/UploadWidget';
 import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
-import FolderSelector from '@/components/lectures/FolderSelector';
+
+// Simple read-only folder display badge
+const FolderBadge = ({ folderName }: { folderName: string | null }) => {
+  if (!folderName) return null;
+
+  return (
+    <div className="
+      inline-flex items-center gap-1.5
+      px-2 py-1
+      rounded-md
+      bg-muted/50
+      text-xs text-muted-foreground
+      border border-border/50
+    ">
+      <Folder className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate max-w-[100px] md:max-w-[150px]">
+        {folderName}
+      </span>
+    </div>
+  );
+};
 
 export default function StudiesWithLectures() {
   const router = useRouter();
@@ -224,8 +245,7 @@ export default function StudiesWithLectures() {
       // Set user ID for real-time subscriptions
       setCurrentUserId(user.id);
 
-      // Fetch all lectures for the user
-      // Fetch all lectures
+      // Fetch all lectures for the user with folder information
       const { data: lectures, error: lecturesError } = await supabase
         .from('jobs')
         .select(`
@@ -234,7 +254,11 @@ export default function StudiesWithLectures() {
           course_subject,
           created_at,
           status,
-          user_folder_id
+          user_folder_id,
+          user_folders (
+            id,
+            folder_name
+          )
         `)
         .eq('user_id', user.id)
         .in('status', ['processing', 'completed', 'failed'])
@@ -649,13 +673,6 @@ export default function StudiesWithLectures() {
                   onDragStart={handleLectureDragStart}
                   getStatusIcon={getStatusIcon}
                   studyStats={studyHistory[lecture.job_id]}
-                  onFolderUpdate={(lectureId, folderId) => {
-                    setAllLectures(prev => prev.map(l =>
-                      l.job_id === lectureId
-                        ? { ...l, user_folder_id: folderId }
-                        : l
-                    ));
-                  }}
                 />
               ))}
             </div>
@@ -663,14 +680,14 @@ export default function StudiesWithLectures() {
             <div className="space-y-6">
               {/* Desktop Column Headers - Only visible on desktop */}
               <div className="hidden md:block">
-                <div className="grid grid-cols-[40px_1fr_100px_60px_100px_60px_120px] gap-4 items-center px-4 py-2 bg-muted/30 rounded-lg text-sm font-medium text-muted-foreground border-b">
+                <div className="grid grid-cols-[40px_1fr_100px_60px_100px_60px_140px] gap-4 items-center px-4 py-2 bg-muted/30 rounded-lg text-sm font-medium text-muted-foreground border-b">
                   <div className="text-center">Status</div>
                   <div>Lecture</div>
                   <div className="text-center">Date</div>
                   <div className="text-center">Files</div>
                   <div className="text-center">Study Time</div>
                   <div className="text-center">Review</div>
-                  <div className="text-center">Folder</div>
+                  <div className="text-left pl-2">Folder</div>
                 </div>
               </div>
               
@@ -700,13 +717,6 @@ export default function StudiesWithLectures() {
                         getStatusIcon={getStatusIcon}
                         studyStats={studyHistory[lecture.job_id]}
                         isLast={index === lectures.length - 1}
-                        onFolderUpdate={(lectureId, folderId) => {
-                          setAllLectures(prev => prev.map(l =>
-                            l.job_id === lectureId
-                              ? { ...l, user_folder_id: folderId }
-                              : l
-                          ));
-                        }}
                       />
                     ))}
                   </div>
@@ -805,10 +815,9 @@ interface LectureCardProps {
     firstStudied: string | null;
   };
   isLast?: boolean;
-  onFolderUpdate?: (lectureId: string, folderId: string | null) => void;
 }
 
-function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, onFolderUpdate }: LectureCardProps) {
+function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats }: LectureCardProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -885,16 +894,9 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
           )}
         </div>
 
-        {/* Folder Assignment */}
-        <div className="mt-auto pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
-          <FolderSelector
-            lectureId={lecture.job_id}
-            currentFolderId={lecture.user_folder_id}
-            onFolderChange={(folderId) => {
-              // Update parent component state
-              onFolderUpdate?.(lecture.job_id, folderId);
-            }}
-          />
+        {/* Folder Display (Read-only) */}
+        <div className="mt-auto pt-2 border-t border-border">
+          <FolderBadge folderName={lecture.user_folders?.folder_name || null} />
         </div>
 
       </div>
@@ -947,7 +949,7 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
 }
 
 // Lecture Row Card Component for List View
-function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, isLast, onFolderUpdate }: LectureCardProps) {
+function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, isLast }: LectureCardProps) {
   // Check if lecture has downloadable files
   const hasFiles = lecture.status === 'completed';
   
@@ -994,7 +996,7 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
           </div>
 
           {/* Desktop: Single-line column layout */}
-          <div className="hidden md:grid md:grid-cols-[40px_1fr_100px_60px_100px_60px_120px] md:gap-4 md:items-center">
+          <div className="hidden md:grid md:grid-cols-[40px_1fr_100px_60px_100px_60px_140px] md:gap-4 md:items-center">
             {/* Column 1: Status Icon (40px) */}
             <div className="flex items-center justify-center">
               {getStatusIcon(lecture.status)}
@@ -1048,31 +1050,15 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
               )}
             </div>
 
-            {/* Column 7: Folder Selector (120px) */}
-            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-              <FolderSelector
-                lectureId={lecture.job_id}
-                currentFolderId={lecture.user_folder_id}
-                onFolderChange={(folderId) => {
-                  // Update parent component state
-                  onFolderUpdate?.(lecture.job_id, folderId);
-                }}
-              />
+            {/* Column 7: Folder Display (140px) */}
+            <div className="flex items-start justify-start pl-2">
+              <FolderBadge folderName={lecture.user_folders?.folder_name || null} />
             </div>
           </div>
 
-          {/* Mobile: Show FolderSelector below */}
+          {/* Mobile: Show Folder Badge below */}
           <div className="md:hidden mt-2 ml-7">
-            <div onClick={(e) => e.stopPropagation()}>
-              <FolderSelector
-                lectureId={lecture.job_id}
-                currentFolderId={lecture.user_folder_id}
-                onFolderChange={(folderId) => {
-                  // Update parent component state
-                  onFolderUpdate?.(lecture.job_id, folderId);
-                }}
-              />
-            </div>
+            <FolderBadge folderName={lecture.user_folders?.folder_name || null} />
           </div>
         </div>
       </ContextMenuTrigger>

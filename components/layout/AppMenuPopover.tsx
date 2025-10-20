@@ -16,7 +16,7 @@ import {
   X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-// import { ThemeToggle } from '@/components/ui/theme-toggle'; // Disabled for mobile compatibility
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 
 interface AppItem {
@@ -128,8 +128,7 @@ export function AppMenuPopover() {
         <AnimatePresence>
           {open && (
             <Popover.Content
-              className="z-50 w-[320px] rounded-xl bg-white p-4 text-foreground shadow-sm !border-0 !outline-none"
-              style={{ background: '#f87171 !important', border: 'none !important' }}
+              className="z-50 w-[320px] rounded-xl bg-white dark:bg-gray-900 p-4 text-foreground shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 !outline-none"
               sideOffset={5}
               align="end"
             >
@@ -197,7 +196,20 @@ export function AppMenuPopover() {
                   })}
                 </motion.div>
 
-                {/* Theme toggle temporarily disabled for mobile compatibility */}
+                {/* Theme Toggle */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.2 }}
+                  className="pt-3 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-medium text-foreground/70">
+                      Theme
+                    </span>
+                    <ThemeToggle />
+                  </div>
+                </motion.div>
 
               </motion.div>
             </Popover.Content>

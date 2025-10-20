@@ -1,10 +1,20 @@
 "use client"
 
+// ========================================
+// 🎯 SOURCE OF TRUTH: Dashboard Homepage
+// ========================================
+// This component renders the main dashboard page (app/dashboard/page.tsx)
+// It includes the bento grid layout with clean white background
+// ========================================
+
 import React, { useState, useEffect } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { Button } from '@/components/ui/button';
 import { Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Import layout components
+import { TopBar } from '@/components/layout/TopBar';
 
 // Import widget components
 import { ProfileWidget } from '@/components/widgets/ProfileWidget';
@@ -16,6 +26,7 @@ import { StatsWidget } from '@/components/widgets/StatsWidget';
 import { SocialWidget } from '@/components/widgets/SocialWidget';
 import { CoursesWidget } from '@/components/widgets/CoursesWidget';
 import { TestWidget } from '@/components/widgets/TestWidget';
+import { NinjaFactBox } from '@/components/daily-fact/NinjaFactBox';
 
 // CSS imports for react-grid-layout
 import 'react-grid-layout/css/styles.css';
@@ -38,44 +49,54 @@ const widgetComponents = {
 // Default layouts for different breakpoints
 const defaultLayouts = {
   lg: [
+    // Upper row: Profile, Stats, Social (all 4w each)
     { i: 'profile', x: 0, y: 0, w: 4, h: 3 },
-    { i: 'lectures', x: 4, y: 0, w: 8, h: 3 },
-    { i: 'social', x: 0, y: 3, w: 4, h: 3 },
+    { i: 'stats', x: 4, y: 0, w: 4, h: 3 },
+    { i: 'social', x: 8, y: 0, w: 4, h: 3 },
+    // Middle row: Lectures (small), My Courses, Pomodoro
+    { i: 'lectures', x: 0, y: 3, w: 4, h: 3 },
     { i: 'courses', x: 4, y: 3, w: 4, h: 3 },
-    { i: 'exams', x: 8, y: 3, w: 4, h: 3 },
-    { i: 'pomodoro', x: 0, y: 6, w: 4, h: 3 },
-    { i: 'schedule', x: 4, y: 6, w: 8, h: 3 },
-    { i: 'stats', x: 0, y: 9, w: 12, h: 3 },
+    { i: 'pomodoro', x: 8, y: 3, w: 4, h: 3 },
+    // Lower row: Schedule (2/3 width - 8w) + Exams (1/3 width - 4w) SAME ROW
+    { i: 'schedule', x: 0, y: 6, w: 8, h: 3 },
+    { i: 'exams', x: 8, y: 6, w: 4, h: 3 },
   ],
   md: [
-    { i: 'profile', x: 0, y: 0, w: 3, h: 3 },
-    { i: 'lectures', x: 3, y: 0, w: 5, h: 3 },
-    { i: 'social', x: 0, y: 3, w: 3, h: 3 },
-    { i: 'courses', x: 3, y: 3, w: 2, h: 3 },
-    { i: 'exams', x: 5, y: 3, w: 3, h: 3 },
-    { i: 'pomodoro', x: 0, y: 6, w: 3, h: 3 },
-    { i: 'schedule', x: 3, y: 6, w: 5, h: 3 },
-    { i: 'stats', x: 0, y: 9, w: 8, h: 2 },
+    // Row 1: Profile, Stats
+    { i: 'profile', x: 0, y: 0, w: 4, h: 3 },
+    { i: 'stats', x: 4, y: 0, w: 4, h: 3 },
+    // Row 2: Social, Lectures
+    { i: 'social', x: 0, y: 3, w: 4, h: 3 },
+    { i: 'lectures', x: 4, y: 3, w: 4, h: 3 },
+    // Row 3: Courses, Pomodoro
+    { i: 'courses', x: 0, y: 6, w: 4, h: 3 },
+    { i: 'pomodoro', x: 4, y: 6, w: 4, h: 3 },
+    // Row 4: Schedule (FULL WIDTH - 8w)
+    { i: 'schedule', x: 0, y: 9, w: 8, h: 3 },
+    // Row 5: Exams
+    { i: 'exams', x: 0, y: 12, w: 4, h: 3 },
   ],
   sm: [
+    // Mobile: Stack vertically (exact order requested)
     { i: 'profile', x: 0, y: 0, w: 6, h: 3 },
-    { i: 'lectures', x: 0, y: 3, w: 6, h: 3 },
+    { i: 'stats', x: 0, y: 3, w: 6, h: 3 },
     { i: 'social', x: 0, y: 6, w: 6, h: 3 },
-    { i: 'courses', x: 0, y: 9, w: 6, h: 3 },
-    { i: 'exams', x: 0, y: 12, w: 6, h: 3 },
+    { i: 'lectures', x: 0, y: 9, w: 6, h: 3 },
+    { i: 'courses', x: 0, y: 12, w: 6, h: 3 },
     { i: 'pomodoro', x: 0, y: 15, w: 6, h: 3 },
     { i: 'schedule', x: 0, y: 18, w: 6, h: 3 },
-    { i: 'stats', x: 0, y: 21, w: 6, h: 2 },
+    { i: 'exams', x: 0, y: 21, w: 6, h: 3 },
   ],
   xs: [
+    // Mobile: Stack vertically (exact order requested)
     { i: 'profile', x: 0, y: 0, w: 4, h: 3 },
-    { i: 'lectures', x: 0, y: 3, w: 4, h: 3 },
+    { i: 'stats', x: 0, y: 3, w: 4, h: 3 },
     { i: 'social', x: 0, y: 6, w: 4, h: 3 },
-    { i: 'courses', x: 0, y: 9, w: 4, h: 3 },
-    { i: 'exams', x: 0, y: 12, w: 4, h: 3 },
+    { i: 'lectures', x: 0, y: 9, w: 4, h: 3 },
+    { i: 'courses', x: 0, y: 12, w: 4, h: 3 },
     { i: 'pomodoro', x: 0, y: 15, w: 4, h: 3 },
     { i: 'schedule', x: 0, y: 18, w: 4, h: 3 },
-    { i: 'stats', x: 0, y: 21, w: 4, h: 2 },
+    { i: 'exams', x: 0, y: 21, w: 4, h: 3 },
   ],
 };
 
@@ -161,18 +182,23 @@ export function ResponsiveBentoGrid() {
 
   if (!mounted) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-64 rounded-xl animate-pulse" />
-          ))}
+      <>
+        <TopBar />
+        <div className="container mx-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-64 rounded-xl animate-pulse" />
+            ))}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 pt-12">
+    <>
+      <TopBar />
+      <div className="max-w-6xl mx-auto p-6 pt-6">
 
       {/* Responsive Grid Layout */}
       <ResponsiveGridLayout
@@ -214,7 +240,7 @@ export function ResponsiveBentoGrid() {
       {/* Bottom Center Customize Button */}
       <div className="flex justify-center items-center mt-6 gap-2">
         {isCustomizing && (
-          <Button variant="outline" size="sm" onClick={resetLayouts} className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
+          <Button variant="outline" size="sm" onClick={resetLayouts}>
             Reset Layout
           </Button>
         )}
@@ -222,18 +248,16 @@ export function ResponsiveBentoGrid() {
           variant={isCustomizing ? "default" : "outline"}
           size="sm"
           onClick={toggleCustomize}
-          className={cn(
-            "gap-2",
-            isCustomizing 
-              ? "bg-white text-orange-600 hover:bg-white/90" 
-              : "bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30"
-          )}
+          className="gap-2"
         >
           <Settings2 className="h-4 w-4" />
           {isCustomizing ? 'Done' : 'Customize'}
         </Button>
       </div>
 
+      {/* Daily Study Fact - Ninja Assistant */}
+      <NinjaFactBox />
     </div>
+    </>
   );
 }

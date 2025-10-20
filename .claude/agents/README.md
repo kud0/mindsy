@@ -2,6 +2,41 @@
 
 This directory contains specialized agents for the Mindsy project. Each agent is an expert in a specific domain and can be invoked to help with related tasks.
 
+---
+
+## 📱 Design Philosophy
+
+**Mindsy is a MOBILE-FIRST application for Gen Z students.**
+
+### Critical Priorities
+
+All agents must prioritize:
+1. **Mobile design (375px-428px) FIRST** - Not desktop, not tablet. Mobile.
+2. **Touch-friendly interactions** - 44px minimum touch targets, thumb-zone navigation
+3. **Bottom-zone navigation** - Critical actions at bottom of screen (one-handed use)
+4. **Gen Z UX patterns** - Swipe gestures, instant feedback, Instagram/TikTok feel
+5. **Desktop as enhancement** - Not primary target, only after mobile is perfect
+
+### What This Means
+
+**Before shipping ANY feature:**
+- [ ] Tested on 375px viewport (iPhone SE) FIRST
+- [ ] All touch targets are 44px minimum
+- [ ] No hover-only interactions
+- [ ] Bottom navigation/actions on mobile
+- [ ] Smooth 60fps animations
+- [ ] Feels native (not like a website)
+
+### Mobile-First Resources
+
+- **Complete checklist:** `.claude/mobile-first-checklist.md`
+- **Each agent** has mobile-first requirements in their instructions
+- **Testing:** Always test mobile FIRST, then tablet, then desktop
+
+**If it doesn't work perfectly on a 375px iPhone, it's not ready to ship.**
+
+---
+
 ## 🎯 Quick Reference
 
 ### Core Development (Use Most Frequently)

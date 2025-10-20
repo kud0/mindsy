@@ -78,6 +78,7 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
   const [userAnswers, setUserAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [quizResults, setQuizResults] = useState<{ score: number; total: number; correct: number } | null>(null);
+  const [isReviewMode, setIsReviewMode] = useState(false);
 
   const { toast } = useToast();
 
@@ -147,6 +148,7 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
       setUserAnswers({});
       setIsSubmitted(false);
       setQuizResults(null);
+      setIsReviewMode(false);
     } catch (error) {
       console.error('Error loading quiz:', error);
       toast({
@@ -179,7 +181,7 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
   };
 
   // Submit entire quiz
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     if (!activeQuiz) return;
 
     const questions = activeQuiz.questions;
@@ -229,6 +231,73 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
       title: 'Quiz Submitted!',
       description: `You scored ${earnedPoints}/${totalPoints} points (${correctCount}/${questions.length} correct)`,
     });
+
+    // Track quiz completion for streak
+    await trackQuizCompletion(activeQuiz.id, earnedPoints, totalPoints);
+  };
+
+  // Track quiz completion for streak
+  const trackQuizCompletion = async (quizId: string, score: number, total: number) => {
+    try {
+      const response = await fetch(`/api/lectures/${jobId}/quizzes/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          quizId,
+          score,
+          total,
+          completedAt: new Date().toISOString()
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to track quiz completion');
+        return;
+      }
+
+      const data = await response.json();
+
+      // Show streak update notification if streak increased
+      if (data.success && data.streak.increased) {
+        toast({
+          title: '🔥 Streak Updated!',
+          description: `${data.streak.current} day streak! Keep it up!`,
+        });
+      } else if (data.success && data.streak.reset) {
+        toast({
+          title: '🔄 Streak Reset',
+          description: `Starting fresh with a 1 day streak. Keep going!`,
+          variant: 'default',
+        });
+      } else if (data.success && data.streak.longestStreakBroken) {
+        toast({
+          title: '🎉 New Personal Best!',
+          description: `${data.streak.longest} day streak - your longest yet!`,
+        });
+      }
+
+    } catch (error) {
+      console.error('Error tracking quiz completion:', error);
+      // Don't show error to user - this is background tracking
+    }
+  };
+
+  // Finish quiz review and return to quiz list
+  const handleFinishReview = () => {
+    // Clear active quiz
+    setActiveQuiz(null);
+
+    // Reset quiz-taking state
+    setCurrentQuestionIndex(0);
+    setUserAnswers({});
+    setIsSubmitted(false);
+    setQuizResults(null);
+    setIsReviewMode(false);
+
+    // Refresh quiz list to show completed quiz in history
+    fetchQuizzes(false);
   };
 
   const handleGenerateQuiz = async (config: QuizConfig) => {
@@ -290,10 +359,31 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
   };
 
 
-  // Render question input (controlled, no submission)
+  // Render question input (controlled, with visual feedback after submission)
   const renderQuestionInput = (question: Question) => {
     const format = question.format || question.type as any;
     const userAnswer = userAnswers[question.id];
+
+    // Calculate if answer is correct (only after submission)
+    let isCorrect = false;
+    if (isSubmitted) {
+      switch (format) {
+        case 'multiple-choice':
+          isCorrect = userAnswer === question.correctAnswer;
+          break;
+        case 'true-false':
+          isCorrect = userAnswer === question.correctAnswer;
+          break;
+        case 'fill-number':
+          if (question.acceptableRange && typeof userAnswer === 'number') {
+            isCorrect = userAnswer >= question.acceptableRange[0] &&
+                        userAnswer <= question.acceptableRange[1];
+          } else {
+            isCorrect = userAnswer === question.answer;
+          }
+          break;
+      }
+    }
 
     switch (format) {
       case 'multiple-choice':
@@ -301,30 +391,75 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{question.question}</h3>
             <div className="space-y-2">
-              {question.choices?.map((choice, index) => (
-                <label
-                  key={index}
-                  className={`
-                    flex items-start gap-3 p-3 border cursor-pointer transition-colors rounded-lg
-                    ${userAnswer === index
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  <input
-                    type="radio"
-                    name={`question-${question.id}`}
-                    value={index}
-                    checked={userAnswer === index}
-                    onChange={() => handleAnswerChange(question.id, index)}
-                    className="mt-1 w-4 h-4"
-                  />
-                  <span className="flex-1">{choice}</span>
-                </label>
-              ))}
+              {question.choices?.map((choice, index) => {
+                const isUserChoice = userAnswer === index;
+                const isCorrectChoice = question.correctAnswer === index;
+                const showAsCorrect = isSubmitted && isCorrectChoice;
+                const showAsWrong = isSubmitted && isUserChoice && !isCorrectChoice;
+
+                return (
+                  <label
+                    key={index}
+                    className={`
+                      flex items-start gap-3 p-3 border transition-colors rounded-lg
+                      ${!isSubmitted && isUserChoice
+                        ? 'border-primary bg-primary/5 cursor-pointer'
+                        : !isSubmitted
+                        ? 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
+                        : ''
+                      }
+                      ${showAsCorrect
+                        ? 'bg-green-50 border-green-500 text-green-900'
+                        : ''
+                      }
+                      ${showAsWrong
+                        ? 'bg-red-50 border-red-500 text-red-900'
+                        : ''
+                      }
+                      ${isSubmitted ? 'cursor-not-allowed' : ''}
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${question.id}`}
+                      value={index}
+                      checked={isUserChoice}
+                      onChange={() => !isSubmitted && handleAnswerChange(question.id, index)}
+                      disabled={isSubmitted}
+                      className="mt-1 w-4 h-4"
+                    />
+                    <span className="flex-1">{choice}</span>
+                    {showAsCorrect && (
+                      <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {showAsWrong && (
+                      <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </label>
+                );
+              })}
             </div>
-            {question.hint && (
+
+            {/* Show correct answer if user was wrong */}
+            {isSubmitted && !isCorrect && question.correctAnswer !== undefined && (
+              <div className="p-3 bg-green-50 border border-green-500 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <span className="font-medium text-green-900">Correct Answer:</span>
+                    <p className="text-green-800 mt-1">{question.choices?.[question.correctAnswer]}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {question.hint && !isSubmitted && (
               <div className="p-3 border border-blue-200 bg-blue-50 rounded text-sm">
                 <span className="font-medium">💡 Hint:</span> {question.hint}
               </div>
@@ -337,44 +472,74 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{question.statement}</h3>
             <div className="flex gap-3">
-              <label
-                className={`
-                  flex-1 flex items-center justify-center gap-2 p-4 border cursor-pointer transition-colors rounded-lg
-                  ${userAnswer === true
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }
-                `}
-              >
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  checked={userAnswer === true}
-                  onChange={() => handleAnswerChange(question.id, true)}
-                  className="w-4 h-4"
-                />
-                <span className="font-medium">True</span>
-              </label>
-              <label
-                className={`
-                  flex-1 flex items-center justify-center gap-2 p-4 border cursor-pointer transition-colors rounded-lg
-                  ${userAnswer === false
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }
-                `}
-              >
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  checked={userAnswer === false}
-                  onChange={() => handleAnswerChange(question.id, false)}
-                  className="w-4 h-4"
-                />
-                <span className="font-medium">False</span>
-              </label>
+              {[true, false].map((value) => {
+                const isUserChoice = userAnswer === value;
+                const isCorrectChoice = question.correctAnswer === value;
+                const showAsCorrect = isSubmitted && isCorrectChoice;
+                const showAsWrong = isSubmitted && isUserChoice && !isCorrectChoice;
+
+                return (
+                  <label
+                    key={value.toString()}
+                    className={`
+                      flex-1 flex items-center justify-center gap-2 p-4 border transition-colors rounded-lg
+                      ${!isSubmitted && isUserChoice
+                        ? 'border-primary bg-primary/5 cursor-pointer'
+                        : !isSubmitted
+                        ? 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
+                        : ''
+                      }
+                      ${showAsCorrect
+                        ? 'bg-green-50 border-green-500 text-green-900'
+                        : ''
+                      }
+                      ${showAsWrong
+                        ? 'bg-red-50 border-red-500 text-red-900'
+                        : ''
+                      }
+                      ${isSubmitted ? 'cursor-not-allowed' : ''}
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${question.id}`}
+                      checked={isUserChoice}
+                      onChange={() => !isSubmitted && handleAnswerChange(question.id, value)}
+                      disabled={isSubmitted}
+                      className="w-4 h-4"
+                    />
+                    <span className="font-medium">{value ? 'True' : 'False'}</span>
+                    {showAsCorrect && (
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {showAsWrong && (
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </label>
+                );
+              })}
             </div>
-            {question.hint && (
+
+            {/* Show correct answer if user was wrong */}
+            {isSubmitted && !isCorrect && (
+              <div className="p-3 bg-green-50 border border-green-500 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <span className="font-medium text-green-900">Correct Answer:</span>
+                    <p className="text-green-800 mt-1">{question.correctAnswer ? 'True' : 'False'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {question.hint && !isSubmitted && (
               <div className="p-3 border border-blue-200 bg-blue-50 rounded text-sm">
                 <span className="font-medium">💡 Hint:</span> {question.hint}
               </div>
@@ -386,19 +551,63 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{question.template}</h3>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={userAnswer ?? ''}
-                onChange={(e) => handleAnswerChange(question.id, parseFloat(e.target.value))}
-                placeholder="Enter your answer"
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-              />
-              {question.unit && (
-                <span className="text-muted-foreground">{question.unit}</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={userAnswer ?? ''}
+                  onChange={(e) => !isSubmitted && handleAnswerChange(question.id, parseFloat(e.target.value))}
+                  placeholder="Enter your answer"
+                  disabled={isSubmitted}
+                  className={`
+                    px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary
+                    ${isSubmitted
+                      ? isCorrect
+                        ? 'bg-green-50 border-green-500 text-green-900'
+                        : 'bg-red-50 border-red-500 text-red-900'
+                      : 'border-gray-300'
+                    }
+                  `}
+                />
+                {question.unit && (
+                  <span className="text-muted-foreground">{question.unit}</span>
+                )}
+                {isSubmitted && isCorrect && (
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {isSubmitted && !isCorrect && (
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </div>
+
+              {/* Show correct answer if user was wrong */}
+              {isSubmitted && !isCorrect && (
+                <div className="p-3 bg-green-50 border border-green-500 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1">
+                      <span className="font-medium text-green-900">Correct Answer:</span>
+                      <p className="text-green-800 mt-1">
+                        {question.answer} {question.unit}
+                        {question.acceptableRange && (
+                          <span className="text-sm text-green-700 block mt-1">
+                            (Acceptable range: {question.acceptableRange[0]} - {question.acceptableRange[1]} {question.unit})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
-            {question.hint && (
+
+            {question.hint && !isSubmitted && (
               <div className="p-3 border border-blue-200 bg-blue-50 rounded text-sm">
                 <span className="font-medium">💡 Hint:</span> {question.hint}
               </div>
@@ -534,14 +743,65 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
   return (
     <div className="h-full overflow-y-auto">
         {!activeQuiz ? (
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center text-muted-foreground">
-              <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Select a quiz from the history to view</p>
+          // Quiz list view (after completing a quiz or on initial load with quizzes)
+          <div className="max-w-4xl mx-auto p-6 space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">Quizzes</h2>
+
+              {/* Generate New Quiz Button */}
+              <Button
+                onClick={() => setShowConfigDialog(true)}
+                size="lg"
+                className="w-full"
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                Generate New Quiz
+              </Button>
+
+              {/* Quiz History */}
+              {quizzes.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-medium text-muted-foreground">Previous Quizzes</h3>
+                  <div className="space-y-2">
+                    {quizzes.map((quiz) => (
+                      <button
+                        key={quiz.id}
+                        onClick={() => loadQuiz(quiz.id)}
+                        className="w-full p-4 text-left border rounded-lg hover:bg-muted hover:border-primary transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-medium">{quiz.title}</div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {new Date(quiz.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          </div>
+                          {quiz.quiz_config && (
+                            <div className="text-xs text-muted-foreground text-right">
+                              {quiz.quiz_config.numQuestions && (
+                                <div>{quiz.quiz_config.numQuestions} questions</div>
+                              )}
+                              {quiz.quiz_config.difficulty && (
+                                <div className="capitalize">{quiz.quiz_config.difficulty}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        ) : isSubmitted && quizResults ? (
-          // Results view after submission
+        ) : isSubmitted && quizResults && !isReviewMode ? (
+          // Results view after submission (summary only)
           <div className="max-w-4xl mx-auto p-6 space-y-6">
             <div className="text-center space-y-4 p-8 border rounded-lg bg-gradient-to-b from-muted/30 to-background">
               <h2 className="text-3xl font-bold">Quiz Complete!</h2>
@@ -558,17 +818,19 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
               </div>
               <div className="flex gap-3 justify-center pt-4">
                 <Button
-                  onClick={() => {
-                    setIsSubmitted(false);
-                    setQuizResults(null);
-                    setUserAnswers({});
-                    setCurrentQuestionIndex(0);
-                  }}
+                  onClick={() => setIsReviewMode(true)}
                   variant="outline"
+                  size="lg"
                 >
                   Review Answers
                 </Button>
-                <Button onClick={() => setShowConfigDialog(true)}>
+                <Button
+                  onClick={() => {
+                    handleFinishReview();
+                    setShowConfigDialog(true);
+                  }}
+                  size="lg"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Generate New Quiz
                 </Button>
@@ -645,8 +907,8 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
                       </div>
                     </div>
 
-                    {/* Source context - Quote from lecture */}
-                    {currentQuestion.sourceContext && (
+                    {/* Source context - Quote from lecture (ONLY SHOW AFTER SUBMISSION) */}
+                    {isSubmitted && currentQuestion.sourceContext && (
                       <div className="p-4 bg-blue-50/50 border-l-4 border-blue-400 rounded-r text-sm">
                         <div className="flex items-start gap-2">
                           <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
@@ -677,13 +939,15 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
 
                   <div className="flex gap-2">
                     {currentQuestionIndex === currentQuestions.length - 1 ? (
-                      <Button
-                        onClick={handleSubmitQuiz}
-                        disabled={answeredCount < currentQuestions.length}
-                        size="lg"
-                      >
-                        Submit Quiz
-                      </Button>
+                      isSubmitted ? null : (
+                        <Button
+                          onClick={handleSubmitQuiz}
+                          disabled={answeredCount < currentQuestions.length}
+                          size="lg"
+                        >
+                          Submit Quiz
+                        </Button>
+                      )
                     ) : (
                       <Button
                         onClick={goToNextQuestion}
@@ -694,6 +958,29 @@ export function QuestionsTab({ questions: legacyQuestions, jobId, onSeekToTime }
                     )}
                   </div>
                 </div>
+
+                {/* Completion buttons (shown in review mode after going through all questions) */}
+                {isSubmitted && isReviewMode && currentQuestionIndex === currentQuestions.length - 1 && (
+                  <div className="flex gap-3 justify-center pt-6 mt-6 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={handleFinishReview}
+                      size="lg"
+                    >
+                      Back to Quizzes
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        handleFinishReview();
+                        setShowConfigDialog(true);
+                      }}
+                      size="lg"
+                    >
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generate New Quiz
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

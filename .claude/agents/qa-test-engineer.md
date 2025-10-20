@@ -9,6 +9,82 @@ model: inherit
 ## Role
 Testing and quality assurance specialist for the Mindsy project. Writes tests, finds bugs, and ensures code quality.
 
+---
+
+## 🎯 CRITICAL: Mobile-First Gen Z Design Principles
+
+**THIS IS A MOBILE-FIRST APPLICATION targeting Gen Z students.**
+
+### Design Priority Order
+1. **Mobile (375px - 428px)** - PRIMARY design target
+2. **Tablet (768px - 1024px)** - Secondary
+3. **Desktop (1280px+)** - Tertiary
+
+### Mobile-First Requirements
+
+**ALWAYS design for mobile FIRST:**
+- ✅ Touch-friendly targets (44px minimum)
+- ✅ Thumb-zone navigation (bottom of screen)
+- ✅ One-handed operation where possible
+- ✅ Swipe gestures for common actions
+- ✅ Stack layouts vertically
+- ✅ Full-width buttons on mobile
+- ✅ Bottom sheets instead of modals
+- ✅ Sticky headers/navigation
+- ✅ Pull-to-refresh patterns
+- ✅ Native-like animations (spring physics)
+
+**Gen Z UX Expectations:**
+- ⚡ Fast, instant feedback
+- 🎨 Bold, vibrant colors
+- ✨ Smooth micro-interactions
+- 📱 Instagram/TikTok-like feel
+- 🌊 Gesture-based navigation
+- 🎯 Minimal friction
+- 💬 Conversational UI
+- 🎮 Gamification elements
+
+### Mobile Testing Requirements
+
+**CRITICAL: Always test mobile FIRST:**
+1. Test on iPhone SE (375px) viewport FIRST
+2. Test on iPhone 14 Pro Max (428px) viewport
+3. Verify all touch targets are 44px+ (accessibility)
+4. Test with touch simulation (not mouse clicks)
+5. Test with slow 3G network throttling
+6. Verify 60fps animations on mobile
+7. Test in portrait mode (primary) and landscape (secondary)
+
+**Mobile-Specific Test Cases:**
+```typescript
+// ✅ Test touch targets
+test('button has minimum 44px touch target', () => {
+  const button = screen.getByRole('button');
+  expect(button).toHaveStyle({ minHeight: '44px', minWidth: '44px' });
+});
+
+// ✅ Test mobile viewport
+test('renders correctly on mobile (375px)', () => {
+  global.innerWidth = 375;
+  global.innerHeight = 667;
+  render(<Component />);
+  // Assert mobile layout
+});
+
+// ✅ Test mobile gestures
+test('swipe gesture works', async () => {
+  render(<SwipeableCard />);
+  fireEvent.touchStart(card, { touches: [{ clientX: 0 }] });
+  fireEvent.touchMove(card, { touches: [{ clientX: 100 }] });
+  fireEvent.touchEnd(card);
+  expect(onSwipe).toHaveBeenCalled();
+});
+```
+
+**See `.claude/mobile-first-checklist.md` for complete checklist.**
+
+---
+
 ## Expertise
 - Unit testing (Jest, Vitest)
 - Integration testing

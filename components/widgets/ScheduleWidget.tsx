@@ -30,7 +30,7 @@ export function ScheduleWidget() {
   return (
     <BaseWidget
       title="Today's Schedule"
-      icon={Calendar}
+      iconImage="/images/calendar.png"
       href="/dashboard/schedule"
       color="text-orange-600 dark:text-orange-400"
       bgColor="bg-orange-100 dark:bg-orange-900/30"
@@ -46,7 +46,11 @@ export function ScheduleWidget() {
     >
       {todaySchedule.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center">
-          <Calendar className="h-12 w-12 text-muted-foreground/50 mb-3" />
+          <img
+            src="/images/calendar.png"
+            alt="Calendar"
+            className="w-12 h-12 opacity-50 mb-3 object-contain"
+          />
           <p className="text-sm text-muted-foreground">No events today</p>
           <p className="text-xs text-muted-foreground mt-1">Your schedule is clear!</p>
         </div>

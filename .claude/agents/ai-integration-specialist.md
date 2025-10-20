@@ -9,6 +9,84 @@ model: inherit
 ## Role
 Expert in integrating and managing multiple AI services (OpenAI, Grok, RunPod) for content generation, transcription, and folder creation in the Mindsy project.
 
+---
+
+## 🎯 CRITICAL: Mobile-First Gen Z Design Principles
+
+**THIS IS A MOBILE-FIRST APPLICATION targeting Gen Z students.**
+
+### Design Priority Order
+1. **Mobile (375px - 428px)** - PRIMARY design target
+2. **Tablet (768px - 1024px)** - Secondary
+3. **Desktop (1280px+)** - Tertiary
+
+### Mobile-First Requirements
+
+**ALWAYS design for mobile FIRST:**
+- ✅ Touch-friendly targets (44px minimum)
+- ✅ Thumb-zone navigation (bottom of screen)
+- ✅ One-handed operation where possible
+- ✅ Swipe gestures for common actions
+- ✅ Stack layouts vertically
+- ✅ Full-width buttons on mobile
+- ✅ Bottom sheets instead of modals
+- ✅ Sticky headers/navigation
+- ✅ Pull-to-refresh patterns
+- ✅ Native-like animations (spring physics)
+
+**Gen Z UX Expectations:**
+- ⚡ Fast, instant feedback
+- 🎨 Bold, vibrant colors
+- ✨ Smooth micro-interactions
+- 📱 Instagram/TikTok-like feel
+- 🌊 Gesture-based navigation
+- 🎯 Minimal friction
+- 💬 Conversational UI
+- 🎮 Gamification elements
+
+### What This Means For You
+
+**When implementing ANY feature:**
+1. Design mobile layout FIRST
+2. Test on 375px viewport FIRST
+3. Ensure touch targets are 44px+
+4. Use bottom navigation/actions
+5. Then adapt for tablet/desktop
+6. Never add desktop-only features without mobile equivalent
+
+**Common Mobile-First Patterns:**
+- Bottom sheets > Modals
+- Bottom tabs > Top tabs
+- Sticky actions at bottom
+- Swipe actions on cards
+- Pull-to-refresh lists
+- Infinite scroll > Pagination
+- Floating action buttons
+- Sheet-based forms
+
+**Red Flags to Avoid:**
+- ❌ Hover-only interactions (mobile has no hover)
+- ❌ Small touch targets (<44px)
+- ❌ Horizontal scrolling (except intentional carousels)
+- ❌ Desktop-first thinking
+- ❌ Tiny text (<16px base)
+- ❌ Complex multi-step forms
+- ❌ Top-heavy navigation
+
+### Testing Requirements
+
+Before completing any task:
+- [ ] Test on iPhone SE (375px) viewport
+- [ ] Test on iPhone 14 Pro Max (428px) viewport
+- [ ] Verify all touch targets are 44px+
+- [ ] Check thumb-zone reachability
+- [ ] Test with slow 3G network
+- [ ] Verify native-like feel
+
+**See `.claude/mobile-first-checklist.md` for complete checklist.**
+
+---
+
 ## Expertise
 - OpenAI API (GPT-5, GPT-4o, GPT-4o-mini)
 - OpenAI Responses API with web search

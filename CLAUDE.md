@@ -28,6 +28,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 **Database tables:** `profiles`, `user_connections`, `notifications`, `shared_content`
 **See:** `migrations/00[1-4]_*.sql` and `.claude/social-features-overview.md` for details
 
+## Quiz Battles (Gamified Learning)
+
+**Head-to-head quiz competitions between friends using study materials.**
+- ✅ **Battle System**: Full lifecycle (create → accept → play → complete) (COMPLETE)
+- ✅ **Multi-Round Gameplay**: 3 rounds, 5 questions each, async play (COMPLETE)
+- ✅ **Question Generation**: Hybrid system (existing + Grok AI) with language detection (COMPLETE)
+- ✅ **Battle Management**: Create, accept, decline, forfeit with proper state machine (COMPLETE)
+
+**📖 Full documentation:** `.claude/quiz-battles-overview.md`
+
+**Quick overview:**
+- Challenge friends from friends list to quiz battles
+- Questions sourced from challenger's folder content
+- Async gameplay - players answer at different times
+- Proper answer shuffling (A/B/C/D randomization)
+- Learning-focused - private stats, no public leaderboards
+- Battle history with wins, losses, draws
+
+**Database tables:** `quiz_battles`, `battle_rounds`, `battle_participants`, `battle_stats`
+**API routes:** `/api/battles/`, `/api/battles/create`, `/api/battles/[battleId]/`, `/api/battles/[battleId]/accept`, `/api/battles/[battleId]/submit-round`
+**See:** `migrations/015-018_*.sql` and `.claude/quiz-battles-overview.md` for complete details
+
 ## Course & Folder Management
 
 **Comprehensive course organization with AI-powered folder generation.**
@@ -77,11 +99,13 @@ npm run lint     # ESLint
 ## Core Features
 
 1. **Authentication**: Email/password and OAuth (GitHub)
-2. **Course System**: Create/join courses, AI-generated folder structures via OpenAI web search
-3. **Folder Management**: Hierarchical organization (create, edit, delete, reorder, nest)
-4. **Upload System**: Audio files, YouTube links, documents (PDF/TXT/DOC)
-5. **Content Processing**: Transcription → AI Generation → Study Materials
-6. **Study Interface**: 4-tab system (Questions, Notes, Summary, Files)
+2. **Social System**: Friends, notifications, content sharing, quiz battles
+3. **Course System**: Create/join courses, AI-generated folder structures via OpenAI web search
+4. **Folder Management**: Hierarchical organization (create, edit, delete, reorder, nest)
+5. **Upload System**: Audio files, YouTube links, documents (PDF/TXT/DOC)
+6. **Content Processing**: Transcription → AI Generation → Study Materials
+7. **Study Interface**: 4-tab system (Questions, Notes, Summary, Files)
+8. **Quiz Battles**: Head-to-head competitions with friends using study materials
 
 ## Key API Routes
 
@@ -99,6 +123,14 @@ npm run lint     # ESLint
 - `/api/runpod-webhook` - Transcription webhook
 - `/api/files/view` - Secure file viewing
 
+### Quiz Battles
+- `/api/battles` - GET list battles (supports ?status=pending|active|completed)
+- `/api/battles/create` - POST create battle challenge
+- `/api/battles/[battleId]` - GET battle details, DELETE cancel/forfeit
+- `/api/battles/[battleId]/accept` - POST accept challenge & generate Round 1
+- `/api/battles/[battleId]/submit-round` - POST submit round answers
+- `/api/folders` - GET user folders for battle creation
+
 ## Environment Variables
 
 ```bash
@@ -110,7 +142,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 # AI Services
 RUNPOD_API_KEY=
 OPENAI_API_KEY=            # For course folder generation with web search
-GROK_API_KEY=              # Primary AI for content generation (xAI)
+GROK_API_KEY=              # Primary AI for content generation & battle questions (xAI)
 
 # Webhooks (Optional for local dev)
 WEBHOOK_BASE_URL=          # For ngrok/production
@@ -134,12 +166,14 @@ WEBHOOK_SECRET=            # Security token
 ### Database
 - PostgreSQL with Row Level Security (RLS)
 - Type-safe queries with Supabase client
-- Key tables: `users`, `courses`, `course_enrollments`, `user_folders`, `notes`, `study_nodes`
+- Key tables: `users`, `profiles`, `courses`, `course_enrollments`, `user_folders`, `notes`, `study_nodes`, `user_connections`, `notifications`, `shared_content`, `quiz_battles`, `battle_rounds`, `battle_participants`
 
 ## Current Status
 
 ✅ **Functional Features:**
 - Full authentication system with protected routes
+- Social system (friends, notifications, content sharing)
+- **Quiz Battles** (head-to-head competitions, fully functional)
 - Course creation and enrollment system
 - AI-powered folder generation (OpenAI web search)
 - Manual folder management (CRUD, reorder, cascade delete)

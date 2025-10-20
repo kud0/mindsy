@@ -1004,6 +1004,19 @@ export interface FolderHierarchy {
   children?: (string | FolderHierarchy)[];
 }
 
+export interface DailyStudyFactInput {
+  recentTopics: string[]; // Array of recent lecture topics/summaries
+  detectedLanguage?: string; // Language of the student's lectures
+}
+
+export interface DailyStudyFactOutput {
+  success: boolean;
+  fact?: string; // 2-3 sentence fact
+  language?: string;
+  error?: string;
+  errorCode?: string;
+}
+
 /**
  * Generate folder structure for a course using AI with web search
  * AI searches the web for typical course structure and suggests folders
@@ -1366,4 +1379,147 @@ Return hierarchical semester structure with subjects as children:
 }
 
 Return ONLY the JSON object. No explanations, no additional text.`;
+}
+
+/**
+ * Generate a daily study fact related to student's recent topics
+ * Creates obscure, difficult, or cool facts to engage students
+ */
+export async function generateDailyStudyFact(input: DailyStudyFactInput): Promise<DailyStudyFactOutput> {
+  try {
+    // Validate input
+    if (!input.recentTopics || input.recentTopics.length === 0) {
+      return {
+        success: false,
+        error: 'At least one recent topic is required',
+        errorCode: 'INVALID_INPUT'
+      };
+    }
+
+    // Detect language from topics
+    const topicsText = input.recentTopics.join(' ');
+    const { language } = getLanguageTermsFromText(topicsText, input.detectedLanguage);
+
+    // Create prompt for daily fact generation
+    const prompt = createDailyFactPrompt(input.recentTopics, language);
+
+    console.log('💡 Grok API: Generating daily study fact with grok-4-fast-reasoning', {
+      topicsCount: input.recentTopics.length,
+      language
+    });
+
+    const startTime = Date.now();
+
+    const completion = await grok.chat.completions.create({
+      model: 'grok-4-fast-reasoning',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a creative educational content creator who specializes in finding fascinating, obscure, and mind-blowing facts related to academic topics. Your goal is to make learning exciting by sharing cool, difficult, or surprising facts that will make students say "wow, I didn\'t know that!" Always be accurate, engaging, and educational.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_completion_tokens: 300,
+      temperature: 0.8 // Higher temperature for creativity
+    });
+
+    const elapsed = Date.now() - startTime;
+    console.log(`✅ Grok API daily fact generated in ${elapsed}ms`);
+
+    const fact = completion.choices[0]?.message?.content?.trim();
+
+    if (!fact) {
+      return {
+        success: false,
+        error: 'Grok API returned empty fact',
+        errorCode: 'EMPTY_RESPONSE'
+      };
+    }
+
+    return {
+      success: true,
+      fact,
+      language
+    };
+
+  } catch (error) {
+    console.error('Grok daily fact generation error:', error);
+
+    // Handle specific API errors
+    if (error instanceof OpenAI.APIError) {
+      return {
+        success: false,
+        error: `Grok API error: ${error.message}`,
+        errorCode: 'GROK_API_ERROR'
+      };
+    }
+
+    if (error instanceof OpenAI.AuthenticationError) {
+      return {
+        success: false,
+        error: 'Grok authentication failed - check API key',
+        errorCode: 'AUTHENTICATION_ERROR'
+      };
+    }
+
+    if (error instanceof OpenAI.RateLimitError) {
+      return {
+        success: false,
+        error: 'Grok rate limit exceeded - please try again later',
+        errorCode: 'RATE_LIMIT_ERROR'
+      };
+    }
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      errorCode: 'UNKNOWN_ERROR'
+    };
+  }
+}
+
+/**
+ * Create prompt for daily study fact generation
+ */
+function createDailyFactPrompt(recentTopics: string[], language: string): string {
+  return `You are generating a daily "Did You Know?" study fact for a student.
+
+## STUDENT'S RECENT STUDY TOPICS:
+${recentTopics.map((topic, i) => `${i + 1}. ${topic}`).join('\n')}
+
+## YOUR TASK:
+Generate ONE fascinating fact that relates to one or more of the student's recent study topics.
+
+## FACT REQUIREMENTS:
+- **Length:** 2-3 sentences maximum
+- **Type:** Obscure, difficult, cool, or surprising fact
+- **Relevance:** Must relate to at least one of the student's topics
+- **Educational:** Should teach something new and interesting
+- **Engaging:** Make the student say "Wow, I didn't know that!"
+- **Language:** Write in **${language}**
+
+## FACT CATEGORIES (choose one):
+1. **Obscure Historical Connection** - Little-known historical event or person related to the topic
+2. **Mind-Blowing Scientific Discovery** - Counterintuitive or surprising scientific fact
+3. **Real-World Application** - Unexpected place where this concept is used
+4. **Extreme Example** - Record-breaking, largest, smallest, fastest, etc.
+5. **Hidden Etymology** - Fascinating origin of a term or concept
+6. **Cross-Disciplinary Connection** - How this topic connects to an unexpected field
+
+## STYLE GUIDELINES:
+- Start with an attention-grabbing opening
+- Include specific numbers, names, or dates when possible
+- Make it memorable and shareable
+- Keep it concise (2-3 sentences)
+- Be accurate and factual (no myths or misconceptions)
+
+## EXAMPLES (for inspiration, don't copy):
+- "Did you know? The concept of zero wasn't invented until around 500 CE in India, yet ancient civilizations built massive structures without it. Mathematicians like Brahmagupta revolutionized mathematics by treating zero as a number, not just a placeholder."
+- "Sharks have been around longer than trees. Sharks evolved around 400 million years ago, while the earliest trees appeared about 350 million years ago. This means sharks witnessed the evolution of forests on Earth."
+- "Your brain uses about 20% of your body's total energy, despite being only 2% of your body weight. This is why studying for exams makes you feel physically tired—your brain is literally consuming massive amounts of glucose."
+
+Provide ONLY the fact text (2-3 sentences). No labels, no headers, no extra commentary.`;
 }

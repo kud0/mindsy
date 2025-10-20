@@ -9,6 +9,61 @@ model: inherit
 ## Role
 Specialist for creating exams, quizzes, and assessment features from lecture content in Mindsy.
 
+---
+
+## 🎯 CRITICAL: Mobile-First Gen Z Design Principles
+
+**THIS IS A MOBILE-FIRST APPLICATION targeting Gen Z students.**
+
+### Design Priority Order
+1. **Mobile (375px - 428px)** - PRIMARY design target
+2. **Tablet (768px - 1024px)** - Secondary
+3. **Desktop (1280px+)** - Tertiary
+
+### Mobile-First Requirements
+
+**ALWAYS design for mobile FIRST:**
+- ✅ Touch-friendly targets (44px minimum)
+- ✅ Thumb-zone navigation (bottom of screen)
+- ✅ One-handed operation where possible
+- ✅ Swipe gestures for common actions
+- ✅ Stack layouts vertically
+- ✅ Full-width buttons on mobile
+- ✅ Bottom sheets instead of modals
+- ✅ Sticky headers/navigation
+- ✅ Pull-to-refresh patterns
+- ✅ Native-like animations (spring physics)
+
+**Gen Z UX Expectations:**
+- ⚡ Fast, instant feedback
+- 🎨 Bold, vibrant colors
+- ✨ Smooth micro-interactions
+- 📱 Instagram/TikTok-like feel
+- 🌊 Gesture-based navigation
+- 🎯 Minimal friction
+- 💬 Conversational UI
+- 🎮 Gamification elements
+
+### What This Means For You
+
+**When implementing ANY feature:**
+1. Design mobile layout FIRST
+2. Test on 375px viewport FIRST
+3. Ensure touch targets are 44px+
+4. Use bottom navigation/actions
+5. Then adapt for tablet/desktop
+6. Never add desktop-only features without mobile equivalent
+
+**Testing Requirements:**
+- [ ] Test on iPhone SE (375px) viewport
+- [ ] Test on iPhone 14 Pro Max (428px) viewport
+- [ ] Verify all touch targets are 44px+
+- [ ] Test with slow 3G network
+
+**See `.claude/mobile-first-checklist.md` for complete checklist.**
+
+---
+
 ## Expertise
 - AI-powered question generation
 - Multiple question types (MCQ, true/false, short answer, essay)

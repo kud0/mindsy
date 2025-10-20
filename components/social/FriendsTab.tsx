@@ -24,10 +24,12 @@ export function FriendsTab() {
   const [sentRequests, setSentRequests] = useState<Friend[]>([]);
   const [receivedRequests, setReceivedRequests] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userFolders, setUserFolders] = useState<Array<{ id: string; folder_name: string; lecture_count?: number }>>([]);
 
   // Fetch friends and requests
   useEffect(() => {
     fetchFriends();
+    fetchUserFolders();
   }, []);
 
   const fetchFriends = async () => {
@@ -47,6 +49,18 @@ export function FriendsTab() {
       console.error('Error fetching friends:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserFolders = async () => {
+    try {
+      const response = await fetch('/api/folders');
+      if (response.ok) {
+        const data = await response.json();
+        setUserFolders(data.folders || []);
+      }
+    } catch (error) {
+      console.error('Error fetching folders:', error);
     }
   };
 
@@ -186,6 +200,7 @@ export function FriendsTab() {
                     key={friend.id}
                     friend={friend}
                     onRemove={() => handleRemoveFriend(friend.id)}
+                    userFolders={userFolders}
                   />
                 ))
               )}

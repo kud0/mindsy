@@ -30,6 +30,7 @@ export function validateConfig() {
   const missing: string[] = [];
 
   if (!config.openaiKey) missing.push('OPENAI_KEY');
+  if (!config.grokApiKey) missing.push('GROK_API_KEY'); // Added validation for Grok
   if (!config.runpodApiKey) missing.push('RUNPOD_API_KEY');
   if (!config.supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
   if (!config.supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');

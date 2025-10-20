@@ -20,6 +20,7 @@ import { PersistentAudioPlayer, PersistentAudioPlayerRef } from './PersistentAud
 import { TutorExplanationSheet } from './TutorExplanationSheet';
 import { TutorHistoryDrawer } from './TutorHistoryDrawer';
 import { ShareButton } from '@/components/share/ShareButton';
+import { StudentDeskNavigation } from './StudentDeskNavigation';
 
 interface StudentDeskProps {
   jobId: string;
@@ -350,6 +351,22 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
     }
   }, [lectureData]);
 
+  // Hide global bottom navbar on student desk
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'hide-global-nav';
+    style.textContent = `
+      nav.fixed.bottom-0:not(.student-desk-nav) {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.getElementById('hide-global-nav')?.remove();
+    };
+  }, []);
+
   // Preserve scroll position when switching tabs
   const handleTabChange = useCallback((newTabId: string) => {
     if (mainContentRef.current) {
@@ -625,7 +642,7 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
   };
 
   return (
-    <div className="flex flex-col bg-white h-screen w-full max-w-full overflow-hidden">
+    <div className="student-desk-page flex flex-col bg-white h-screen w-full max-w-full overflow-hidden">
       {/* Top App Bar */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-light w-full overflow-hidden shrink-0">
         <div className="flex items-center px-4 h-14">
@@ -777,6 +794,9 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
           )}
         </button>
       )}
+
+      {/* Student Desk Navigation */}
+      <StudentDeskNavigation jobId={jobId} />
 
     </div>
   );

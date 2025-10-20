@@ -64,7 +64,7 @@ export function ExamsWidget() {
   return (
     <BaseWidget
       title="Exams"
-      icon={GraduationCap}
+      iconImage="/images/graduation.png"
       href="/dashboard/exams"
       color="text-green-600 dark:text-green-400"
       bgColor="bg-green-100 dark:bg-green-900/30"
@@ -81,7 +81,11 @@ export function ExamsWidget() {
     >
       {stats.totalExams === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center">
-          <GraduationCap className="h-12 w-12 text-muted-foreground/50 mb-3" />
+          <img
+            src="/images/graduation.png"
+            alt="Graduation"
+            className="w-12 h-12 opacity-50 mb-3 object-contain"
+          />
           <p className="text-sm text-muted-foreground">No exams yet</p>
           <p className="text-xs text-muted-foreground mt-1">Create your first exam to get started</p>
         </div>

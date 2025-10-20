@@ -10,6 +10,10 @@ export interface Note {
   review_reason?: string | null;
   user_folder_id?: string | null;
   user_id?: string;
+  user_folders?: {
+    id: string;
+    folder_name: string;
+  } | null;
 }
 
 export interface User {
@@ -147,4 +151,90 @@ export interface UserAchievement {
   achievement_description?: string;
   earned_at: string;
   exam_id?: string;
+}
+
+// Quiz Battle System Types
+export interface Battle {
+  id: string;
+  created_by: string;
+  opponent_id: string;
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  source_folder_id: string;
+  source_folder_name: string;
+  rounds_count: number;
+  questions_per_round: number;
+  winner_id?: string | null;
+  created_at: string;
+  completed_at?: string | null;
+}
+
+export interface BattleRound {
+  id: string;
+  battle_id: string;
+  round_number: number;
+  questions: BattleQuestion[];
+  started_at: string;
+  completed_at?: string | null;
+}
+
+export interface BattleQuestion {
+  id: string;
+  question: string;
+  options: { A: string; B: string; C: string; D: string };
+  correctAnswer: string;
+  topic: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  explanation: string; // Explanation of why the correct answer is right
+  sourceNote?: string; // Optional: Which lecture this question came from
+}
+
+export interface BattleParticipant {
+  id: string;
+  battle_id: string;
+  user_id: string;
+  round_number: number;
+  answers: Record<string, string>;
+  score: number;
+  time_taken: number;
+  submitted_at: string;
+}
+
+export interface BattleStats {
+  user_id: string;
+  total_battles: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  weak_topics: Record<string, number>;
+  strong_topics: Record<string, number>;
+  last_battle_at: string;
+  updated_at: string;
+}
+
+// Notification System Types
+export type NotificationType =
+  | 'friend_request'
+  | 'friend_accepted'
+  | 'content_shared'
+  | 'battle_turn'
+  | 'battle_round_ready'
+  | 'battle_accepted'
+  | 'battle_declined'
+  | 'battle_complete'
+  | 'achievement'
+  | 'system';
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+  read_at?: string | null;
+  related_id?: string | null;
+  related_user_id?: string | null;
+  action_url?: string | null;
+  metadata?: Record<string, any>;
 }
