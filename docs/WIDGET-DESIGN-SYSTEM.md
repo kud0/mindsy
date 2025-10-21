@@ -105,7 +105,108 @@
 
 ---
 
-## 3. Color System & Visual Hierarchy
+## 3. Glassmorphism Design System
+
+### Core Pattern (Notification Popover Reference)
+
+All modals, popovers, dropdowns, and cards in Mindsy follow a consistent glassmorphism pattern inspired by the NotificationDropdown component.
+
+**Main Container Pattern:**
+```css
+bg-white/95 dark:bg-gray-900/95
+backdrop-blur-xl
+shadow-xl
+border border-gray-200/50 dark:border-gray-700/50
+```
+
+**Header/Footer Pattern:**
+```css
+border-b border-gray-200/50 dark:border-gray-700/50  /* Header */
+border-t border-gray-200/50 dark:border-gray-700/50  /* Footer */
+bg-gray-50/80 dark:bg-gray-800/80
+backdrop-blur-sm
+```
+
+**Card/Item Pattern:**
+```css
+/* Default state */
+border border-gray-200/50 dark:border-gray-700/50
+bg-white/5 dark:bg-gray-900/5
+
+/* Hover state */
+hover:bg-gray-50/50 dark:hover:bg-gray-800/50
+```
+
+**Empty State Pattern:**
+```css
+border border-gray-200/50 dark:border-gray-700/50
+bg-white/95 dark:bg-gray-900/95
+backdrop-blur-xl
+```
+
+### Design Rules
+
+**DO:**
+- ✅ Use `gray-200/50` for all borders (never `white/20`)
+- ✅ Use `white/95` or `white/5` for backgrounds (never `white/10`)
+- ✅ Use `gray-50/50` for hover states (never `white/10`)
+- ✅ Apply `backdrop-blur-xl` to main containers
+- ✅ Use `shadow-xl` for elevated surfaces
+- ✅ Keep borders consistent at `/50` opacity
+
+**DON'T:**
+- ❌ Don't use `white/10` or `white/20` - inconsistent with system
+- ❌ Don't use colored shadows (`shadow-purple-500/10`)
+- ❌ Don't mix border opacities (always `/50`)
+- ❌ Don't use gradient backgrounds for containers
+- ❌ Don't skip `backdrop-blur` - essential for glassmorphism
+
+### Component Examples
+
+**Modal/Dialog:**
+```tsx
+<DialogContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+  <DialogHeader className="border-b border-gray-200/50 dark:border-gray-700/50 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm">
+    {/* Header content */}
+  </DialogHeader>
+  {/* Main content */}
+  <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm">
+    {/* Footer content */}
+  </div>
+</DialogContent>
+```
+
+**Card Item:**
+```tsx
+<div className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+  {/* Card content */}
+</div>
+```
+
+**Tab System:**
+```tsx
+<TabsList className="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
+  <TabsTrigger className="data-[state=active]:bg-white/95 dark:data-[state=active]:bg-gray-900/95">
+    Tab 1
+  </TabsTrigger>
+</TabsList>
+```
+
+### Migration Guide
+
+**Old Pattern → New Pattern:**
+- `bg-white/10` → `bg-white/95` (main containers) or `bg-white/5` (cards)
+- `border-white/20` → `border-gray-200/50`
+- `shadow-2xl shadow-purple-500/10` → `shadow-xl`
+- `backdrop-blur-sm` → `backdrop-blur-xl` (main containers)
+
+### Reference Components
+- **NotificationDropdown** (`components/layout/NotificationDropdown.tsx`) - Gold standard
+- **SocialModal** (`components/widgets/SocialModal.tsx`) - Recently updated to match
+
+---
+
+## 4. Color System & Visual Hierarchy
 
 ### Mindsy Color Palette (Purple Accent Base)
 
@@ -181,7 +282,7 @@
 
 ---
 
-## 4. Widget Design Patterns
+## 5. Widget Design Patterns
 
 ### Profile Widget
 **Current Design Analysis:**
@@ -568,7 +669,7 @@ Card size: 100px × 80px
 
 ---
 
-## 5. Bento Box Layout Rules
+## 6. Bento Box Layout Rules
 
 ### Spacing Standards
 - **Widget Padding (Internal):** 16px (mobile), 20px (tablet), 24px (desktop)
@@ -687,7 +788,7 @@ Desktop (4 columns):
 
 ---
 
-## 6. Mobile-First Strategy
+## 7. Mobile-First Strategy
 
 ### Touch Targets & Spacing
 - **Minimum Tap Target:** 48px × 48px (Apple: 44px, Android: 48px—use larger)
@@ -763,7 +864,7 @@ Expanded State:
 
 ---
 
-## 7. Page-Specific Guidance
+## 8. Page-Specific Guidance
 
 ### Dashboard / Home Page
 **Purpose:** Quick overview + fast access to recent content + motivation (streaks, progress)
@@ -964,7 +1065,7 @@ Gap between cards: 12px
 
 ---
 
-## 8. Component Design Checklist
+## 9. Component Design Checklist
 
 Use this checklist for EVERY widget, card, or component you design:
 
@@ -1014,7 +1115,7 @@ Use this checklist for EVERY widget, card, or component you design:
 
 ---
 
-## 9. Quick Wins
+## 10. Quick Wins
 
 ### Top 5 Immediate Improvements to Current Design
 

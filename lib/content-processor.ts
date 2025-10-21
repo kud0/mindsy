@@ -320,15 +320,103 @@ async function triggerGrokGeneration(
 }
 
 /**
+ * Handle Document Processing (PDF, DOCX, TXT, DOC)
+ * Skips transcription, goes directly to AI generation
+ */
+export async function handleDocumentProcessing(
+  jobId: string,
+  documentPaths: string[],
+  context: ProcessingContext
+): Promise<void> {
+  console.log('🔄 Document Processing: Starting for job:', jobId);
+
+  try {
+    // Use service role client for admin access
+    const { createClient: createSupabaseAdmin } = await import('@supabase/supabase-js');
+    const supabase = createSupabaseAdmin(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Update status to processing
+    await updateJobStatus(jobId, 'transcribing'); // Reusing transcribing status for document extraction
+
+    // Extract text from all documents
+    const { DocumentExtractor } = await import('@/lib/content-extractors/document-extractor');
+
+    console.log('📄 Extracting text from documents...');
+    const { combinedText, metadata } = await DocumentExtractor.extractMultipleDocuments(
+      documentPaths,
+      supabase
+    );
+
+    console.log(`✅ Document extraction completed: ${combinedText.length} characters from ${metadata.length} documents`);
+
+    // Save extracted text to storage (like transcript)
+    const txtPath = `${jobId}.txt`;
+    const { error: uploadError } = await supabase.storage
+      .from('generated-notes')
+      .upload(txtPath, combinedText, {
+        contentType: 'text/plain',
+        cacheControl: '3600'
+      });
+
+    if (uploadError) {
+      console.error('❌ Failed to upload extracted text:', uploadError);
+      throw new Error(`Failed to upload extracted text: ${uploadError.message}`);
+    }
+
+    console.log('✅ Extracted text file uploaded:', txtPath);
+
+    // Detect language from extracted text
+    const { detectLanguageFromText } = await import('@/lib/language-utils');
+    const detectedLanguage = await detectLanguageFromText(combinedText);
+
+    // Update job status with extracted text path
+    const { error: updateError } = await supabase
+      .from('jobs')
+      .update({
+        txt_file_path: txtPath,
+        detected_language: detectedLanguage,
+        transcription_completed_at: new Date().toISOString(),
+        status: 'generating' as JobStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('job_id', jobId);
+
+    if (updateError) {
+      console.error('❌ Failed to update job with txt_file_path:', updateError);
+      throw new Error(`Failed to update job: ${updateError.message}`);
+    }
+
+    console.log('✅ Document extraction saved, proceeding to AI generation');
+
+    // Prepare transcription data for generation stage
+    const transcriptionData: TranscriptionData = {
+      text: combinedText,
+      detectedLanguage: detectedLanguage
+    };
+
+    // Continue to AI generation stage (same as audio pipeline)
+    await handleGenerationStage(jobId, transcriptionData, context);
+
+  } catch (error) {
+    console.error('❌ Document processing error:', error);
+    await updateJobStatus(jobId, 'failed', error instanceof Error ? error.message : 'Document processing failed');
+    throw error;
+  }
+}
+
+/**
  * Utility: Update job status
  */
 async function updateJobStatus(
-  jobId: string, 
-  status: JobStatus, 
+  jobId: string,
+  status: JobStatus,
   errorMessage?: string
 ): Promise<void> {
   const supabase = await createClient();
-  
+
   const updateData: any = {
     status,
     updated_at: new Date().toISOString()

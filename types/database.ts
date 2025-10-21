@@ -75,6 +75,42 @@ export interface StudySession {
   completed: boolean;
   created_at: string;
   updated_at: string;
+  // Deadline tracking (new fields)
+  course_id?: string;
+  user_folder_id?: string;
+  deadline_type?: 'essay' | 'exam' | 'assignment' | 'quiz' | 'project' | 'presentation' | 'lab' | 'other';
+  is_deadline?: boolean;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  completion_percentage?: number;
+}
+
+// Active Course System Types
+export interface Course {
+  id: string;
+  course_code: string;
+  course_name?: string;
+  institution: string;
+  semester?: string;
+  description?: string;
+  total_years?: number; // For multi-year degree programs (e.g., 4 for Bachelor's)
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourseEnrollment {
+  id: string;
+  user_id: string;
+  course_id: string;
+  enrolled_at: string;
+  is_active: boolean; // Enrollment status (not soft-deleted)
+  is_active_course?: boolean; // User-selected active course (max 2)
+  active_folder_id?: string | null; // Points to year/semester parent folder
+  active_year?: number; // Deprecated - kept for backward compatibility
+  course?: Course;
+  active_folder?: {
+    id: string;
+    folder_name: string;
+  } | null;
 }
 
 // Exam System Types - Database Schema Compatible
@@ -237,4 +273,46 @@ export interface Notification {
   related_user_id?: string | null;
   action_url?: string | null;
   metadata?: Record<string, any>;
+}
+
+// Quiz System Types
+export interface QuizQuestion {
+  id: string;
+  type: string;
+  format?: 'multiple-choice' | 'true-false' | 'fill-number';
+  question?: string;
+  statement?: string;
+  template?: string;
+  choices?: string[];
+  correctAnswer?: number | boolean;
+  answer?: number;
+  acceptableRange?: [number, number];
+  unit?: string;
+  hint?: string;
+  feedback?: string;
+  difficulty?: string;
+  points?: number;
+  timestamps?: {
+    start: number;
+    end: number;
+  };
+  sourceContext?: string;
+}
+
+export interface QuizConfig {
+  difficulty?: string;
+  numQuestions?: number;
+  questionTypes?: string[];
+  focusTopics?: string[];
+}
+
+export interface Quiz {
+  id: string;
+  job_id: string;
+  user_id: string;
+  title: string;
+  questions: QuizQuestion[];
+  quiz_config?: QuizConfig;
+  created_at: string;
+  updated_at: string;
 }

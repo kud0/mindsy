@@ -127,7 +127,7 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
-          <p className="text-gray-500">No detailed explanations available for this lecture.</p>
+          <p className="text-muted-foreground">No detailed explanations available for this lecture.</p>
         </div>
       </div>
     );
@@ -146,17 +146,17 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
               <div className="mb-4">
                 <button
                   onClick={() => toggleSection(group.sectionName!)}
-                  className="flex items-center gap-2 w-full text-left hover:bg-gray-50 p-2 rounded transition-colors"
+                  className="flex items-center gap-2 w-full text-left hover:bg-muted p-2 rounded transition-colors"
                 >
-                  <h2 className="text-lg font-bold text-gray-900">{group.sectionName}</h2>
-                  <span className="text-sm text-gray-500">({group.explanations.length})</span>
+                  <h2 className="text-lg font-bold text-foreground">{group.sectionName}</h2>
+                  <span className="text-sm text-muted-foreground">({group.explanations.length})</span>
                   {isSectionExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400 ml-auto" />
+                    <ChevronUp className="w-5 h-5 text-muted-foreground ml-auto" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400 ml-auto" />
+                    <ChevronDown className="w-5 h-5 text-muted-foreground ml-auto" />
                   )}
                 </button>
-                <div className="h-px bg-gray-200 mt-2" />
+                <div className="h-px bg-border mt-2" />
               </div>
             )}
 
@@ -167,26 +167,26 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                   const isExpanded = expandedItems.has(explanation.id);
 
                   return (
-                    <div key={explanation.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div key={explanation.id} className="border border-border rounded-lg overflow-hidden">
                       {/* Header - Clickable */}
                       <div className="flex items-center">
                         <button
                           onClick={() => toggleExpansion(explanation.id)}
-                          className="flex-1 p-4 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
+                          className="flex-1 p-4 text-left hover:bg-muted transition-colors flex items-center gap-3"
                         >
                           {/* Numbered badge */}
-                          <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded flex items-center justify-center font-semibold text-sm">
+                          <div className="flex-shrink-0 w-8 h-8 bg-orange-500 dark:bg-orange-600 text-white rounded flex items-center justify-center font-semibold text-sm">
                             {index + 1}
                           </div>
 
                           {/* Concept name */}
-                          <h3 className="flex-1 font-semibold text-gray-900">{explanation.concept}</h3>
+                          <h3 className="flex-1 font-semibold text-foreground">{explanation.concept}</h3>
 
                           {/* Expand/collapse icon */}
                           {isExpanded ? (
-                            <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                            <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           ) : (
-                            <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                            <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           )}
                         </button>
 
@@ -194,7 +194,7 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                         {explanation.timestamps && onSeekToTime && (
                           <button
                             onClick={() => onSeekToTime(explanation.timestamps!.start)}
-                            className="px-3 py-2 mr-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
+                            className="px-3 py-2 mr-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors whitespace-nowrap"
                             title={`Jump to ${formatTime(explanation.timestamps.start)}`}
                           >
                             ⏵ {formatTime(explanation.timestamps.start)}
@@ -209,7 +209,7 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                   {explanation.introduction ? (
                     <>
                       {/* Introduction paragraph */}
-                      <div className="text-gray-700 leading-relaxed">
+                      <div className="text-foreground leading-relaxed">
                         {explanation.introduction}
                       </div>
 
@@ -219,13 +219,13 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                           {explanation.sections.map((section, sectionIdx) => (
                             <div key={`${explanation.id}-section-${sectionIdx}`} className="space-y-2">
                               {/* Section header */}
-                              <h4 className="font-semibold text-gray-900 text-base">
+                              <h4 className="font-semibold text-foreground text-base">
                                 {section.heading}
                               </h4>
 
                               {/* Section content paragraph */}
                               {section.content && (
-                                <div className="text-gray-700 leading-relaxed">
+                                <div className="text-foreground leading-relaxed">
                                   {section.content}
                                 </div>
                               )}
@@ -235,8 +235,8 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                                 <ul className="space-y-1.5 ml-4">
                                   {section.points.map((point, pointIdx) => (
                                     <li key={`${explanation.id}-section-${sectionIdx}-point-${pointIdx}`} className="flex items-start gap-2">
-                                      <span className="text-gray-700">•</span>
-                                      <span className="text-gray-700 flex-1">{point}</span>
+                                      <span className="text-foreground">•</span>
+                                      <span className="text-foreground flex-1">{point}</span>
                                     </li>
                                   ))}
                                 </ul>
@@ -250,7 +250,7 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                     /* Legacy format fallback */
                     <>
                       {/* Main Explanation */}
-                      <div className="text-gray-700 leading-relaxed">
+                      <div className="text-foreground leading-relaxed">
                         {explanation.explanation || 'No explanation available'}
                       </div>
 
@@ -260,8 +260,8 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
                           <ul className="space-y-2">
                             {explanation.keyPoints.map((point, idx) => (
                               <li key={`${explanation.id}-point-${idx}`} className="flex items-start gap-2">
-                                <span className="text-gray-700">•</span>
-                                <span className="text-gray-700 flex-1">{point}</span>
+                                <span className="text-foreground">•</span>
+                                <span className="text-foreground flex-1">{point}</span>
                               </li>
                             ))}
                           </ul>
@@ -272,9 +272,9 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
 
                   {/* Example - if present (both formats) */}
                   {explanation.example && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-sm font-medium text-gray-900 mb-2">Example:</p>
-                      <p className="text-gray-700 text-sm">{explanation.example}</p>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <p className="text-sm font-medium text-foreground mb-2">Example:</p>
+                      <p className="text-foreground text-sm">{explanation.example}</p>
                     </div>
                   )}
 
@@ -311,13 +311,13 @@ export function ExplanationsTab({ explanations, itemType = 'item', onSeekToTime,
           <div className="flex gap-2">
             <button
               onClick={() => setExpandedItems(new Set(explanations.map(e => e.id)))}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors"
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
             >
               Expand All
             </button>
             <button
               onClick={() => setExpandedItems(new Set())}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors"
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
             >
               Collapse All
             </button>

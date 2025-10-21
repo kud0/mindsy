@@ -73,6 +73,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 **API routes:** `/api/courses/`, `/api/folders/[folderId]`, `/api/courses/[courseId]/folders/`
 **See:** `docs/FOLDER-MANAGEMENT-SYSTEM.md` for complete system documentation
 
+## Active Course System
+
+**Swipeable widget showing current courses with deadlines and progress tracking.**
+- ✅ **Active Course Selection**: Set 1-2 courses as active (max enforced at DB level)
+- ✅ **Year/Semester Selection**: Choose which parent folder is currently active
+- ✅ **Progress Tracking**: Recursive calculation for active folder tree
+- ✅ **Deadline Display**: Next essay/assignment (≤14 days) + next exam (always shown)
+- ✅ **Swipeable Widget**: Framer Motion interface with arrow navigation
+
+**📖 Full documentation:** `docs/ACTIVE-COURSE-SYSTEM.md`
+
+**Quick overview:**
+- Max 2 active courses enforced by database trigger
+- Must select year/semester folder when activating (e.g., "Primer curso", "Segundo curso")
+- Widget shows swipeable cards with progress bars and upcoming deadlines
+- Color-coded urgency: Red (≤2 days), Amber (2-5 days), Purple (5-7 days), Blue (exams)
+- Progress calculated only for active folder + descendants
+
+**Database tables:** `course_enrollments` (with `active_folder_id`), `study_sessions` (with deadline fields)
+**Migrations:** `023_add_active_course_support.sql`, `024_add_deadline_support.sql`, `026_fix_active_folder_logic.sql`
+**API routes:** `/api/enrollments/my-courses?active=true`, `/api/enrollments/[enrollmentId]`, `/api/schedule/upcoming-deadlines`, `/api/courses/[courseId]/year-folders`, `/api/courses/[courseId]/progress`
+**Components:** `CoursesWidget.tsx`, `ActiveCourseCard.tsx`, `YearSelectorDialog.tsx`
+**See:** `docs/ACTIVE-COURSE-SYSTEM.md` for complete system documentation
+
 ## Development Commands
 
 ```bash
@@ -102,10 +126,11 @@ npm run lint     # ESLint
 2. **Social System**: Friends, notifications, content sharing, quiz battles
 3. **Course System**: Create/join courses, AI-generated folder structures via OpenAI web search
 4. **Folder Management**: Hierarchical organization (create, edit, delete, reorder, nest)
-5. **Upload System**: Audio files, YouTube links, documents (PDF/TXT/DOC)
-6. **Content Processing**: Transcription → AI Generation → Study Materials
-7. **Study Interface**: 4-tab system (Questions, Notes, Summary, Files)
-8. **Quiz Battles**: Head-to-head competitions with friends using study materials
+5. **Active Courses**: Set 1-2 active courses with year/semester selection and deadline tracking
+6. **Upload System**: Audio files, YouTube links, documents (PDF/TXT/DOC)
+7. **Content Processing**: Transcription → AI Generation → Study Materials
+8. **Study Interface**: 4-tab system (Questions, Notes, Summary, Files)
+9. **Quiz Battles**: Head-to-head competitions with friends using study materials
 
 ## Key API Routes
 
@@ -114,7 +139,14 @@ npm run lint     # ESLint
 - `/api/courses/[courseId]` - Get/delete course details
 - `/api/courses/[courseId]/folders` - GET (list) / POST (create folder)
 - `/api/courses/[courseId]/generate-folders` - AI-generate folders from syllabus
+- `/api/courses/[courseId]/year-folders` - GET top-level folders for year/semester selection
+- `/api/courses/[courseId]/progress` - GET progress for active folder tree
 - `/api/folders/[folderId]` - PATCH (edit) / DELETE folder
+
+### Active Courses & Deadlines
+- `/api/enrollments/my-courses` - GET all enrollments (supports `?active=true`)
+- `/api/enrollments/[enrollmentId]` - PATCH to activate/deactivate and set active folder
+- `/api/schedule/upcoming-deadlines` - GET next deadline and next exam for course
 
 ### Content Processing
 - `/api/generate` - Main content processing endpoint
@@ -166,7 +198,8 @@ WEBHOOK_SECRET=            # Security token
 ### Database
 - PostgreSQL with Row Level Security (RLS)
 - Type-safe queries with Supabase client
-- Key tables: `users`, `profiles`, `courses`, `course_enrollments`, `user_folders`, `notes`, `study_nodes`, `user_connections`, `notifications`, `shared_content`, `quiz_battles`, `battle_rounds`, `battle_participants`
+- Key tables: `users`, `profiles`, `courses`, `course_enrollments`, `user_folders`, `notes`, `study_nodes`, `study_sessions`, `user_connections`, `notifications`, `shared_content`, `quiz_battles`, `battle_rounds`, `battle_participants`
+- Active course system uses: `course_enrollments.is_active_course`, `course_enrollments.active_folder_id`, `study_sessions.is_deadline`, `study_sessions.deadline_type`
 
 ## Current Status
 
@@ -174,6 +207,7 @@ WEBHOOK_SECRET=            # Security token
 - Full authentication system with protected routes
 - Social system (friends, notifications, content sharing)
 - **Quiz Battles** (head-to-head competitions, fully functional)
+- **Active Course System** (max 2 active, year/semester selection, deadline tracking)
 - Course creation and enrollment system
 - AI-powered folder generation (OpenAI web search)
 - Manual folder management (CRUD, reorder, cascade delete)
@@ -182,6 +216,7 @@ WEBHOOK_SECRET=            # Security token
 - 4-tab study interface with navigation
 - PDF generation and viewing
 - Real-time processing status
+- Swipeable dashboard widget with progress and deadlines
 
 🚧 **In Progress:**
 - Exam generation system

@@ -66,7 +66,7 @@ export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) 
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
-          <p className="text-gray-500">No summary available for this lecture.</p>
+          <p className="text-muted-foreground">No summary available for this lecture.</p>
         </div>
       </div>
     );
@@ -89,9 +89,9 @@ export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {/* Header */}
-      <div className="text-center space-y-2 pb-6 border-b border-gray-200">
-        <h2 className="text-2xl font-semibold text-gray-900">Lecture Summary</h2>
-        <p className="text-gray-500">Key takeaways and exam preparation</p>
+      <div className="text-center space-y-2 pb-6 border-b border-border">
+        <h2 className="text-2xl font-semibold text-foreground">Lecture Summary</h2>
+        <p className="text-muted-foreground">Key takeaways and exam preparation</p>
       </div>
 
       {/* Summary Sections */}
@@ -100,15 +100,15 @@ export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) 
           {displaySummary.sections.map((section, index) => (
             <div key={index} className="space-y-3">
               <div className="flex items-center gap-2">
-                <BookText className="w-5 h-5 text-gray-700" />
-                <h3 className="text-lg font-semibold text-gray-900">{section.heading}</h3>
+                <BookText className="w-5 h-5 text-foreground" />
+                <h3 className="text-lg font-semibold text-foreground">{section.heading}</h3>
               </div>
-              <p className="text-gray-700 leading-relaxed pl-7">{section.content}</p>
+              <p className="text-foreground leading-relaxed pl-7">{section.content}</p>
               {section.keyPoints && section.keyPoints.length > 0 && (
                 <ul className="space-y-2 pl-7">
                   {section.keyPoints.map((point, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-700">
-                      <span className="flex-shrink-0 w-1.5 h-1.5 bg-gray-700 rounded-full mt-2"></span>
+                    <li key={idx} className="flex items-start gap-2 text-foreground">
+                      <span className="flex-shrink-0 w-1.5 h-1.5 bg-foreground rounded-full mt-2"></span>
                       <span>{point}</span>
                     </li>
                   ))}
@@ -121,16 +121,16 @@ export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) 
 
       {/* Must-Know Concepts */}
       {displaySummary.mustKnow && displaySummary.mustKnow.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-gray-200">
+        <div className="space-y-4 pt-6 border-t border-border">
           <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-amber-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Must-Know Concepts</h3>
+            <Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <h3 className="text-lg font-semibold text-foreground">Must-Know Concepts</h3>
           </div>
           <div className="space-y-4 pl-7">
             {displaySummary.mustKnow.map((item, index) => (
               <div key={index} className="space-y-1">
-                <h4 className="font-medium text-gray-900">{item.concept}</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">{item.explanation}</p>
+                <h4 className="font-medium text-foreground">{item.concept}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.explanation}</p>
               </div>
             ))}
           </div>
@@ -139,19 +139,19 @@ export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) 
 
       {/* Common Pitfalls */}
       {displaySummary.commonPitfalls && displaySummary.commonPitfalls.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-gray-200">
+        <div className="space-y-4 pt-6 border-t border-border">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Common Pitfalls</h3>
+            <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <h3 className="text-lg font-semibold text-foreground">Common Pitfalls</h3>
           </div>
           <div className="space-y-4 pl-7">
             {displaySummary.commonPitfalls.map((item, index) => (
-              <div key={index} className="space-y-2 bg-orange-50 border-l-4 border-orange-400 p-4">
-                <h4 className="font-medium text-gray-900">{item.pitfall}</h4>
-                <p className="text-sm text-gray-700 leading-relaxed">{item.explanation}</p>
+              <div key={index} className="space-y-2 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-400 p-4">
+                <h4 className="font-medium text-foreground">{item.pitfall}</h4>
+                <p className="text-sm text-foreground leading-relaxed">{item.explanation}</p>
                 {item.howToAvoid && (
-                  <p className="text-sm text-gray-600 leading-relaxed mt-2">
-                    <span className="font-medium text-gray-900">How to avoid:</span> {item.howToAvoid}
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                    <span className="font-medium text-foreground">How to avoid:</span> {item.howToAvoid}
                   </p>
                 )}
               </div>
@@ -162,7 +162,7 @@ export function SummaryTab({ summary, jobId, onTutorExplain }: SummaryTabProps) 
 
       {/* Personal Summary Note */}
       {jobId && (
-        <div className="pt-6 border-t border-gray-200">
+        <div className="pt-6 border-t border-border">
           <PersonalNoteCard
             jobId={jobId}
             contentType="summary"

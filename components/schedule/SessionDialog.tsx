@@ -192,7 +192,7 @@ export function SessionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md dark:bg-background/90 dark:backdrop-blur-2xl border-gray-200/50 dark:border-white/10 shadow-xl dark:shadow-2xl dark:shadow-black/50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />

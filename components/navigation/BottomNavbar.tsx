@@ -5,12 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home,
-  FileText,
   Upload,
-  Calendar,
   Search,
   BookOpen,
-  GitBranch
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScroll, useCommandBar } from '@/components/dashboard/DashboardWrapper';
@@ -32,11 +30,11 @@ const navItems: NavItem[] = [
     paths: ['/dashboard']
   },
   {
-    key: 'lecture',
-    label: 'Lecture',
-    icon: FileText,
-    href: '/dashboard/lectures',
-    paths: ['/dashboard/lectures']
+    key: 'courses',
+    label: 'Courses',
+    icon: BookOpen,
+    href: '/dashboard/courses',
+    paths: ['/dashboard/courses']
   },
   {
     key: 'upload',
@@ -46,11 +44,11 @@ const navItems: NavItem[] = [
     paths: ['/dashboard/upload']
   },
   {
-    key: 'schedule',
-    label: 'Schedule',
-    icon: Calendar,
-    href: '/dashboard/schedule',
-    paths: ['/dashboard/schedule']
+    key: 'social',
+    label: 'Social',
+    icon: Users,
+    href: '/dashboard/social',
+    paths: ['/dashboard/social', '/dashboard/friends', '/dashboard/battles']
   },
   {
     key: 'search',
@@ -87,35 +85,35 @@ export function BottomNavbar({ isScrolled = false }: BottomNavbarProps) {
   };
 
   const hubItem = navItems[0];
-  const middleItems = navItems.slice(1, 4); // Lecture, Upload, Schedule
+  const middleItems = navItems.slice(1, 4); // Courses, Upload, Social
   const searchItem = navItems[4]; // Search
 
   return (
     <nav className={cn("fixed bottom-0 left-0 right-0 z-50 pb-4 px-4 pointer-events-none transition-all duration-300", isScrolled && "pb-3")}>
       <div className={cn("flex items-center mx-auto max-w-md transition-all duration-300", isScrolled ? "justify-between gap-3" : "justify-between gap-3")}>
         {/* Main navigation group */}
-        <div className={cn("bg-white/80 backdrop-blur-xl rounded-full shadow-lg border border-gray-200/50 pointer-events-auto transition-all duration-300", !isScrolled && "flex-1")}>
+        <div className={cn("bg-white/5 dark:bg-white/8 backdrop-blur-2xl backdrop-saturate-150 rounded-full shadow-lg dark:shadow-2xl dark:shadow-black/40 pointer-events-auto transition-all duration-300", !isScrolled && "flex-1")}>
           <div className={cn("flex items-center justify-around", isScrolled ? "" : "px-1 py-1")}>
             {/* Hub - always visible */}
             <Link
               href={hubItem.href}
               className={cn(
                 "flex flex-col items-center justify-center rounded-full transition-all duration-200",
-                "hover:bg-gray-100/50 active:scale-95",
-                isActive(hubItem) && "bg-gray-100",
-                isScrolled ? "w-14 h-14" : "px-2 py-1.5"
+                "hover:bg-accent/50 active:scale-95",
+                isActive(hubItem) && "bg-accent",
+                isScrolled ? "w-14 h-14" : "min-w-0 flex-1 px-2 py-1.5"
               )}
             >
               <div className={cn(
                 "transition-colors duration-200",
-                isActive(hubItem) ? "text-blue-600" : "text-gray-600"
+                isActive(hubItem) ? "text-primary" : "text-muted-foreground"
               )}>
                 <Home className={cn("transition-all duration-200", isScrolled ? "w-6 h-6" : "w-5 h-5")} strokeWidth={isActive(hubItem) ? 2.5 : 1.5} />
               </div>
               {!isScrolled && (
                 <span className={cn(
                   "text-[9px] font-medium truncate mt-0.5",
-                  isActive(hubItem) ? "text-blue-600" : "text-gray-600"
+                  isActive(hubItem) ? "text-primary" : "text-muted-foreground"
                 )}>
                   Hub
                 </span>
@@ -133,19 +131,19 @@ export function BottomNavbar({ isScrolled = false }: BottomNavbarProps) {
                   href={item.href}
                   className={cn(
                     "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5 rounded-full transition-all duration-200",
-                    "hover:bg-gray-100/50 active:scale-95",
-                    active && "bg-gray-100"
+                    "hover:bg-accent/50 active:scale-95",
+                    active && "bg-accent"
                   )}
                 >
                   <div className={cn(
                     "transition-colors duration-200",
-                    active ? "text-blue-600" : "text-gray-600"
+                    active ? "text-primary" : "text-muted-foreground"
                   )}>
                     <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 1.5} />
                   </div>
                   <span className={cn(
                     "text-[9px] font-medium truncate mt-0.5",
-                    active ? "text-blue-600" : "text-gray-600"
+                    active ? "text-primary" : "text-muted-foreground"
                   )}>
                     {item.label}
                   </span>
@@ -159,14 +157,14 @@ export function BottomNavbar({ isScrolled = false }: BottomNavbarProps) {
         <button
           onClick={openCommandBar}
           className={cn(
-            "bg-white/80 backdrop-blur-xl rounded-full shadow-lg border border-gray-200/50 pointer-events-auto",
+            "bg-white/5 dark:bg-white/8 backdrop-blur-2xl backdrop-saturate-150 rounded-full shadow-lg dark:shadow-2xl dark:shadow-black/40 pointer-events-auto",
             "flex items-center justify-center w-14 h-14 transition-all duration-200",
-            "hover:bg-gray-100/50 active:scale-95"
+            "hover:bg-accent/50 active:scale-95"
           )}
           aria-label="Open search"
         >
           <Search
-            className="w-6 h-6 text-gray-600 transition-colors duration-200"
+            className="w-6 h-6 text-muted-foreground transition-colors duration-200"
             strokeWidth={1.5}
           />
         </button>

@@ -88,11 +88,19 @@ export async function POST(request: NextRequest) {
     const documentFiles: File[] = []
     if (uploadType === 'documents') {
       // Collect all document files
+      console.log('📄 Collecting document files from FormData...');
       for (const [key, value] of formData.entries()) {
         if (key.startsWith('document_') && value instanceof File) {
+          console.log(`📄 Found document field: ${key}`, {
+            fileName: value.name,
+            fileType: value.type,
+            fileSize: `${(value.size / 1024 / 1024).toFixed(2)}MB`
+          });
           documentFiles.push(value)
         }
       }
+
+      console.log(`📄 Total documents collected: ${documentFiles.length}`);
 
       if (documentFiles.length === 0) {
         return createErrorResponse('No documents provided for document upload')
@@ -104,11 +112,12 @@ export async function POST(request: NextRequest) {
         if (doc.size > MAX_DOCUMENT_SIZE) {
           return createErrorResponse(`Document file too large: ${doc.name} (max 50MB)`)
         }
-        
+
         if (!documentMimeTypes.includes(doc.type)) {
           return createErrorResponse(`Invalid document type: ${doc.name}. Supported: PDF, TXT, DOC, DOCX`)
         }
       }
+      console.log('✅ All documents validated successfully');
     }
 
     const supabase = await createClient()
@@ -183,8 +192,14 @@ export async function POST(request: NextRequest) {
 
       // Upload document files if present
       if (documentFiles.length > 0) {
+        console.log(`📄 Starting upload of ${documentFiles.length} document(s)...`);
         for (const [index, doc] of documentFiles.entries()) {
           const docFileName = `${user.id}/${timestamp}_doc${index}_${doc.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+          console.log(`📄 Uploading document ${index + 1}/${documentFiles.length}:`, {
+            fileName: doc.name,
+            storagePath: docFileName,
+            fileSize: `${(doc.size / 1024 / 1024).toFixed(2)}MB`
+          });
           const docBuffer = await doc.arrayBuffer()
           const { data: docUpload, error: docError } = await supabase.storage
             .from('user-uploads')
@@ -195,7 +210,7 @@ export async function POST(request: NextRequest) {
             })
 
           if (docError) {
-            console.error(`Document upload error for ${doc.name}:`, docError)
+            console.error(`❌ Document upload error for ${doc.name}:`, docError)
             // Clean up already uploaded files
             if (uploadedFiles.length > 0) {
               await supabase.storage.from('user-uploads').remove(uploadedFiles)
@@ -203,9 +218,14 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(`Failed to upload document: ${doc.name}`, 500)
           }
 
+          console.log(`✅ Document ${index + 1} uploaded successfully:`, {
+            uploadPath: docUpload.path,
+            fileName: doc.name
+          });
           documentUploads.push(docUpload.path)
           uploadedFiles.push(docFileName)
         }
+        console.log('📄 All documents uploaded. Final documentUploads array:', documentUploads);
       }
 
       // Process link content if this is a link upload
@@ -260,18 +280,28 @@ export async function POST(request: NextRequest) {
         audioPath: audioUpload ? (audioUpload.path || audioUpload.fullPath || audioFileName) : null,
         pdfPath: pdfUploadPath,
         documentPaths: documentUploads.length > 0 ? documentUploads : null,
-        message: uploadType === 'link' ? 'Link content extracted successfully' : 
+        message: uploadType === 'link' ? 'Link content extracted successfully' :
                  uploadType === 'documents' ? 'Documents uploaded successfully' :
                  'Files uploaded successfully'
       }
 
-      
+      console.log('📄 Preparing response object:', {
+        uploadType,
+        documentUploadsLength: documentUploads.length,
+        documentUploadsArray: documentUploads,
+        documentPathsInResponse: response.documentPaths,
+        documentPathsIsNull: response.documentPaths === null,
+        documentPathsIsArray: Array.isArray(response.documentPaths),
+        responseKeys: Object.keys(response)
+      });
+
       // Include link data if this was a link upload
       if (linkContent) {
         response.linkData = linkContent
       }
-      
-      
+
+      console.log('📄 Final response before createSuccessResponse wrapper:', response);
+
       return createSuccessResponse(response, 200)
 
     } catch (uploadError) {

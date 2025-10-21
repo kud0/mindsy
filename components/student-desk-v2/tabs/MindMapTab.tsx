@@ -34,11 +34,11 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
   if (!mindMapData) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
-        <div className="text-gray-400 mb-3">
+        <div className="text-muted-foreground mb-3">
           <GitBranch className="w-12 h-12 mx-auto" />
         </div>
-        <p className="text-gray-600 text-center">No mind map available</p>
-        <p className="text-sm text-gray-500 text-center mt-2">
+        <p className="text-muted-foreground text-center">No mind map available</p>
+        <p className="text-sm text-muted-foreground text-center mt-2">
           A visual mind map will be generated to help you understand the concept relationships
         </p>
       </div>
@@ -74,7 +74,7 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
 
         {/* Description Tooltip */}
         {isSelected && node.description && (
-          <div className="absolute z-10 mt-2 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg max-w-xs">
+          <div className="absolute z-10 mt-2 p-3 bg-popover text-popover-foreground text-sm rounded-lg shadow-lg max-w-xs border border-border">
             {node.description}
           </div>
         )}
@@ -86,7 +86,7 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
               <div key={child.id} className="relative">
                 {/* Connection Line */}
                 {level > 0 && (
-                  <div className="absolute -left-8 top-4 w-8 h-0.5 bg-gray-300"></div>
+                  <div className="absolute -left-8 top-4 w-8 h-0.5 bg-border"></div>
                 )}
                 {renderNode(child, level + 1)}
               </div>
@@ -130,11 +130,11 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
   };
 
   return (
-    <div className="min-h-full bg-white relative">
+    <div className="min-h-full bg-background relative">
       {/* Zoom Controls */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3">
+      <div className="sticky top-0 z-20 bg-background border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-700">Interactive Mind Map</h3>
+          <h3 className="text-sm font-medium text-foreground">Interactive Mind Map</h3>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -145,7 +145,7 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-gray-600 min-w-[3rem] text-center">
+            <span className="text-sm text-muted-foreground min-w-[3rem] text-center">
               {zoom}%
             </span>
             <Button
@@ -177,7 +177,7 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
         >
           {/* Visual Mind Map (simplified for mobile) */}
           <div className="block sm:hidden">
-            <pre className="text-sm text-gray-700 font-mono bg-gray-50 p-4 rounded-lg">
+            <pre className="text-sm text-foreground font-mono bg-muted p-4 rounded-lg">
               {renderSimpleMindMap().join('\n')}
             </pre>
           </div>
@@ -191,7 +191,7 @@ export function MindMapTab({ mindMapData }: MindMapTabProps) {
 
       {/* Instructions */}
       <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700 pointer-events-auto">
+        <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-700 dark:text-blue-300 pointer-events-auto">
           <p className="font-medium mb-1">Interactive Mind Map</p>
           <p className="text-xs">
             • Click nodes to see descriptions

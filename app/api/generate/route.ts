@@ -76,18 +76,31 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Create new job record (like original generate API)
     console.log('🔨 Generate API: Creating new job for processing');
-    
+
+    const jobData = {
+      user_id: user.id,
+      lecture_title: body.lectureTitle,
+      course_subject: body.courseSubject || null,
+      status: 'processing',
+      audio_file_path: body.audioFilePath,
+      pdf_file_path: body.pdfFilePath || null,
+      document_paths: body.documentPaths || null,
+      processing_started_at: new Date().toISOString()
+    };
+
+    console.log('📄 Job data being inserted:', {
+      uploadType: body.uploadType,
+      audio_file_path: jobData.audio_file_path,
+      pdf_file_path: jobData.pdf_file_path,
+      document_paths: jobData.document_paths,
+      document_paths_type: typeof jobData.document_paths,
+      document_paths_isArray: Array.isArray(jobData.document_paths),
+      document_paths_length: jobData.document_paths?.length
+    });
+
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .insert({
-        user_id: user.id,
-        lecture_title: body.lectureTitle,
-        course_subject: body.courseSubject || null,
-        status: 'processing',
-        audio_file_path: body.audioFilePath,
-        pdf_file_path: body.pdfFilePath || null,
-        processing_started_at: new Date().toISOString()
-      })
+      .insert(jobData)
       .select()
       .single();
 
@@ -101,6 +114,53 @@ export async function POST(request: NextRequest) {
     console.log('✅ Generate API: Created new job', { jobId, title: job.lecture_title });
 
     try {
+      // Handle document upload processing (skip transcription, go straight to AI generation)
+      if (body.uploadType === 'documents' && body.documentPaths) {
+        console.log('📄 Generate API: Processing document upload');
+
+        // Import document processing from content-processor
+        const { handleDocumentProcessing } = await import('@/lib/content-processor');
+
+        // Process documents and generate study materials
+        const result = await handleDocumentProcessing(jobId, body.documentPaths, {
+          jobId,
+          userId: user.id,
+          lectureTitle: body.lectureTitle,
+          courseSubject: body.courseSubject,
+          mode: 'sync'
+        });
+
+        console.log('✅ Generate API: Document processing completed successfully');
+
+        // Get the completed job data for response
+        const { data: completedJob } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('job_id', jobId)
+          .single();
+
+        const { data: studyGuide } = await supabase
+          .from('study_guides')
+          .select('*')
+          .eq('job_id', jobId)
+          .single();
+
+        // Return success with all data
+        return createSuccessResponse({
+          jobId,
+          message: 'Document processing completed successfully!',
+          status: 'completed',
+          studyGuide,
+          files: {
+            transcript: completedJob?.txt_file_path,
+            json: completedJob?.json_file_path,
+            pdf: completedJob?.pdf_file_path
+          },
+          mode: 'sync'
+        });
+      }
+
+      // Handle audio upload processing (existing code)
       // Step 2: Get signed URL for audio file
       const { data: audioSignedUrl, error: audioUrlError } = await supabase.storage
         .from('user-uploads')

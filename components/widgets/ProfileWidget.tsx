@@ -2,29 +2,37 @@
 
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { cn } from '@/lib/utils';
-import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { CharacterHeader } from '@/components/profile/CharacterHeader';
+import { ActivityHeatmap, ActivityDay } from '@/components/profile/ActivityHeatmap';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface ActivityData {
-  study: { completed: number; total: number; color: string };
-  exams: { completed: number; total: number; color: string };
-  streak: { completed: number; total: number; color: string };
+interface ProfileStats {
+  level: number;
+  xp: number;
+  xpForNextLevel: number;
+  xpProgress: number;
+  currentStreak: number;
+  title: string;
+  titleColor: string;
 }
 
 export function ProfileWidget() {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [heatmapData, setHeatmapData] = useState<ActivityDay[]>([]);
+
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingHeatmap, setLoadingHeatmap] = useState(true);
+
+  const [statsError, setStatsError] = useState(false);
+  const [heatmapError, setHeatmapError] = useState(false);
+
   const router = useRouter();
 
-  // Mock activity data - Apple style rings
-  const activityData: ActivityData = {
-    study: { completed: 75, total: 100, color: 'text-red-500' },
-    exams: { completed: 60, total: 100, color: 'text-green-500' },
-    streak: { completed: 40, total: 100, color: 'text-blue-500' }
-  };
-
+  // Fetch user data
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -33,27 +41,65 @@ export function ProfileWidget() {
         setUser(user);
       } catch (error) {
         console.error('Error fetching user:', error);
+        toast.error('Failed to load user profile');
       } finally {
-        setLoading(false);
+        setLoadingUser(false);
       }
     };
 
     fetchUser();
   }, []);
 
-  const getInitials = (email: string) => {
-    if (!email) return 'A';
-    const parts = email.split('@')[0].split('.');
-    if (parts.length > 1) {
-      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  // Fetch all profile data in parallel
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        // Fetch both endpoints in parallel
+        const [statsRes, heatmapRes] = await Promise.allSettled([
+          fetch('/api/profile/stats'),
+          fetch('/api/profile/activity-heatmap')
+        ]);
+
+        // Handle stats response
+        if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
+          const statsData = await statsRes.value.json();
+          if (statsData.success) {
+            setStats(statsData.data);
+          } else {
+            setStatsError(true);
+          }
+        } else {
+          setStatsError(true);
+        }
+
+        // Handle heatmap response
+        if (heatmapRes.status === 'fulfilled' && heatmapRes.value.ok) {
+          const heatmapResult = await heatmapRes.value.json();
+          if (heatmapResult.success) {
+            setHeatmapData(heatmapResult.data);
+          } else {
+            setHeatmapError(true);
+          }
+        } else {
+          setHeatmapError(true);
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+        toast.error('Failed to load profile data');
+        setStatsError(true);
+        setHeatmapError(true);
+      } finally {
+        setLoadingStats(false);
+        setLoadingHeatmap(false);
+      }
+    };
+
+    if (!loadingUser) {
+      fetchProfileData();
     }
-    return email.substring(0, 2).toUpperCase();
-  };
+  }, [loadingUser]);
 
-  const displayName = user?.user_metadata?.full_name ||
-                      user?.email?.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
-                      'Alex';
-
+  // Handle logout
   const handleLogout = async () => {
     try {
       const supabase = createClient();
@@ -74,191 +120,88 @@ export function ProfileWidget() {
     }
   };
 
-  const ActivityRings = () => {
-    const size = 120;
-    const centerX = size / 2;
-    const centerY = size / 2;
-    const strokeWidth = 12; // Made thicker
-    
-    // Ring radii - outer to inner (adjusted for thicker strokes)
-    const redRadius = 48;
-    const greenRadius = 36;
-    const blueRadius = 24;
-    
-    // Calculate circumferences and offsets
-    const redCircumference = 2 * Math.PI * redRadius;
-    const greenCircumference = 2 * Math.PI * greenRadius;
-    const blueCircumference = 2 * Math.PI * blueRadius;
-    
-    const redOffset = redCircumference - (activityData.study.completed / 100) * redCircumference;
-    const greenOffset = greenCircumference - (activityData.exams.completed / 100) * greenCircumference;
-    const blueOffset = blueCircumference - (activityData.streak.completed / 100) * blueCircumference;
-
-    return (
-      <div className="relative">
-        <svg width={size} height={size} className="transform -rotate-90">
-          {/* Background rings */}
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={redRadius}
-            stroke="rgb(255, 69, 114)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            opacity="0.15"
-          />
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={greenRadius}
-            stroke="rgb(101, 206, 100)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            opacity="0.15"
-          />
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={blueRadius}
-            stroke="rgb(52, 199, 235)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            opacity="0.15"
-          />
-          
-          {/* Progress rings */}
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={redRadius}
-            stroke="rgb(255, 69, 114)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={redCircumference}
-            strokeDashoffset={redOffset}
-            strokeLinecap="round"
-            className="drop-shadow-sm"
-          />
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={greenRadius}
-            stroke="rgb(101, 206, 100)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={greenCircumference}
-            strokeDashoffset={greenOffset}
-            strokeLinecap="round"
-            className="drop-shadow-sm"
-          />
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={blueRadius}
-            stroke="rgb(52, 199, 235)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={blueCircumference}
-            strokeDashoffset={blueOffset}
-            strokeLinecap="round"
-            className="drop-shadow-sm"
-          />
-        </svg>
-      </div>
-    );
-  };
-
-  const handleCardClick = () => {
+  // Handle account page navigation
+  const handleAccountClick = () => {
     router.push('/dashboard/account');
   };
 
+  // Handle heatmap day click
+  const handleDayClick = (date: string) => {
+    // TODO: Open modal/sheet with detailed activity for that day
+    toast.info(`Activity details for ${date}`, {
+      description: 'Detailed view coming soon!',
+    });
+  };
+
+  // Default stats for error state
+  const defaultStats: ProfileStats = {
+    level: 1,
+    xp: 0,
+    xpForNextLevel: 100,
+    xpProgress: 0,
+    currentStreak: 0,
+    title: 'Novice',
+    titleColor: 'text-gray-600',
+  };
+
   return (
-    <div
-      className="h-full w-full rounded-3xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 p-6 flex flex-col justify-between relative overflow-hidden cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
-      onClick={handleCardClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          handleCardClick();
-        }
-      }}
-    >
-      {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent rounded-3xl" />
+    <div className="h-full w-full rounded-3xl bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-blue-900 dark:via-purple-900 dark:to-pink-900 p-5 flex flex-col gap-3 overflow-auto">
+      {/* Section 1: Character Header */}
+      {loadingUser || loadingStats ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-20 w-20 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-8 w-24 mx-auto" />
+        </div>
+      ) : statsError || !user ? (
+        <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 text-center">
+          <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+            Failed to load profile stats
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-xs text-red-700 dark:text-red-300 underline hover:no-underline"
+          >
+            Retry
+          </button>
+        </div>
+      ) : (
+        <CharacterHeader
+          user={user}
+          stats={stats || defaultStats}
+          onLogout={handleLogout}
+          onClick={handleAccountClick}
+        />
+      )}
 
-      {/* Logout Button - Top Right */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation(); // Prevent card click
-          handleLogout();
-        }}
-        className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 transition-all hover:scale-105 group"
-        title="Log out"
-      >
-        <LogOut className="w-4 h-4 text-gray-700 dark:text-gray-200 group-hover:text-red-600" />
-      </button>
+      {/* Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
 
-      {/* Top section - Profile Info */}
-      <div className="relative z-10 flex items-center gap-4">
-        {/* Profile Photo */}
-        <div className="relative">
-          <div className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden",
-            "bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg"
-          )}>
-            {user?.user_metadata?.avatar_url ? (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt={displayName}
-                className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  // Fallback to initials if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <span className={user?.user_metadata?.avatar_url ? 'hidden' : ''}>
-              {getInitials(user?.email || 'alex@gmail.com')}
-            </span>
+      {/* Section 2: Activity Heatmap */}
+      {loadingHeatmap ? (
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <div className="grid grid-cols-7 gap-2">
+            {[1, 2, 3, 4, 5, 6, 7].map((j) => (
+              <Skeleton key={j} className="aspect-square w-full rounded-md" />
+            ))}
           </div>
         </div>
-
-        {/* Name and Badge */}
-        <div className="flex-1">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{displayName}</h2>
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/30 backdrop-blur-sm border border-white/30">
-            <span className="text-xs font-medium text-gray-800 dark:text-gray-200">Mindsy Pro</span>
-          </div>
+      ) : heatmapError ? (
+        <div className="rounded-2xl border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 p-4 text-center">
+          <p className="text-sm text-yellow-600 dark:text-yellow-400">
+            Activity data unavailable
+          </p>
         </div>
-      </div>
-
-      {/* Bottom section - Activity Rings */}
-      <div className="relative z-10 flex justify-center">
-        <div className="scale-90">
-          <ActivityRings />
-        </div>
-      </div>
-
-      {/* Quick Stats Below Badge */}
-      <div className="relative z-10 flex items-center justify-center gap-4 text-xs text-gray-700 dark:text-gray-300">
-        <div className="flex items-center gap-1">
-          <span className="font-semibold">{activityData.study.completed}</span>
-          <span className="opacity-70">Study</span>
-        </div>
-        <span className="opacity-50">•</span>
-        <div className="flex items-center gap-1">
-          <span className="font-semibold">{activityData.exams.completed}</span>
-          <span className="opacity-70">Exams</span>
-        </div>
-        <span className="opacity-50">•</span>
-        <div className="flex items-center gap-1">
-          <span className="font-semibold">{activityData.streak.completed}</span>
-          <span className="opacity-70">Streak</span>
-        </div>
-      </div>
+      ) : (
+        <ActivityHeatmap data={heatmapData} onDayClick={handleDayClick} />
+      )}
     </div>
   );
 }

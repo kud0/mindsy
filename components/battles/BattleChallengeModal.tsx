@@ -109,8 +109,8 @@ export function BattleChallengeModal({ isOpen, onClose, friend, folders }: Battl
   const selectedFolder = availableFolders.find(f => f.id === selectedFolderId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:backdrop-blur-2xl backdrop-blur-sm">
+      <div className="bg-white dark:bg-background/90 rounded-2xl shadow-2xl dark:shadow-black/50 border border-gray-200 dark:border-white/10 w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">

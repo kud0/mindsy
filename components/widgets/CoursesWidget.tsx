@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Plus, Users, FolderOpen, TrendingUp } from 'lucide-react';
+import { BookOpen, Plus, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { BaseWidget } from './BaseWidget';
+import { ActiveCourseCard } from './ActiveCourseCard';
+import { cn } from '@/lib/utils';
 
 interface EnrolledCourse {
   id: string;
@@ -13,70 +16,57 @@ interface EnrolledCourse {
   institution: string;
   semester?: string;
   enrollment_count: number;
+  enrollment_id: string;
+  is_active_course: boolean;
+  active_folder_id?: string | null;
+  active_folder_name?: string | null;
+  total_years: number;
 }
 
-// Tinted glassmorphism colors
-const courseColors = [
-  {
-    glass: 'bg-purple-50/80 backdrop-blur-xl border border-purple-200/50',
-    text: 'text-purple-900',
-    icon: 'text-purple-600',
-    accent: 'bg-purple-500',
-    shadow: 'shadow-purple-100/50'
-  },
-  {
-    glass: 'bg-blue-50/80 backdrop-blur-xl border border-blue-200/50',
-    text: 'text-blue-900',
-    icon: 'text-blue-600',
-    accent: 'bg-blue-500',
-    shadow: 'shadow-blue-100/50'
-  },
-  {
-    glass: 'bg-orange-50/80 backdrop-blur-xl border border-orange-200/50',
-    text: 'text-orange-900',
-    icon: 'text-orange-600',
-    accent: 'bg-orange-500',
-    shadow: 'shadow-orange-100/50'
-  },
-  {
-    glass: 'bg-emerald-50/80 backdrop-blur-xl border border-emerald-200/50',
-    text: 'text-emerald-900',
-    icon: 'text-emerald-600',
-    accent: 'bg-emerald-500',
-    shadow: 'shadow-emerald-100/50'
-  },
-  {
-    glass: 'bg-indigo-50/80 backdrop-blur-xl border border-indigo-200/50',
-    text: 'text-indigo-900',
-    icon: 'text-indigo-600',
-    accent: 'bg-indigo-500',
-    shadow: 'shadow-indigo-100/50'
-  },
-  {
-    glass: 'bg-pink-50/80 backdrop-blur-xl border border-pink-200/50',
-    text: 'text-pink-900',
-    icon: 'text-pink-600',
-    accent: 'bg-pink-500',
-    shadow: 'shadow-pink-100/50'
-  },
-];
+interface ProgressData {
+  progress: number;
+  completed: number;
+  total: number;
+}
+
+interface Deadline {
+  id: string;
+  title: string;
+  deadline_type: string;
+  start_time: string;
+  daysUntil: number;
+  priority: string;
+  subject: string;
+  completion_percentage: number;
+}
 
 export function CoursesWidget() {
   const router = useRouter();
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [activeCourses, setActiveCourses] = useState<EnrolledCourse[]>([]);
+  const [deadlinesData, setDeadlinesData] = useState<Record<string, {
+    nextDeadline: Deadline | null;
+    nextExam: Deadline | null;
+  }>>({});
+  const [progressData, setProgressData] = useState<Record<string, ProgressData>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    loadEnrolledCourses();
+    loadActiveCourses();
   }, []);
 
-  const loadEnrolledCourses = async () => {
+  const loadActiveCourses = async () => {
     try {
-      const response = await fetch('/api/enrollments/my-courses');
+      // Load active courses only (max 2)
+      const response = await fetch('/api/enrollments/my-courses?active=true');
       const data = await response.json();
 
-      if (data.success) {
-        setEnrolledCourses(data.courses || []);
+      if (data.success && data.courses) {
+        const courses = data.courses as EnrolledCourse[];
+        setActiveCourses(courses);
+
+        // Load deadlines for each active course
+        await loadDeadlinesForCourses(courses);
       }
     } catch (error) {
       console.error('Error loading courses:', error);
@@ -85,9 +75,124 @@ export function CoursesWidget() {
     }
   };
 
+  const loadDeadlinesForCourses = async (courses: EnrolledCourse[]) => {
+    const deadlines: Record<string, { nextDeadline: Deadline | null; nextExam: Deadline | null }> = {};
+    const progress: Record<string, ProgressData> = {};
+
+    await Promise.all(
+      courses.map(async (course) => {
+        try {
+          // Load deadlines
+          const deadlineResponse = await fetch(`/api/schedule/upcoming-deadlines?course_id=${course.id}`);
+          const deadlineData = await deadlineResponse.json();
+
+          if (deadlineData.success) {
+            deadlines[course.id] = {
+              nextDeadline: deadlineData.data.nextClosestDeadline,
+              nextExam: deadlineData.data.nextExam
+            };
+          }
+
+          // Load progress (only if active_folder_id exists)
+          if (course.active_folder_id) {
+            const progressResponse = await fetch(
+              `/api/courses/${course.id}/progress?folderId=${course.active_folder_id}`
+            );
+            const progressData = await progressResponse.json();
+
+            if (progressData.success) {
+              progress[course.id] = {
+                progress: progressData.progress,
+                completed: progressData.completed,
+                total: progressData.total
+              };
+            } else {
+              // Default to 0 if error
+              progress[course.id] = { progress: 0, completed: 0, total: 0 };
+            }
+          } else {
+            // No active folder, default to 0
+            progress[course.id] = { progress: 0, completed: 0, total: 0 };
+          }
+        } catch (error) {
+          console.error(`Error loading data for course ${course.id}:`, error);
+          // Set defaults on error
+          progress[course.id] = { progress: 0, completed: 0, total: 0 };
+        }
+      })
+    );
+
+    setDeadlinesData(deadlines);
+    setProgressData(progress);
+  };
+
+  const handleSwipeLeft = () => {
+    if (currentIndex < activeCourses.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 50;
+    if (info.offset.x > swipeThreshold) {
+      handleSwipeRight();
+    } else if (info.offset.x < -swipeThreshold) {
+      handleSwipeLeft();
+    }
+  };
+
+  // Show empty state if no active courses
+  if (!isLoading && activeCourses.length === 0) {
+    return (
+      <BaseWidget
+        title="Active Courses"
+        iconImage="/images/science-book.gif"
+        iconSize="large"
+        href="/dashboard/courses"
+        color="text-blue-600"
+        bgColor="bg-blue-100"
+        loading={isLoading}
+        actions={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push('/dashboard/courses');
+            }}
+            aria-label="Manage courses"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+        }
+      >
+        <div className="flex flex-col items-center justify-center h-full text-center py-8">
+          <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center mb-3 border border-purple-200/50 dark:border-purple-800/50">
+            <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+          </div>
+          <p className="text-sm font-semibold text-foreground mb-1">
+            No active courses
+          </p>
+          <p className="text-xs text-muted-foreground max-w-[200px]">
+            Set 1-2 courses as active to track upcoming deadlines
+          </p>
+        </div>
+      </BaseWidget>
+    );
+  }
+
+  const currentCourse = activeCourses[currentIndex];
+  const showSwipeControls = activeCourses.length > 1;
+
   return (
     <BaseWidget
-      title="My Courses"
+      title={showSwipeControls ? `Active Courses (${currentIndex + 1}/${activeCourses.length})` : "Active Course"}
       iconImage="/images/science-book.gif"
       iconSize="large"
       href="/dashboard/courses"
@@ -95,96 +200,112 @@ export function CoursesWidget() {
       bgColor="bg-blue-100"
       loading={isLoading}
       actions={
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={(e) => {
             e.stopPropagation();
-            router.push('/dashboard/courses/create');
+            router.push('/dashboard/courses');
           }}
-          className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-all hover:scale-110 active:scale-95"
-          aria-label="Join a course"
+          aria-label="Manage courses"
         >
-          <Plus className="w-4 h-4 text-primary" />
-        </button>
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
       }
     >
-      {enrolledCourses.length > 0 ? (
-        <div className="space-y-2">
-          {enrolledCourses.slice(0, 2).map((course, index) => {
-            const colorScheme = courseColors[index % courseColors.length];
-            return (
+      <div className="relative overflow-hidden">
+        {/* Swipe Arrows (only show if 2 courses) */}
+        {showSwipeControls && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSwipeRight();
+              }}
+              disabled={currentIndex === 0}
+              className={cn(
+                "absolute left-0 top-1/2 -translate-y-1/2 z-10",
+                "w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm",
+                "border border-border/50 shadow-sm",
+                "flex items-center justify-center transition-all",
+                "hover:bg-background hover:scale-110",
+                currentIndex === 0 && "opacity-30 cursor-not-allowed"
+              )}
+              aria-label="Previous course"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSwipeLeft();
+              }}
+              disabled={currentIndex === activeCourses.length - 1}
+              className={cn(
+                "absolute right-0 top-1/2 -translate-y-1/2 z-10",
+                "w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm",
+                "border border-border/50 shadow-sm",
+                "flex items-center justify-center transition-all",
+                "hover:bg-background hover:scale-110",
+                currentIndex === activeCourses.length - 1 && "opacity-30 cursor-not-allowed"
+              )}
+              aria-label="Next course"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
+        {/* Swipeable Cards */}
+        <AnimatePresence mode="wait" initial={false}>
+          {currentCourse && (
+            <motion.div
+              key={currentCourse.id}
+              drag={showSwipeControls ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className={cn(
+                "px-1",
+                showSwipeControls && "cursor-grab active:cursor-grabbing"
+              )}
+            >
+              <ActiveCourseCard
+                course={currentCourse}
+                nextDeadline={deadlinesData[currentCourse.id]?.nextDeadline}
+                nextExam={deadlinesData[currentCourse.id]?.nextExam}
+                progress={progressData[currentCourse.id]?.progress ?? 0}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Dot Indicators */}
+        {showSwipeControls && (
+          <div className="flex justify-center gap-1.5 mt-4">
+            {activeCourses.map((_, index) => (
               <button
-                key={course.id}
+                key={index}
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(`/dashboard/courses/${course.id}`);
+                  setCurrentIndex(index);
                 }}
-                className={`group w-full text-left relative overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${colorScheme.glass} shadow-lg hover:shadow-xl ${colorScheme.shadow}`}
-              >
-                <div className="p-3 relative">
-                  {/* Colored accent bar */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${colorScheme.accent} rounded-l-xl`} />
-
-                  {/* Course code */}
-                  <div className="flex items-start justify-between mb-1 pl-2">
-                    <h3 className={`font-bold text-sm ${colorScheme.text} truncate flex-1 pr-2`}>
-                      {course.course_code}
-                    </h3>
-                    <div className={`p-1.5 rounded-lg ${colorScheme.accent}/10`}>
-                      <BookOpen className={`w-3.5 h-3.5 ${colorScheme.icon}`} />
-                    </div>
-                  </div>
-
-                  {/* Course name (if exists) */}
-                  {course.course_name && (
-                    <p className={`text-[11px] ${colorScheme.text} opacity-70 mb-2 pl-2 line-clamp-1`}>
-                      {course.course_name}
-                    </p>
-                  )}
-
-                  {/* Stats row */}
-                  <div className="flex items-center gap-3 text-[11px] pl-2">
-                    <div className={`flex items-center gap-1 ${colorScheme.text} opacity-80`}>
-                      <Users className="w-3 h-3" />
-                      <span className="font-medium">{course.enrollment_count}</span>
-                    </div>
-                    <div className={`flex items-center gap-1 ${colorScheme.icon}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${colorScheme.accent} animate-pulse`} />
-                      <span className="font-medium">Active</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Subtle shimmer on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full text-center py-8">
-          <div className="relative mb-4">
-            {/* Animated gradient circle */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-xl animate-pulse" />
-            <div className="relative p-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
-              <BookOpen className="w-8 h-8 text-white" />
-            </div>
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all duration-200",
+                  index === currentIndex
+                    ? "bg-purple-600 w-6"
+                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                )}
+                aria-label={`Go to course ${index + 1}`}
+              />
+            ))}
           </div>
-          <p className="text-sm font-bold text-foreground mb-1">
-            No courses yet
-          </p>
-          <p className="text-xs text-muted-foreground mb-4 max-w-[200px]">
-            Join your first course to start organizing lectures
-          </p>
-          <Button
-            size="sm"
-            onClick={() => router.push('/dashboard/courses/create')}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            Join Course
-          </Button>
-        </div>
-      )}
+        )}
+      </div>
     </BaseWidget>
   );
 }

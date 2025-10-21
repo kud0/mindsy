@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   // Authenticate user
   const authResult = await requireAuth(request);
@@ -19,7 +19,7 @@ export async function GET(
   }
 
   const { user } = authResult;
-  const { jobId } = params;
+  const { jobId } = await params;
 
   try {
     const supabase = await createClient();

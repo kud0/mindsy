@@ -79,7 +79,7 @@ export function QuizConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] dark:bg-background/90 dark:backdrop-blur-2xl border-gray-200/50 dark:border-white/10 shadow-xl dark:shadow-2xl dark:shadow-black/50">
         <DialogHeader>
           <DialogTitle>Generate Quiz</DialogTitle>
           <DialogDescription>

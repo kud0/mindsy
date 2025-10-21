@@ -15,6 +15,7 @@ interface Job {
   user_id: string;
   course_subject?: string;
   processing_completed_at?: string;
+  document_paths?: string[] | null;
 }
 
 interface StudyGuide {

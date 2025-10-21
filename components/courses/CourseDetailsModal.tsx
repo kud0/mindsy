@@ -224,7 +224,7 @@ export function CourseDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto dark:bg-background/90 dark:backdrop-blur-2xl border-gray-200/50 dark:border-white/10 shadow-xl dark:shadow-2xl dark:shadow-black/50">
         <DialogHeader>
           <DialogTitle>
             <div>
@@ -345,8 +345,8 @@ export function CourseDetailsModal({
 
         {/* Template Preview Dialog */}
         {previewTemplate && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setPreviewTemplate(null)}>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 dark:backdrop-blur-2xl flex items-center justify-center z-50" onClick={() => setPreviewTemplate(null)}>
+            <div className="bg-white dark:bg-background/90 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-200/50 dark:border-white/10 shadow-2xl dark:shadow-black/50" onClick={(e) => e.stopPropagation()}>
               <h3 className="font-semibold mb-3">{previewTemplate.template_name}</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {previewTemplate.folder_structure.folders.map((folder, index) => (

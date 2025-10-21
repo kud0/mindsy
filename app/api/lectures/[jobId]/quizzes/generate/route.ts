@@ -21,7 +21,7 @@ interface QuizGenerationRequest {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   // Authenticate user
   const authResult = await requireAuth(request);
@@ -30,7 +30,7 @@ export async function POST(
   }
 
   const { user } = authResult;
-  const { jobId } = params;
+  const { jobId } = await params;
 
   try {
     // Parse request body

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTheme } from "@/lib/contexts/theme-context"
+import { useTheme } from "next-themes"
 
 export const MoonIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -42,7 +42,7 @@ export const SunIcon = (props: React.SVGProps<SVGSVGElement>) => {
 }
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
+  const { setTheme, theme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   // Avoid hydration mismatch
@@ -60,11 +60,11 @@ export function ThemeToggle() {
     )
   }
 
-  // Determine if we're in dark mode
-  const isDark = theme === 'dark'
+  // Determine if we're in dark mode (use resolvedTheme to handle "system" preference)
+  const isDark = resolvedTheme === 'dark'
 
   const handleThemeChange = () => {
-    // Simple toggle between light and dark (no system option for simplicity)
+    // Simple toggle between light and dark
     setTheme(isDark ? 'light' : 'dark')
   }
 

@@ -41,11 +41,11 @@ export function TranscriptTab({ transcript, onSeekToTime, metadata }: Transcript
     if (!transcript) {
       return (
         <div className="flex flex-col items-center justify-center py-12 px-4">
-          <div className="text-gray-400 mb-3">
+          <div className="text-muted-foreground/40 mb-3">
             <Clock className="w-12 h-12 mx-auto" />
           </div>
-          <p className="text-gray-600 text-center">No original content available</p>
-          <p className="text-sm text-gray-500 text-center mt-2">
+          <p className="text-muted-foreground text-center">No original content available</p>
+          <p className="text-sm text-muted-foreground/60 text-center mt-2">
             Original content will appear here once the lecture has been processed
           </p>
         </div>
@@ -57,7 +57,7 @@ export function TranscriptTab({ transcript, onSeekToTime, metadata }: Transcript
       return (
         <div className="p-4 space-y-4">
           <div className="prose prose-sm max-w-none">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
               {transcript}
             </p>
           </div>
@@ -74,7 +74,7 @@ export function TranscriptTab({ transcript, onSeekToTime, metadata }: Transcript
               {/* Clickable Timestamp */}
               <button
                 onClick={() => handleTimestampClick(segment.start)}
-                className="text-blue-600 hover:text-blue-700 hover:underline font-mono text-sm mb-2 transition-colors flex items-center gap-1"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline font-mono text-sm mb-2 transition-colors flex items-center gap-1"
                 title="Click to jump to this moment"
               >
                 <Clock className="w-3 h-3" />
@@ -82,7 +82,7 @@ export function TranscriptTab({ transcript, onSeekToTime, metadata }: Transcript
               </button>
 
               {/* Segment Text */}
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-foreground leading-relaxed">
                 {segment.text}
               </p>
             </div>
@@ -96,7 +96,7 @@ export function TranscriptTab({ transcript, onSeekToTime, metadata }: Transcript
       return (
         <div className="p-4 space-y-4">
           <div className="prose prose-sm max-w-none">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
               {transcript.text}
             </p>
           </div>
@@ -107,20 +107,20 @@ export function TranscriptTab({ transcript, onSeekToTime, metadata }: Transcript
     // No transcript data at all
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
-        <div className="text-gray-400 mb-3">
+        <div className="text-muted-foreground/40 mb-3">
           <Clock className="w-12 h-12 mx-auto" />
         </div>
-        <p className="text-gray-600 text-center">No original content available</p>
+        <p className="text-muted-foreground text-center">No original content available</p>
       </div>
     );
   };
 
   return (
-    <div className="min-h-full bg-white">
+    <div className="min-h-full bg-background">
       {/* Metadata Bar */}
       {metadata && (metadata.duration || metadata.speakers) && (
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="bg-muted border-b border-border px-4 py-3">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {metadata.duration && (
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />

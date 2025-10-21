@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string; quizId: string } }
+  { params }: { params: Promise<{ jobId: string; quizId: string }> }
 ) {
   // Authenticate user
   const authResult = await requireAuth(request);
@@ -19,7 +19,7 @@ export async function GET(
   }
 
   const { user } = authResult;
-  const { jobId, quizId } = params;
+  const { jobId, quizId } = await params;
 
   try {
     const supabase = await createClient();
@@ -66,7 +66,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { jobId: string; quizId: string } }
+  { params }: { params: Promise<{ jobId: string; quizId: string }> }
 ) {
   // Authenticate user
   const authResult = await requireAuth(request);
@@ -75,7 +75,7 @@ export async function DELETE(
   }
 
   const { user } = authResult;
-  const { jobId, quizId } = params;
+  const { jobId, quizId } = await params;
 
   try {
     const supabase = await createClient();

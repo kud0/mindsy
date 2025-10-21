@@ -55,7 +55,7 @@ export function NinjaFactBox() {
         setDismissed(data.dismissed || false);
         console.info('Daily fact loaded:', data);
       } else {
-        console.info('No daily fact available yet');
+        console.warn('No daily fact available yet - API response:', data);
         setError('Loading your daily fact...');
       }
     } catch (err) {
@@ -110,22 +110,30 @@ export function NinjaFactBox() {
     updateFactState({ collapsed: false });
   };
 
-  // Don't render if dismissed
+  // WAIT for API response before showing anything - we don't know if dismissed yet!
+  if (loading) {
+    return null;
+  }
+
+  // Hide completely if dismissed
   if (dismissed) {
     return null;
   }
 
-  // Get display content (fact or fallback message)
-  const displayContent = factText || error || 'Loading your daily fact...';
+  // If no fact, show collapsed ninja (just icon, no bubble)
+  const shouldShowCollapsed = !factText;
+  const actualCollapsed = shouldShowCollapsed || collapsed;
+
+  const displayContent = factText || '';
   const displayCategory = 'Did You Know?';
-  const isLoadingOrError = loading || (!factText && error);
+  const isLoadingOrError = false;
 
   return (
     <>
-      {/* Ninja fact box - visible on all screens */}
-      <div className="fixed bottom-5 right-5 z-50">
+      {/* Ninja fact box - positioned above bottom navigation on mobile */}
+      <div className="fixed bottom-24 md:bottom-5 right-5 z-50">
         <AnimatePresence mode="wait">
-          {collapsed ? (
+          {actualCollapsed ? (
             // Collapsed State - Just ninja icon with glow
             <motion.div
               key="collapsed"
@@ -154,7 +162,7 @@ export function NinjaFactBox() {
               <img
                 src="/images/ninja.gif"
                 alt="Study Ninja"
-                className="w-20 h-20 relative z-10 mix-blend-multiply dark:mix-blend-screen opacity-90"
+                className="w-14 h-14 md:w-20 md:h-20 relative z-10 mix-blend-multiply dark:mix-blend-screen opacity-90 rounded-full"
                 style={{ mixBlendMode: 'multiply' }}
               />
 
@@ -249,7 +257,7 @@ export function NinjaFactBox() {
                 <img
                   src="/images/ninja.gif"
                   alt="Study Ninja"
-                  className="w-20 h-20 mix-blend-multiply dark:mix-blend-screen opacity-90"
+                  className="w-14 h-14 md:w-20 md:h-20 mix-blend-multiply dark:mix-blend-screen opacity-90 rounded-full"
                   style={{ mixBlendMode: 'multiply' }}
                 />
               </motion.div>

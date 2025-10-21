@@ -12,7 +12,8 @@ interface BaseWidgetProps {
   icon?: React.ElementType;
   iconImage?: string;
   iconSize?: 'default' | 'large';
-  href: string;
+  href?: string;
+  onClick?: () => void;
   color?: string;
   bgColor?: string;
   loading?: boolean;
@@ -28,6 +29,7 @@ export function BaseWidget({
   iconImage,
   iconSize = 'default',
   href,
+  onClick,
   color = "text-primary",
   bgColor = "bg-primary/100",
   loading = false,
@@ -40,7 +42,11 @@ export function BaseWidget({
   const iconSizeClass = iconSize === 'large' ? 'w-10 h-10' : 'w-8 h-8';
 
   const handleNavigate = () => {
-    router.push(href);
+    if (onClick) {
+      onClick();
+    } else if (href) {
+      router.push(href);
+    }
   };
 
   return (
@@ -49,14 +55,14 @@ export function BaseWidget({
       whileHover={{ scale: 1.008, y: -2 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Apple-style Header Section - Increased padding */}
-      <div className="flex items-center justify-between px-5 py-5 bg-card/95 backdrop-blur-md rounded-t-[18px]">
+      {/* Apple-style Header Section - Compact */}
+      <div className="flex items-center justify-between px-5 py-3 bg-card rounded-t-[18px]">
         <div
           className="flex items-center gap-3 flex-1 cursor-pointer rounded-lg px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-muted/50"
           onClick={handleNavigate}
         >
           <div
-            className="w-12 h-12 rounded-[8px] bg-transparent flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+            className="w-12 h-12 rounded-[8px] bg-transparent flex items-center justify-center transition-transform duration-200 group-hover:scale-110 hidden"
           >
             {iconImage ? (
               <img
@@ -69,19 +75,19 @@ export function BaseWidget({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            <h3 className="text-[20px] text-foreground font-semibold">{title}</h3>
+            <h3 className="text-lg text-foreground font-semibold font-[var(--font-space-grotesk)]">{title}</h3>
             {badge}
           </div>
         </div>
         {actions && (
-          <div className="flex items-center gap-2 [&>button]:h-10 [&>button]:w-10 [&>button]:rounded-[4px] [&>button]:text-muted-foreground [&>button]:hover:bg-muted [&>button]:hover:text-foreground [&>button]:transition-colors">
+          <div className="flex items-center gap-2 [&>button]:h-8 [&>button]:w-8 [&>button]:rounded-[4px] [&>button]:text-muted-foreground [&>button]:hover:bg-muted [&>button]:hover:text-foreground [&>button]:transition-colors">
             {actions}
           </div>
         )}
       </div>
 
       {/* Content Area - Increased padding from px-4 py-3 to px-5 py-4 */}
-      <div className="widget-content flex-1 overflow-hidden px-5 py-4 bg-card/95 backdrop-blur-md rounded-b-[18px]">
+      <div className="widget-content flex-1 overflow-hidden px-5 pt-4 pb-3 bg-card rounded-b-[18px]">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

@@ -48,7 +48,8 @@ import {
   RotateCw,
   Paperclip,
   Timer,
-  Folder
+  Folder,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -490,12 +491,35 @@ export default function StudiesWithLectures() {
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'processing':
       case 'uploading':
-        return <Clock className="w-4 h-4 text-blue-500 animate-pulse" />;
+      case 'transcribing':
+      case 'generating':
+        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
       case 'failed':
       case 'error':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
         return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
+
+  // Get status text for processing jobs
+  const getStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return null; // No text needed for completed
+      case 'processing':
+        return 'Processing...';
+      case 'uploading':
+        return 'Uploading...';
+      case 'transcribing':
+        return 'Transcribing...';
+      case 'generating':
+        return 'Generating content...';
+      case 'failed':
+      case 'error':
+        return 'Failed';
+      default:
+        return status;
     }
   };
 
@@ -672,6 +696,7 @@ export default function StudiesWithLectures() {
                   onDelete={handleDeleteClick}
                   onDragStart={handleLectureDragStart}
                   getStatusIcon={getStatusIcon}
+                  getStatusText={getStatusText}
                   studyStats={studyHistory[lecture.job_id]}
                 />
               ))}
@@ -715,6 +740,7 @@ export default function StudiesWithLectures() {
                         onDelete={handleDeleteClick}
                         onDragStart={handleLectureDragStart}
                         getStatusIcon={getStatusIcon}
+                        getStatusText={getStatusText}
                         studyStats={studyHistory[lecture.job_id]}
                         isLast={index === lectures.length - 1}
                       />
@@ -808,6 +834,7 @@ interface LectureCardProps {
   onDelete: (lecture: Note) => void;
   onDragStart: (lecture: Note) => void;
   getStatusIcon: (status: string) => React.ReactNode;
+  getStatusText: (status: string) => string | null;
   studyStats?: {
     totalMinutes: number;
     sessionCount: number;
@@ -817,13 +844,18 @@ interface LectureCardProps {
   isLast?: boolean;
 }
 
-function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats }: LectureCardProps) {
+function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, getStatusText, studyStats }: LectureCardProps) {
+  const isProcessing = ['processing', 'uploading', 'transcribing', 'generating'].includes(lecture.status.toLowerCase());
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div 
+        <div
           draggable
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 h-full group relative bg-card text-card-foreground shadow rounded-xl border border-border border-l-4 border-l-blue-300"
+          className={cn(
+            "cursor-pointer hover:shadow-lg transition-all duration-300 h-full group relative bg-card text-card-foreground shadow rounded-xl border border-border border-l-4",
+            isProcessing ? "border-l-blue-400 bg-blue-50/30 dark:bg-blue-950/10" : "border-l-blue-300"
+          )}
           onClick={onView}
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = 'move';
@@ -836,15 +868,24 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
         <div className="mb-3 min-h-[48px]">
           <div className="flex items-start gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground line-clamp-2 leading-tight break-words group-hover:text-primary transition-colors">
+              <h3 className={cn(
+                "font-semibold line-clamp-2 leading-tight break-words group-hover:text-primary transition-colors",
+                isProcessing ? "text-muted-foreground" : "text-foreground"
+              )}>
                 {lecture.lecture_title}
               </h3>
+              {isProcessing && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1 flex items-center gap-1">
+                  {getStatusIcon(lecture.status)}
+                  <span>{getStatusText(lecture.status)}</span>
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
               {lecture.marked_for_review && (
                 <RotateCw className="w-4 h-4 text-orange-500" title={`Marked for review${lecture.review_reason ? `: ${lecture.review_reason}` : ''}`} />
               )}
-              {getStatusIcon(lecture.status)}
+              {!isProcessing && getStatusIcon(lecture.status)}
             </div>
           </div>
           {/* Course Subject and Date Info */}
@@ -949,10 +990,11 @@ function LectureCard({ lecture, onView, onDownload, onRename, onDelete, onDragSt
 }
 
 // Lecture Row Card Component for List View
-function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, studyStats, isLast }: LectureCardProps) {
+function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDragStart, getStatusIcon, getStatusText, studyStats, isLast }: LectureCardProps) {
   // Check if lecture has downloadable files
   const hasFiles = lecture.status === 'completed';
-  
+  const isProcessing = ['processing', 'uploading', 'transcribing', 'generating'].includes(lecture.status.toLowerCase());
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -960,7 +1002,8 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
           draggable
           className={cn(
             "group relative px-4 py-3 transition-all duration-200 cursor-pointer hover:bg-accent/20",
-            !isLast && "border-b border-border/30"
+            !isLast && "border-b border-border/30",
+            isProcessing && "bg-blue-50/30 dark:bg-blue-950/10"
           )}
           onClick={onView}
           onDragStart={(e) => {
@@ -974,11 +1017,21 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
             {/* Top line: Status icon + title */}
             <div className="flex items-center gap-3">
               {getStatusIcon(lecture.status)}
-              <h3 className="font-medium text-foreground truncate">
-                {lecture.lecture_title}
-              </h3>
+              <div className="flex-1 min-w-0">
+                <h3 className={cn(
+                  "font-medium truncate",
+                  isProcessing ? "text-muted-foreground" : "text-foreground"
+                )}>
+                  {lecture.lecture_title}
+                </h3>
+                {isProcessing && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                    {getStatusText(lecture.status)}
+                  </p>
+                )}
+              </div>
             </div>
-            
+
             {/* Bottom line: Date + subject */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground ml-7">
               <span>
@@ -1004,14 +1057,21 @@ function LectureRowCard({ lecture, onView, onDownload, onRename, onDelete, onDra
 
             {/* Column 2: Title (flexible) */}
             <div className="min-w-0">
-              <h3 className="font-medium text-foreground truncate pr-2">
+              <h3 className={cn(
+                "font-medium truncate pr-2",
+                isProcessing ? "text-muted-foreground" : "text-foreground"
+              )}>
                 {lecture.lecture_title}
               </h3>
-              {lecture.course_subject && (
+              {isProcessing ? (
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium truncate">
+                  {getStatusText(lecture.status)}
+                </p>
+              ) : lecture.course_subject ? (
                 <p className="text-xs text-muted-foreground truncate">
                   {lecture.course_subject}
                 </p>
-              )}
+              ) : null}
             </div>
 
             {/* Column 3: Date (100px) */}

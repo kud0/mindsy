@@ -6,7 +6,8 @@ import { useScroll } from '@/components/dashboard/DashboardWrapper';
 import { ArrowLeft, RefreshCw, Settings, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TabNavigation } from './TabNavigation';
-import { SegmentedControl } from './SegmentedControl';
+import { UnifiedStudentDeskNav } from './UnifiedStudentDeskNav';
+import { FloatingShareButton } from './FloatingShareButton';
 import { OverviewTab } from './tabs/OverviewTab';
 import { QuestionsTab } from './tabs/QuestionsTab';
 import { ExplanationsTab } from './tabs/ExplanationsTab';
@@ -19,8 +20,6 @@ import { MindMapTab } from './tabs/MindMapTab';
 import { PersistentAudioPlayer, PersistentAudioPlayerRef } from './PersistentAudioPlayer';
 import { TutorExplanationSheet } from './TutorExplanationSheet';
 import { TutorHistoryDrawer } from './TutorHistoryDrawer';
-import { ShareButton } from '@/components/share/ShareButton';
-import { StudentDeskNavigation } from './StudentDeskNavigation';
 
 interface StudentDeskProps {
   jobId: string;
@@ -351,21 +350,6 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
     }
   }, [lectureData]);
 
-  // Hide global bottom navbar on student desk
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.id = 'hide-global-nav';
-    style.textContent = `
-      nav.fixed.bottom-0:not(.student-desk-nav) {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.getElementById('hide-global-nav')?.remove();
-    };
-  }, []);
 
   // Preserve scroll position when switching tabs
   const handleTabChange = useCallback((newTabId: string) => {
@@ -567,9 +551,9 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
     return (
       <div className="flex-1 flex items-center justify-center w-full max-w-full overflow-hidden">
         <div className="text-center px-4">
-          <div className="w-8 h-8 border-2 border-black border-t-transparent animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-dark">Loading lecture content...</p>
-          <p className="text-sm text-gray-medium mt-1">Job ID: {jobId}</p>
+          <div className="w-8 h-8 border-2 border-foreground border-t-transparent animate-spin mx-auto mb-4"></div>
+          <p className="text-foreground">Loading lecture content...</p>
+          <p className="text-sm text-muted-foreground mt-1">Job ID: {jobId}</p>
         </div>
       </div>
     );
@@ -579,18 +563,18 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <div className="text-gray-dark mb-4">
+          <div className="text-foreground mb-4">
             <Settings className="w-12 h-12 mx-auto mb-3" />
             <p className="text-lg font-semibold">
               {error?.includes('no content') ? 'No Content Available' : 'Failed to Load Lecture'}
             </p>
           </div>
-          <p className="text-gray-medium mb-4 text-sm">{error || 'Unable to load lecture data'}</p>
+          <p className="text-muted-foreground mb-4 text-sm">{error || 'Unable to load lecture data'}</p>
           <div className="space-y-3">
             {error?.includes('no content') && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <p className="text-blue-900 font-medium mb-1">Content is being generated</p>
-                <p className="text-blue-700">This may take a few minutes. Please check back shortly.</p>
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm">
+                <p className="text-blue-900 dark:text-blue-100 font-medium mb-1">Content is being generated</p>
+                <p className="text-blue-700 dark:text-blue-300">This may take a few minutes. Please check back shortly.</p>
               </div>
             )}
             <div className="flex gap-2 justify-center">
@@ -603,7 +587,7 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
               </Button>
             </div>
           </div>
-          <p className="text-xs text-gray-medium mt-4">
+          <p className="text-xs text-muted-foreground mt-4">
             Job ID: {jobId}
           </p>
         </div>
@@ -642,9 +626,9 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
   };
 
   return (
-    <div className="student-desk-page flex flex-col bg-white h-screen w-full max-w-full overflow-hidden">
+    <div className="student-desk-page flex flex-col bg-background h-screen w-full max-w-full overflow-hidden">
       {/* Top App Bar */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-light w-full overflow-hidden shrink-0">
+      <header className="sticky top-0 z-40 bg-background border-b border-border w-full overflow-hidden shrink-0">
         <div className="flex items-center px-4 h-14">
           <div className="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden">
             <Button
@@ -658,10 +642,10 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
             </Button>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-semibold truncate text-black">
+              <h1 className="text-lg font-semibold truncate text-foreground">
                 {lectureData.metadata.title}
               </h1>
-              <div className="flex items-center gap-2 text-xs text-gray-medium">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{lectureData.metadata.difficulty}</span>
                 <span>•</span>
                 <span>{lectureData.metadata.estimatedTime}</span>
@@ -669,23 +653,20 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
                 <span>{lectureData.metadata.subjectDomain}</span>
               </div>
             </div>
-
-            {/* Share Button */}
-            <div className="shrink-0">
-              <ShareButton
-                jobId={jobId}
-                lectureTitle={lectureData.metadata.title}
-                variant="icon"
-              />
-            </div>
           </div>
         </div>
       </header>
 
+      {/* Floating Share Button */}
+      <FloatingShareButton
+        jobId={jobId}
+        lectureTitle={lectureData.metadata.title}
+      />
+
       {/* Tab Strip - Only show when Study Materials mode is active */}
       {activeMode === 'summary' && (
         <div
-          className="w-full border-b border-gray-light transition-all duration-300 ease-out shrink-0"
+          className="w-full border-b border-border transition-all duration-300 ease-out shrink-0"
           style={{
             animation: 'slideInFromTop 300ms ease-out',
             transformOrigin: 'top'
@@ -752,11 +733,11 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
         </div>
       </div>
 
-      {/* Segmented Control - Fixed at bottom, above nav */}
-      <SegmentedControl
-        activeOptionId={activeMode}
-        onOptionChange={setActiveMode}
-        isScrolled={true}
+      {/* Unified Student Desk Navigation */}
+      <UnifiedStudentDeskNav
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        jobId={jobId}
       />
 
       {/* AI Tutor Explanation Sheet */}
@@ -794,10 +775,6 @@ export default function StudentDesk({ jobId }: StudentDeskProps) {
           )}
         </button>
       )}
-
-      {/* Student Desk Navigation */}
-      <StudentDeskNavigation jobId={jobId} />
-
     </div>
   );
 }

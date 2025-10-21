@@ -140,7 +140,7 @@ export function CourseDiscoveryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { resetForm(); onClose(); } }}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto dark:bg-background/90 dark:backdrop-blur-2xl border-gray-200/50 dark:border-white/10 shadow-xl dark:shadow-2xl dark:shadow-black/50">
         <DialogHeader>
           <DialogTitle>{getStepTitle()}</DialogTitle>
         </DialogHeader>

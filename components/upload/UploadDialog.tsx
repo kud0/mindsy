@@ -67,6 +67,7 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [jobCreated, setJobCreated] = useState(false);
 
   // Audio playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -99,6 +100,7 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
+      setJobCreated(false);
     }
   }, [open]);
 
@@ -122,21 +124,29 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
         toast.error('Audio file must be less than 500MB');
         return;
       }
-      
+
       const audioUrl = URL.createObjectURL(file);
       setAudioFile({ file, preview: audioUrl });
-      
-      // Auto-fill title from filename
+
+      // Auto-generate lecture title from filename if empty
       if (!lectureTitle) {
-        const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, '');
-        setLectureTitle(nameWithoutExtension);
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+        const cleanName = nameWithoutExt.replace(/[_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        setLectureTitle(cleanName);
       }
     } else if (type === 'document') {
       if (file.size > 50 * 1024 * 1024) { // 50MB limit per file
         toast.error('Document files must be less than 50MB each');
         return;
       }
-      
+
+      // Auto-generate lecture title from first document filename if empty
+      if (!lectureTitle && documentFiles.length === 0) {
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+        const cleanName = nameWithoutExt.replace(/[_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        setLectureTitle(cleanName);
+      }
+
       setDocumentFiles(prev => [...prev, { file }]);
     }
   };
@@ -266,10 +276,28 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
         formData.append('linkUrl', linkUrl);
         formData.append('linkType', linkType);
       } else if (activeTab === 'documents') {
+        console.log('📄 Documents tab - preparing upload:', {
+          documentCount: documentFiles.length,
+          fileNames: documentFiles.map(doc => doc.file.name),
+          fileSizes: documentFiles.map(doc => `${(doc.file.size / 1024 / 1024).toFixed(2)}MB`)
+        });
         documentFiles.forEach((doc, index) => {
+          console.log(`📄 Adding document ${index} to FormData:`, {
+            fieldName: `document_${index}`,
+            fileName: doc.file.name,
+            fileType: doc.file.type,
+            fileSize: `${(doc.file.size / 1024 / 1024).toFixed(2)}MB`
+          });
           formData.append(`document_${index}`, doc.file);
         });
       }
+
+      console.log('📄 Sending upload request to /api/upload with:', {
+        uploadType: activeTab,
+        lectureTitle,
+        processingMode,
+        hasDocuments: activeTab === 'documents' ? documentFiles.length : 0
+      });
 
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
@@ -284,24 +312,17 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
 
       const uploadData = await uploadResponse.json();
 
-      // Show success message and close dialog immediately after upload
-      toast.success('Upload successful! Processing started in the background.');
-      
-      // Close dialog right after upload succeeds
-      onOpenChange(false);
-      
-      // If user is not on lectures page, redirect there
-      if (!window.location.pathname.includes('/dashboard/lectures')) {
-        router.push('/dashboard/lectures');
-      } else {
-        // If already on lectures page, just refresh the data
-        router.refresh();
-      }
+      console.log('📄 Upload API response received:', {
+        success: uploadData.success,
+        message: uploadData.message,
+        hasData: !!uploadData.data,
+        dataKeys: uploadData.data ? Object.keys(uploadData.data) : [],
+        fullResponse: uploadData
+      });
 
       setUploadProgress({ status: 'processing', progress: 50 });
 
-      // Step 2: Generate notes from uploaded content (continues in background)
-      // Note: Processing continues even after dialog closes
+      // Step 2: Generate notes from uploaded content
       const generatePayload: any = {
         lectureTitle,
         processingMode: processingMode || 'enhance',
@@ -310,7 +331,17 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
 
       // Add type-specific data - Access nested data from createSuccessResponse wrapper
       const responseData = uploadData.data || uploadData; // Handle both wrapped and unwrapped responses
-      
+
+      console.log('📄 Extracting responseData:', {
+        hasUploadDataData: !!uploadData.data,
+        responseDataKeys: Object.keys(responseData),
+        documentPaths: responseData.documentPaths,
+        documentPathsType: typeof responseData.documentPaths,
+        documentPathsIsArray: Array.isArray(responseData.documentPaths),
+        audioPath: responseData.audioPath,
+        pdfPath: responseData.pdfPath
+      });
+
       if (activeTab === 'audio') {
         if (!responseData.audioPath) {
           console.error('Upload response missing audioPath:', uploadData);
@@ -330,8 +361,23 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
       } else if (activeTab === 'link') {
         generatePayload.linkData = responseData.linkData;
       } else if (activeTab === 'documents') {
+        console.log('📄 Documents tab - setting documentPaths in payload:', {
+          documentPaths: responseData.documentPaths,
+          isNull: responseData.documentPaths === null,
+          isUndefined: responseData.documentPaths === undefined,
+          isArray: Array.isArray(responseData.documentPaths),
+          length: responseData.documentPaths?.length
+        });
         generatePayload.documentPaths = responseData.documentPaths;
       }
+
+      console.log('📄 Final generate payload before sending to /api/generate:', {
+        uploadType: generatePayload.uploadType,
+        hasDocumentPaths: !!generatePayload.documentPaths,
+        documentPaths: generatePayload.documentPaths,
+        payloadKeys: Object.keys(generatePayload),
+        fullPayload: generatePayload
+      });
 
       const generateResponse = await fetch('/api/generate', {
         method: 'POST',
@@ -344,22 +390,28 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
       const generateData = await generateResponse.json();
 
       if (!generateResponse.ok) {
-        // If processing fails after dialog is closed, show error toast
         toast.error(`Processing failed: ${generateData.error || generateData.data?.error || 'Unknown error'}`);
         return;
       }
 
-      // Processing completed successfully
-      const generateResponseData = generateData.data || generateData;
-      console.log('✅ Generate API completed successfully:', {
-        jobId: generateResponseData.jobId,
-        status: generateResponseData.status
+      // Job created successfully - mark as created for UI feedback
+      setJobCreated(true);
+
+      // Show success toast with processing status
+      toast.success('Processing lecture in background', {
+        description: 'Your lecture will appear in the list shortly',
+        duration: 4000
       });
-      
-      // Show success message
-      toast.success('Study guide generated successfully!', {
-        description: `Processing completed in ${generateResponseData.transcriptionTime || 'a few'} seconds`
-      });
+
+      // Close dialog immediately - job will show up via real-time updates
+      onOpenChange(false);
+
+      // Navigate to lectures page if not already there
+      if (!window.location.pathname.includes('/dashboard/lectures')) {
+        router.push('/dashboard/lectures');
+      }
+
+      console.log('✅ Generate API: Job created, processing in background');
       
     } catch (error) {
       console.error('Upload error:', error);
@@ -442,33 +494,34 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 mx-auto my-4 w-full max-w-[calc(100vw-2rem)] sm:w-full">
-        <DialogHeader>
-          <DialogTitle>Upload Lecture Content</DialogTitle>
+      <DialogContent className="w-[95vw] max-w-2xl h-[85vh] overflow-hidden p-0 flex flex-col bg-white/95 dark:bg-background/90 backdrop-blur-xl dark:backdrop-blur-2xl shadow-xl dark:shadow-2xl dark:shadow-black/50 border border-gray-200/50 dark:border-border">
+        <DialogHeader className="border-b border-gray-200/50 dark:border-gray-700/50 p-4 flex-shrink-0 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <DialogTitle>Create New Lecture</DialogTitle>
           <DialogDescription>
-            Upload audio, links, or documents for lecture processing
+            Create a new lecture from audio, documents, or links
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="audio" className="flex items-center gap-2 px-2 sm:px-4">
-              <FileAudio className="w-4 h-4" />
-              <span className="hidden sm:inline">Audio</span>
-            </TabsTrigger>
-            <TabsTrigger value="link" className="flex items-center gap-2 px-2 sm:px-4">
-              <Link className="w-4 h-4" />
-              <span className="hidden sm:inline">Link</span>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2 px-2 sm:px-4">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Documents</span>
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="h-full flex flex-col p-4">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm p-0.5 rounded-lg flex-shrink-0 mb-3 border border-gray-200/50 dark:border-gray-700/50">
+              <TabsTrigger value="audio" className="flex items-center gap-2 px-2 sm:px-4 data-[state=active]:bg-white/95 dark:data-[state=active]:bg-gray-900/95 rounded-md transition-all">
+                <FileAudio className="w-4 h-4" />
+                <span className="hidden sm:inline">Audio</span>
+              </TabsTrigger>
+              <TabsTrigger value="link" className="flex items-center gap-2 px-2 sm:px-4 data-[state=active]:bg-white/95 dark:data-[state=active]:bg-gray-900/95 rounded-md transition-all">
+                <Link className="w-4 h-4" />
+                <span className="hidden sm:inline">Link</span>
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-2 px-2 sm:px-4 data-[state=active]:bg-white/95 dark:data-[state=active]:bg-gray-900/95 rounded-md transition-all">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Documents</span>
+              </TabsTrigger>
+            </TabsList>
 
           {/* Audio Upload Tab */}
-          <TabsContent value="audio" className="space-y-2 sm:space-y-3">
-            <Card>
+          <TabsContent value="audio" className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto pr-1">
+            <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 backdrop-blur-xl">
               <CardContent className="p-3 sm:p-4">
                 {!audioFile?.preview ? (
                   // Upload area when no file is selected
@@ -578,8 +631,8 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
           </TabsContent>
 
           {/* Link Upload Tab */}
-          <TabsContent value="link" className="space-y-3">
-            <Card>
+          <TabsContent value="link" className="space-y-3 flex-1 overflow-y-auto pr-1">
+            <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 backdrop-blur-xl">
               <CardContent className="p-3 sm:p-4">
                 <div
                   className={cn(
@@ -610,8 +663,8 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
           </TabsContent>
 
           {/* Documents Upload Tab */}
-          <TabsContent value="documents" className="space-y-3">
-            <Card>
+          <TabsContent value="documents" className="space-y-3 flex-1 overflow-y-auto pr-1">
+            <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 backdrop-blur-xl">
               <CardContent className="p-3 sm:p-4">
                 <div
                   className={cn(
@@ -659,11 +712,11 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-
+          </Tabs>
+        </div>
 
         {documentFiles.length > 0 && (
-          <Card>
+          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 backdrop-blur-xl mx-4">
             <CardContent className="p-4">
               <h4 className="font-medium mb-3">Selected Documents:</h4>
               <div className="space-y-2">
@@ -696,7 +749,7 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
         )}
 
         {/* Common Form Fields */}
-        <Card>
+        <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 backdrop-blur-xl mx-4">
           <CardContent className="p-4 space-y-3">
             <h3 className="text-lg font-medium">Lecture Details</h3>
             
@@ -706,19 +759,11 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
                 id="lectureTitle"
                 value={lectureTitle}
                 onChange={(e) => setLectureTitle(e.target.value)}
-                placeholder="Type to search existing lectures or create new..."
+                placeholder="Enter lecture title..."
                 disabled={isUploading}
-                list="lectures-list"
               />
-              <datalist id="lectures-list">
-                <option value="Introduction to Machine Learning" />
-                <option value="Data Structures and Algorithms" />
-                <option value="Web Development Fundamentals" />
-                <option value="Database Design Principles" />
-                <option value="Software Engineering Best Practices" />
-              </datalist>
               <p className="text-xs text-muted-foreground mt-1">
-                Start typing to see existing lectures or enter a new title
+                Enter a title for your new lecture
               </p>
             </div>
 
@@ -729,7 +774,7 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
 
         {/* Upload Progress */}
         {uploadProgress && (
-          <Card>
+          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/5 dark:bg-gray-900/5 backdrop-blur-xl mx-4">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-medium">
@@ -772,23 +817,25 @@ export function UploadDialog({ open, onOpenChange, defaultTab = 'audio' }: Uploa
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-between">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUploading}>
-            Cancel
-          </Button>
-          <Button onClick={handleUpload} disabled={isUploading}>
-            {isUploading ? (
-              <>
-                <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
-                <span className="hidden sm:inline">Uploading...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Upload & Process</span>
-              </>
-            )}
-          </Button>
+        <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 flex-shrink-0">
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUploading}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpload} disabled={isUploading}>
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Upload & Process</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -128,7 +128,7 @@ export function AppMenuPopover() {
         <AnimatePresence>
           {open && (
             <Popover.Content
-              className="z-50 w-[320px] rounded-xl bg-white dark:bg-gray-900 p-4 text-foreground shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 !outline-none"
+              className="z-50 w-[320px] rounded-xl bg-white dark:bg-background/95 dark:backdrop-blur-xl p-4 text-foreground shadow-lg dark:shadow-xl dark:shadow-black/30 border border-gray-200 dark:border-border !outline-none"
               sideOffset={5}
               align="end"
             >

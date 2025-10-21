@@ -5,6 +5,7 @@ import { GraduationCap, Plus, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseWidget } from './BaseWidget';
 import { Progress } from '@/components/ui/progress';
+import { ExamQuest } from '@/components/profile/ExamQuest';
 
 interface ExamAttempt {
   id: string;
@@ -34,9 +35,28 @@ export function ExamsWidget() {
     recentExams: []
   });
   const [loading, setLoading] = useState(true);
+  const [quest, setQuest] = useState<any>(null);
 
   useEffect(() => {
     fetchExamStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchQuest = async () => {
+      try {
+        const res = await fetch('/api/profile/daily-quests?questId=2');
+        const { data } = await res.json();
+        setQuest(data?.quest || null);
+      } catch (error) {
+        console.error('Failed to fetch exam quest:', error);
+      }
+    };
+
+    fetchQuest();
+
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(fetchQuest, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchExamStats = async () => {
@@ -146,6 +166,9 @@ export function ExamsWidget() {
               </p>
             </div>
           )}
+
+          {/* ExamQuest - placed at bottom */}
+          {quest && <ExamQuest quest={quest} onComplete={fetchExamStats} />}
         </div>
       )}
     </BaseWidget>

@@ -55,13 +55,13 @@ export function MaterialsTab({ jobId }: MaterialsTabProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'pdf':
-        return <FileText className="w-5 h-5 text-gray-700" />;
+        return <FileText className="w-5 h-5 text-foreground" />;
       case 'txt':
       case 'doc':
       case 'docx':
-        return <File className="w-5 h-5 text-gray-700" />;
+        return <File className="w-5 h-5 text-foreground" />;
       default:
-        return <File className="w-5 h-5 text-gray-700" />;
+        return <File className="w-5 h-5 text-foreground" />;
     }
   };
 
@@ -109,8 +109,8 @@ export function MaterialsTab({ jobId }: MaterialsTabProps) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
-          <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-gray-500" />
-          <p className="text-gray-500">Loading materials...</p>
+          <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground">Loading materials...</p>
         </div>
       </div>
     );
@@ -120,10 +120,10 @@ export function MaterialsTab({ jobId }: MaterialsTabProps) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">Failed to load materials</p>
-          <button 
+          <p className="text-muted-foreground mb-4">Failed to load materials</p>
+          <button
             onClick={loadMaterials}
-            className="px-4 py-2 text-sm border border-gray-medium text-gray-700 hover:border-gray-dark hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm border border-border text-foreground hover:border-border/80 hover:bg-muted transition-colors"
           >
             Retry
           </button>
@@ -135,18 +135,18 @@ export function MaterialsTab({ jobId }: MaterialsTabProps) {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-2 pb-6 border-b border-gray-200">
-        <h2 className="text-2xl font-semibold text-gray-900">Study Materials</h2>
-        <p className="text-gray-500">
+      <div className="text-center space-y-2 pb-6 border-b border-border">
+        <h2 className="text-2xl font-semibold text-foreground">Study Materials</h2>
+        <p className="text-muted-foreground">
           {materials.length === 0 ? 'No materials available' : `${materials.length} file${materials.length === 1 ? '' : 's'} available`}
         </p>
       </div>
 
       {materials.length === 0 ? (
         <div className="text-center py-12">
-          <File className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-700 mb-2">No Materials Available</h3>
-          <p className="text-gray-500">
+          <File className="w-16 h-16 mx-auto mb-4 text-muted-foreground/40" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No Materials Available</h3>
+          <p className="text-muted-foreground">
             Materials will appear here when they are uploaded or generated for this lecture.
           </p>
         </div>
@@ -154,47 +154,47 @@ export function MaterialsTab({ jobId }: MaterialsTabProps) {
         <div className="space-y-3">
           {materials.map((material) => {
             const isDownloading = downloadingIds.has(material.id);
-            
+
             return (
-              <div key={material.id} className="p-4 border border-gray-200 hover:bg-gray-50 transition-colors">
+              <div key={material.id} className="p-4 border border-border hover:bg-muted transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {getFileIcon(material.type)}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate">{material.name}</h3>
+                      <h3 className="font-medium text-foreground truncate">{material.name}</h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500 uppercase">{material.type}</span>
-                        <span className="text-gray-300">•</span>
-                        <span className="text-xs text-gray-500">{material.size}</span>
+                        <span className="text-xs text-muted-foreground uppercase">{material.type}</span>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span className="text-xs text-muted-foreground">{material.size}</span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 ml-4">
                     {/* View Button */}
                     <button
                       onClick={() => handleView(material)}
-                      className="p-2 border border-gray-200 hover:border-gray-medium hover:bg-white transition-colors"
+                      className="p-2 border border-border hover:border-border/80 hover:bg-background transition-colors"
                       title={material.type === 'pdf' ? 'View PDF' : 'Open file'}
                     >
                       {material.type === 'pdf' ? (
-                        <Eye className="w-4 h-4 text-gray-700" />
+                        <Eye className="w-4 h-4 text-foreground" />
                       ) : (
-                        <ExternalLink className="w-4 h-4 text-gray-700" />
+                        <ExternalLink className="w-4 h-4 text-foreground" />
                       )}
                     </button>
-                    
+
                     {/* Download Button */}
                     <button
                       onClick={() => handleDownload(material)}
                       disabled={isDownloading}
-                      className="p-2 border border-gray-200 hover:border-gray-medium hover:bg-white transition-colors disabled:opacity-50"
+                      className="p-2 border border-border hover:border-border/80 hover:bg-background transition-colors disabled:opacity-50"
                       title="Download file"
                     >
                       {isDownloading ? (
-                        <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
                       ) : (
-                        <Download className="w-4 h-4 text-gray-700" />
+                        <Download className="w-4 h-4 text-foreground" />
                       )}
                     </button>
                   </div>
@@ -207,20 +207,20 @@ export function MaterialsTab({ jobId }: MaterialsTabProps) {
 
       {/* Instructions */}
       {materials.length > 0 && (
-        <div className="border-t border-gray-200 pt-6">
-          <div className="p-4 border border-gray-200">
-            <h4 className="font-medium text-gray-900 mb-2 text-sm">How to Use Materials</h4>
-            <ul className="space-y-1 text-sm text-gray-700">
+        <div className="border-t border-border pt-6">
+          <div className="p-4 border border-border">
+            <h4 className="font-medium text-foreground mb-2 text-sm">How to Use Materials</h4>
+            <ul className="space-y-1 text-sm text-foreground">
               <li className="flex items-start gap-2">
-                <Eye className="w-3 h-3 mt-1 text-gray-500" />
+                <Eye className="w-3 h-3 mt-1 text-muted-foreground" />
                 Click the view icon to open PDFs in a new tab
               </li>
               <li className="flex items-start gap-2">
-                <Download className="w-3 h-3 mt-1 text-gray-500" />
+                <Download className="w-3 h-3 mt-1 text-muted-foreground" />
                 Click the download icon to save files to your device
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 bg-gray-dark flex-shrink-0 mt-1.5"></span>
+                <span className="w-1.5 h-1.5 bg-foreground flex-shrink-0 mt-1.5"></span>
                 Use materials alongside the lecture content for comprehensive study
               </li>
             </ul>
