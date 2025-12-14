@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  FileText, 
-  GitCompare, 
+import {
+  ArrowLeft,
+  FileText,
+  GitCompare,
   Eye,
   HelpCircle,
   BookOpen,
@@ -29,7 +29,16 @@ interface ComparisonData {
   };
 }
 
+// Wrapper component for Suspense boundary
 export default function ComparisonPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center p-8"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent animate-spin"></div></div>}>
+      <ComparisonContent />
+    </Suspense>
+  );
+}
+
+function ComparisonContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const files = searchParams.get('files')?.split(',') || [];
